@@ -3,25 +3,12 @@ import * as Config from "./config";
 import * as spawner from "classes/spawner";
 import * as harvester from "classes/harvester";
 import * as skeleton from "classes/skeleton";
-// import * as builder from "classes/builder";
+import * as builder from "classes/builder";
 import * as upgrader from "classes/upgrader";
-
-// export let creeps: Creep[];
-// export let creepCount: number = 0;
-
-// export let harvesters: Creep[] = [];
-
-// function _loadCreeps(room: Room) {
-//   creeps = room.find(FIND_MY_CREEPS);
-//   // creepCount = _.size(creeps);
-
-//   // Iterate through each creep and push them into the role array.
-//   // harvesters = _.filter(creeps, (creep) => creep.memory.role === "harvester");
-// }
 
 const run_all_classes : Record<string, any> = {
   'harvester': harvester,
-  // 'builder': builder,
+  'builder': builder,
   'upgrader': upgrader
 }
 
@@ -40,6 +27,7 @@ declare global {
     uuid: number;
     log: any;
     debug_mode: boolean;
+    debug_speak: boolean;
   }
 
   interface CreepMemory {
@@ -72,7 +60,7 @@ export const loop = ErrorMapper.wrapLoop(() => {
 
   for (const spawn_name in Game.spawns) {
     spawner.handle_creep_spawning(Game.spawns[spawn_name])
-
+    spawner.create_buildings(Game.spawns[spawn_name])
     let creeps = Game.spawns[spawn_name].room.find(FIND_MY_CREEPS);
     _.each(creeps, (creep: Creep) => {
       skeleton.manageRenew(creep);

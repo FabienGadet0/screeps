@@ -12,21 +12,26 @@ function _FIND_SPAWN(c: string | Creep): StructureSpawn
 }
 
 //todo add closest source etc.
-function _FIND_SOURCE(creep: Creep): Source
+function _FIND_SOURCE(room: Room): Source
 {
-    return creep.room.find(FIND_SOURCES_ACTIVE)[0]
+    return room.find(FIND_SOURCES_ACTIVE)[0]
 }
 
-function _C(code: ScreepsReturnCode) {
+function _FIND_CONSTRUCTION_SITES(room: Room): any
+{
+    return room.find(FIND_CONSTRUCTION_SITES);
+}
+
+function _C(code: ScreepsReturnCode | CreepMoveReturnCode | number) {
     if (code !== OK && Memory.debug_mode)
         console.log("[ERROR] :" + code)
 }
 
-function _FIND_CONTROLLER(creep: Creep):  StructureController | undefined
+function _FIND_CONTROLLER(room: Room):  StructureController | undefined
 {
-    return creep.room.controller
+    return room.controller
 }
 
 
 
-export {_FIND_SPAWN,_FIND_SOURCE, _FIND_CONTROLLER,_C}
+export {_FIND_SPAWN,_FIND_SOURCE, _FIND_CONTROLLER,_FIND_CONSTRUCTION_SITES,_C}

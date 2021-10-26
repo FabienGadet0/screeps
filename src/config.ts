@@ -2,8 +2,8 @@ export const DEFAULT_MIN_LIFE_BEFORE_NEEDS_REFILL = 700
 
 export const limit_per_role: Record<string, number> = {
     'harvester': 2,
-    'builder': 2,
-    'upgrader': 1
+    'builder': 5,
+    'upgrader': 2
 }
 
 

@@ -3,10 +3,10 @@ import * as skeleton from "./skeleton";
 import {_FIND_SPAWN,_FIND_SOURCE, _C} from "../utils/utils"
 
 function _harvest(creep: Creep, opts?: {} | undefined): void {
-    let source: Source = _FIND_SOURCE(creep)
+    let source: Source = _FIND_SOURCE(creep.room)
 
     if (source)
-        creep.pos.isNearTo(source) ? creep.harvest(source) : creep.moveTo(source.pos);
+        creep.pos.isNearTo(source) ? creep.harvest(source) : skeleton.moveTo(creep,source.pos);
 }
 
 function _transfer_to_spawn(creep: Creep): void {
@@ -14,7 +14,7 @@ function _transfer_to_spawn(creep: Creep): void {
     if (creep.pos.isNearTo(spawn))
         _C(creep.transfer(spawn, RESOURCE_ENERGY));
     else
-        _C(creep.moveTo(spawn.pos))
+        _C(skeleton.moveTo(creep,spawn.pos))
 }
 
 export function run(creep: Creep) {
