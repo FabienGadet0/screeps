@@ -22,5 +22,11 @@ function _C(code: ScreepsReturnCode) {
         console.log("[ERROR] :" + code)
 }
 
+function _FIND_CONTROLLER(creep: Creep):  StructureController | undefined
+{
+    return creep.room.controller
+}
 
-export {_FIND_SPAWN,_FIND_SOURCE, _C}
+
+
+export {_FIND_SPAWN,_FIND_SOURCE, _FIND_CONTROLLER,_C}

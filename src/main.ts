@@ -4,7 +4,7 @@ import * as spawner from "classes/spawner";
 import * as harvester from "classes/harvester";
 import * as skeleton from "classes/skeleton";
 // import * as builder from "classes/builder";
-// import * as upgrader from "classes/upgrader";
+import * as upgrader from "classes/upgrader";
 
 // export let creeps: Creep[];
 // export let creepCount: number = 0;
@@ -22,7 +22,7 @@ import * as skeleton from "classes/skeleton";
 const run_all_classes : Record<string, any> = {
   'harvester': harvester,
   // 'builder': builder,
-  // 'upgrader': upgrader_bodyparts
+  'upgrader': upgrader
 }
 
 
