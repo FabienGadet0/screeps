@@ -1,0 +1,28 @@
+{
+  "semi": true,
+  "tabWidth": 4,
+  "printWidth": 140,
+  "useTabs": false,
+  "trailingComma": "all",
+  "overrides": [
+      {
+          "files": "package*.json",
+          "options": {
+              "tabWidth": 2,
+              "trailingComma": "none"
+          }
+      },
+      {
+          "files": ".travis.yml",
+          "options": {
+              "tabWidth": 2
+          }
+      },
+      {
+          "files": "*.md",
+          "options": {
+              "tabWidth": 2
+          }
+      }
+  ]
+}
