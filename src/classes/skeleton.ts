@@ -1,17 +1,13 @@
 import { ErrorMapper } from "utils/ErrorMapper";
+import { _FIND_SPAWN } from "utils/utils";
 import * as Config from "../config";
 
 //* Skeleton for all  creeps
 
 // A wrapper for `Creep.moveTo()`.
-export function moveTo(creep: Creep, target: Structure | RoomPosition): number {
-  let result: number = 0;
-
-  // Execute moves by cached paths at first
-  result = creep.moveTo(target);
-
-  return result;
-}
+// export function moveTo(creep: Creep, target: Structure | RoomPosition): number {
+//   return creep.moveTo(target);
+// }
 
 // Returns true if the `ticksToLive` of a creep has dropped below the renew limit set in config.
 export function needsRenew(creep: Creep): boolean {
@@ -33,8 +29,9 @@ export function moveToRenew(creep: Creep, spawn: StructureSpawn): void {
   }
 }
 
-export function manageRenew(creep: Creep, spawn: StructureSpawn): void {
+export function manageRenew(creep: Creep): void {
   if (needsRenew(creep)) {
+    const spawn = _FIND_SPAWN(creep)
     if (tryRenew(creep, spawn) === ERR_NOT_IN_RANGE) {
       creep.moveTo(spawn);
     }
@@ -49,7 +46,7 @@ export function getEnergy(creep: Creep, roomObject: RoomObject): void {
     if (creep.pos.isNearTo(energy)) {
       creep.pickup(energy);
     } else {
-      moveTo(creep, energy.pos);
+      creep.moveTo(energy.pos);
     }
   }
 }

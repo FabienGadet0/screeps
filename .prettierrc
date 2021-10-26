@@ -2,7 +2,7 @@
   "semi": true,
   "tabWidth": 4,
   "printWidth": 140,
-  "useTabs": false,
+  "useTabs": true,
   "trailingComma": "all",
   "overrides": [
       {

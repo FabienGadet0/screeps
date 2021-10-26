@@ -1,26 +1,23 @@
 import * as Config from "../config";
 import * as skeleton from "./skeleton";
+import {_FIND_SPAWN,_FIND_SOURCE, _C} from "../utils/utils"
 
-function _harvest(creep: Creep, opts? : {} | undefined): void {
-    let source: Source = creep.room.find(FIND_SOURCES_ACTIVE)[0]
+function _harvest(creep: Creep, opts?: {} | undefined): void {
+    let source: Source = _FIND_SOURCE(creep)//creep.room.find(FIND_SOURCES_ACTIVE)[0]
 
     if (source) {
-        creep.pos.isNearTo(source) ? creep.harvest(source) : skeleton.moveTo(creep, source.pos);
+        creep.pos.isNearTo(source) ? creep.harvest(source) : creep.moveTo(source.pos);
       }
 }
 
 function _transfer_to_spawn(creep: Creep): void {
-    let spawn: StructureSpawn = creep.room.find(FIND_MY_SPAWNS)[0]
-    if (creep.pos.isNearTo(spawn)) {
-        creep.transfer(spawn, RESOURCE_ENERGY);
-    }
-    else {
-        skeleton.moveTo(creep, spawn.pos);
-      }
+    let spawn = _FIND_SPAWN(creep)
+    if (creep.pos.isNearTo(spawn))
+        _C(creep.transfer(spawn, RESOURCE_ENERGY));
+    else
+        _C(creep.moveTo(spawn.pos))
 }
 
 export function run(creep: Creep) {
-    console.log("test" + creep.name)
-    skeleton.manageRenew(creep, Game.spawns[creep.memory.room]);
-    creep.store[RESOURCE_ENERGY] < creep.store.getCapacity() ? _harvest(creep) : _transfer_to_spawn(creep)
+    creep.store[RESOURCE_ENERGY] < creep.store.getCapacity() && creep.memory.working ? _harvest(creep) : _transfer_to_spawn(creep)
 }

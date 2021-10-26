@@ -2,19 +2,29 @@ import { ErrorMapper } from "utils/ErrorMapper";
 import * as Config from "./config";
 import * as spawner from "classes/spawner";
 import * as harvester from "classes/harvester";
+import * as skeleton from "classes/skeleton";
+// import * as builder from "classes/builder";
+// import * as upgrader from "classes/upgrader";
 
-export let creeps: Creep[];
-export let creepCount: number = 0;
+// export let creeps: Creep[];
+// export let creepCount: number = 0;
 
-export let harvesters: Creep[] = [];
+// export let harvesters: Creep[] = [];
 
-function _loadCreeps(room: Room) {
-  creeps = room.find(FIND_MY_CREEPS);
-  creepCount = _.size(creeps);
+// function _loadCreeps(room: Room) {
+//   creeps = room.find(FIND_MY_CREEPS);
+//   // creepCount = _.size(creeps);
 
-  // Iterate through each creep and push them into the role array.
-  harvesters = _.filter(creeps, (creep) => creep.memory.role === "harvester");
+//   // Iterate through each creep and push them into the role array.
+//   // harvesters = _.filter(creeps, (creep) => creep.memory.role === "harvester");
+// }
+
+const run_all_classes : Record<string, any> = {
+  'harvester': harvester,
+  // 'builder': builder,
+  // 'upgrader': upgrader_bodyparts
 }
+
 
 declare global {
   /*
@@ -29,12 +39,14 @@ declare global {
   interface Memory {
     uuid: number;
     log: any;
+    debug_mode: boolean;
   }
 
   interface CreepMemory {
     role: string;
     room: string;
     working: boolean;
+    spawn_name: string;
   }
 
   // Syntax for adding proprties to `global` (ex "global.log")
@@ -58,21 +70,13 @@ export const loop = ErrorMapper.wrapLoop(() => {
     }
   }
 
-  //   for (let creep in _.filter(Memory.creeps, { role: "harvester" })) {
-  //     harvester.run(creep)
-
-  //     }
-  // }
-
   for (const spawn_name in Game.spawns) {
-  //* Spawn new creeps
-  if (spawner.space_available(Game.spawns[spawn_name], "harvester")) {
-      spawner.spawn_creep(Game.spawns[spawn_name], "", "harvester")
-    }
+    spawner.handle_creep_spawning(Game.spawns[spawn_name])
 
-    _loadCreeps(Game.spawns[spawn_name].room)
-    _.each(harvesters, (creep: Creep) => {
-        harvester.run(creep)
+    let creeps = Game.spawns[spawn_name].room.find(FIND_MY_CREEPS);
+    _.each(creeps, (creep: Creep) => {
+      skeleton.manageRenew(creep);
+      run_all_classes[creep.memory.role].run(creep)
       }
     );
   }
