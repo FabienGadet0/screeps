@@ -1,7 +1,7 @@
 //? Spawns handler
 import { config } from "chai";
 import * as Config from "../config";
-import { _FIND_SPAWN, _FIND_SOURCE,_FIND_CONTROLLER, _FIND_CONSTRUCTION_SITES, _C } from "../utils/utils"
+import { _FIND_SPAWN, _FIND_SOURCE,_FIND_SOURCES,_FIND_CONTROLLER, _FIND_CONSTRUCTION_SITES, _C } from "../utils/utils"
 
 //             SPAWNING
 
@@ -12,7 +12,6 @@ function space_available(spawn: StructureSpawn, _role: string): Boolean {
         && already_spawned < Config.limit_per_role[_role] ;
 }
 
-//Memory test : don't return creep instance
 function spawn_creep(spawn: StructureSpawn, name: string, _role: string): { name: string; spawn_error_code: ScreepsReturnCode; } {
     if (name === "") name = _role + Game.time
     return { "name": name, "spawn_error_code" : spawn.spawnCreep(Config.role_to_bodyparts[_role], name, { memory: { role: _role, working: true, room: spawn.room.name, spawn_name:spawn.name} }) }
@@ -47,8 +46,9 @@ function _delete_all_constructions(spawn: StructureSpawn) {
 
 function _create_roads(spawn: StructureSpawn) {
     //? Roads to sources
-
-        const sources = _FIND_SOURCE(spawn.room)
+    if (!Memory.build_roads_to_energy) {
+        console.log("Building roads to energy")
+        const sources = _FIND_SOURCES(spawn.room)
         _.each(sources, (source: Source) => {
             const path = spawn.pos.findPathTo(source.pos, { ignoreCreeps: true })
             _.each(path, (pos) => {
@@ -57,10 +57,13 @@ function _create_roads(spawn: StructureSpawn) {
                     spawn.room.createConstructionSite(pos.x, pos.y, STRUCTURE_ROAD)
             })
         })
-
+        Memory.build_roads_to_energy = true
+    }
 
 
     // //? Road to controller
+    if (!Memory.build_roads_to_controller) {
+        console.log("Building roads to controller")
     const controller = _FIND_CONTROLLER(spawn.room)
     if (controller) {
         const path = spawn.pos.findPathTo(controller.pos,{ignoreCreeps: true})
@@ -70,11 +73,13 @@ function _create_roads(spawn: StructureSpawn) {
                 spawn.room.createConstructionSite(pos.x, pos.y, STRUCTURE_ROAD)
         })
     }
+    Memory.build_roads_to_controller = true
+}
 
 }
 
 function create_buildings(spawn: StructureSpawn) {
-    // _create_roads(spawn)
+    _create_roads(spawn)
 }
  /////
 export {space_available, spawn_creep,handle_creep_spawning,create_buildings}

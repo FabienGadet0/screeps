@@ -21,12 +21,13 @@ function _build(creep: Creep)  {
 
 export function run(creep: Creep) {
     const to_build = _FIND_CONSTRUCTION_SITES(creep.room)[0]
-    if (to_build && creep.memory.working) {
-        const energy_needed_to_finish = creep.store.getCapacity()
+    if (to_build && creep.store[RESOURCE_ENERGY] === creep.store.getCapacity())
+        creep.memory.working = true
+    else if (creep.store[RESOURCE_ENERGY] <= 1)
+        creep.memory.working = false
+
+    creep.memory.working ? _build(creep) : _harvest(creep)
         // const build_energy = to_build.progressTotal - to_build.progress
         // const energy_needed_to_finish = build_energy < creep.store.getCapacity() ? build_energy : creep.store.getCapacity()
 
-        creep.store[RESOURCE_ENERGY] < energy_needed_to_finish
-            ? _harvest(creep) : _build(creep)
     }
-}

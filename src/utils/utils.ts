@@ -17,6 +17,11 @@ function _FIND_SOURCE(room: Room): Source
     return room.find(FIND_SOURCES_ACTIVE)[0]
 }
 
+function _FIND_SOURCES(room: Room): Source[]
+{
+    return room.find(FIND_SOURCES_ACTIVE)
+}
+
 function _FIND_CONSTRUCTION_SITES(room: Room): any
 {
     return room.find(FIND_CONSTRUCTION_SITES);
@@ -25,6 +30,7 @@ function _FIND_CONSTRUCTION_SITES(room: Room): any
 function _C(code: ScreepsReturnCode | CreepMoveReturnCode | number) {
     if (code !== OK && Memory.debug_mode)
         console.log("[ERROR] :" + code)
+    return code
 }
 
 function _FIND_CONTROLLER(room: Room):  StructureController | undefined
@@ -34,4 +40,4 @@ function _FIND_CONTROLLER(room: Room):  StructureController | undefined
 
 
 
-export {_FIND_SPAWN,_FIND_SOURCE, _FIND_CONTROLLER,_FIND_CONSTRUCTION_SITES,_C}
+export {_FIND_SPAWN,_FIND_SOURCE, _FIND_SOURCES,_FIND_CONTROLLER,_FIND_CONSTRUCTION_SITES,_C}

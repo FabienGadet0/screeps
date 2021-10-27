@@ -36,14 +36,16 @@ export function moveToRenew(creep: Creep, spawn: StructureSpawn): void {
   }
 }
 
-export function manageRenew(creep: Creep): void {
+export function manageRenew(creep: Creep): boolean {
   if (needsRenew(creep)) {
-    say(creep,'The heck need renew')
+    say(creep,'Heck renew')
     const spawn = _FIND_SPAWN(creep)
     if (tryRenew(creep, spawn) === ERR_NOT_IN_RANGE) {
       moveTo(creep,spawn);
     }
+    return true
   }
+  return false
 }
 
 // Attempts transferring available resources to the creep.

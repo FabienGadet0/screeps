@@ -14,20 +14,13 @@ const run_all_classes : Record<string, any> = {
 
 
 declare global {
-  /*
-    Example types, expand on these or remove them and add your own.
-    Note: Values, properties defined here do no fully *exist* by this type definiton alone.
-          You must also give them an implemention if you would like to use them. (ex. actually setting a `role` property in a Creeps memory)
-
-    Types added in this `global` block are in an ambient, global context. This is needed because `main.ts` is a module file (uses import or export).
-    Interfaces matching on name from @types/screeps will be merged. This is how you can extend the 'built-in' interfaces from @types/screeps.
-  */
-  // Memory extension samples
   interface Memory {
     uuid: number;
     log: any;
     debug_mode: boolean;
     debug_speak: boolean;
+    build_roads_to_controller: boolean;
+    build_roads_to_energy: boolean;
   }
 
   interface CreepMemory {
@@ -37,13 +30,18 @@ declare global {
     spawn_name: string;
   }
 
-  // Syntax for adding proprties to `global` (ex "global.log")
   namespace NodeJS {
     interface Global {
       log: any;
     }
   }
 }
+
+Memory.debug_mode= false;
+Memory.debug_speak= false;
+Memory.build_roads_to_controller= false;
+Memory.build_roads_to_energy= false;
+
 
 export const loop = ErrorMapper.wrapLoop(() => {
   // console.log(`Current game tick is ${Game.time}`);
@@ -63,8 +61,8 @@ export const loop = ErrorMapper.wrapLoop(() => {
     spawner.create_buildings(Game.spawns[spawn_name])
     let creeps = Game.spawns[spawn_name].room.find(FIND_MY_CREEPS);
     _.each(creeps, (creep: Creep) => {
-      skeleton.manageRenew(creep);
-      run_all_classes[creep.memory.role].run(creep)
+      if(!skeleton.manageRenew(creep))
+        run_all_classes[creep.memory.role].run(creep)
       }
     );
   }
