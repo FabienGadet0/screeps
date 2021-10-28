@@ -82,16 +82,20 @@ declare global {
 
       for (const spawn_name in Game.spawns) {
         let spawn = Game.spawns[spawn_name]
-        // let creeps = spawn.room.find(FIND_MY_CREEPS);
+        let creeps = spawn.room.find(FIND_MY_CREEPS);
         const room_name = spawn.room.name
         Utils.manage_roombased_variables(spawn)
         if (Utils.check_if_roombased_variables_are_up(spawn)) {
           spawner.handle_creep_spawning(spawn)
 
-          //? Create roads
+          // spawner.create_buildings(spawn)
           if (Memory.build_map[room_name]['build_roads']) {
             spawner.create_roads(spawn)
             Memory.build_map[room_name]['build_roads'] = false
+          }
+              if (Memory.build_map[room_name]['build_extensions']) {
+                spawner.create_extensions(spawn)
+                Memory.build_map[room_name]['build_extensions'] = false
           }
           if (Memory.safe_delete)
             spawner.delete_all(spawn.room)

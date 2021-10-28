@@ -1,8 +1,8 @@
 //? Spawns handler
 import { config } from "chai";
+import { all } from "lodash";
 import * as Config from "../config";
-import {_FIND_ROADS,_C } from "../utils/utils"
-
+import {_FIND_ROADS,flatten,_C } from "../utils/utils"
 //             SPAWNING
 
 
@@ -85,11 +85,12 @@ function create_roads(spawn: StructureSpawn) {
         console.log("Building roads to controller")
 }
 
+
 function _get_corners(x: number, y: number, depth: number) {
    return [[x-depth,y-depth], [x+depth,y-depth], [x-depth,y+depth], [x + depth, y + depth]]
 }
 
-function _coords_between(a : number,b: number,c: number,d: number){
+function _coords_between(a : number,b: number,c: number,d: number) : number[][]{
    let all_pos = []
    while(a < c || b < d){
        if(a < c)
@@ -98,7 +99,7 @@ function _coords_between(a : number,b: number,c: number,d: number){
            b += 1
        all_pos.push([a,b])
    }
-   return all_pos
+    return all_pos
 }
 
 // 0 -> 1 / 0 -> 2/ 1 -> 3 / 2 -> 3
@@ -111,37 +112,37 @@ function _get_all_position_in_square(x: number, y: number, depth: number) {
    all_pos.push(_coords_between(corners[1][0],corners[1][1],corners[3][0],corners[3][1]))
    all_pos.push(_coords_between(corners[2][0],corners[2][1],corners[3][0],corners[3][1]))
    all_pos.pop()
-//    return all_pos.flat() //TODO ERROR HERE
-   return all_pos
+   return flatten(all_pos)
 }
 
 
-// function create_closest_to_pos(spawn: StructureSpawn,structure: BuildableStructureConstant) {
-//     let x = spawn.pos.x
-//     let y = spawn.pos.y
-//     let depth = 1
-//     const all_pos = _get_all_position_in_square(x,y,depth)
-
-//     //TODO faire la loop qui check si il peut construire .
-//     // while (spawn.room.createConstructionSite(x, y, structure) !== )
-
-// }
-
-
+function create_closest_to_pos(spawn: StructureSpawn, structure: BuildableStructureConstant) {
+    let construct_success = false
+    let depth = 1
+    while (!construct_success && depth < Config.MAX_DEPTH_FOR_BUILDING) {
+        const all_pos = _get_all_position_in_square(spawn.pos.x, spawn.pos.y, depth)
+        for(let pos of all_pos){
+            const r = spawn.room.createConstructionSite(pos[0],pos[1], structure)
+            if (r === ERR_FULL || r === ERR_RCL_NOT_ENOUGH) {
+                console.log("Construction fail error code is : " + r)
+                construct_success = true;
+                if (r === ERR_RCL_NOT_ENOUGH) // set extensions build map to false because we reached the maximum possible for now.
+                break;
+            }
+            if (r === OK)
+                construct_success = true;
+        }
+        depth += 1
+    }
+}
 
 function create_extensions(spawn: StructureSpawn) {
-    let x = spawn.pos.x
-    let y = spawn.pos.y
-    let depth = 1
-    const corners = _get_corners(x, y, depth)
-
-
-    let r = spawn.room.createConstructionSite(x,y,STRUCTURE_EXTENSION)
+    create_closest_to_pos(spawn,STRUCTURE_EXTENSION)
 }
-
 
 function create_buildings(spawn: StructureSpawn) {
     create_roads(spawn)
+    create_closest_to_pos(spawn,STRUCTURE_EXTENSION)
 }
 
-export { space_available, delete_all,spawn_creep, handle_creep_spawning, create_roads, create_buildings }
+export { space_available, create_extensions,delete_all,spawn_creep, handle_creep_spawning, create_roads, create_buildings }

@@ -1,5 +1,7 @@
 import { spawn } from "child_process"
 
+function flatten(arr: any[][]) : any[] { return arr.reduce((acc, val) => acc.concat(val), []); }
+
 //? Find original spawn of the creep
 function _FIND_SPAWN(c: string | Creep): StructureSpawn
 {
@@ -70,7 +72,7 @@ function _populate_my_structures(spawn: StructureSpawn) {
 
 function _populate_build_map(spawn: StructureSpawn) {
     Memory.build_map[spawn.room.name] = {
-        'build_roads': true,
+        'build_roads': false,
         'build_extensions': false
     }
 }
@@ -106,4 +108,4 @@ function check_if_roombased_variables_are_up(spawn: StructureSpawn) : boolean {
 // function _bottom_right(x: number, y: number, depth: number) {
 //        return ([x + depth, y + depth])
 // }
-export {init_variables,check_if_roombased_variables_are_up,manage_roombased_variables, _FIND_ROADS,_C}
+export {init_variables,check_if_roombased_variables_are_up,manage_roombased_variables, flatten, _FIND_ROADS,_C}

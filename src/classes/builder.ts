@@ -13,9 +13,12 @@ function _harvest(creep: Creep, opts?: {} | undefined): void {
 function _build(creep: Creep)  {
     let targets = Memory.my_structures[creep.room.name]['construction_sites']
     if (targets.length) {
-        if(creep.build(targets[0]) == ERR_NOT_IN_RANGE) {
-            skeleton.moveTo(creep,targets[0])
+        let r = creep.build(targets[0])
+        if(r === ERR_NOT_IN_RANGE) {
+             skeleton.moveTo(creep, targets[0])
         }
+        else if (r === ERR_INVALID_TARGET) // A creep is probably on the construction site
+        console.log("Error building ERR_INVALID_TARGET -> " + targets[0].pos)
     }
 }
 
