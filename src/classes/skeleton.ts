@@ -1,5 +1,5 @@
 import { ErrorMapper } from "utils/ErrorMapper";
-import { _FIND_SPAWN } from "utils/utils";
+import {} from "utils/utils";
 import * as Config from "../config";
 
 //* Skeleton for all  creeps
@@ -26,38 +26,18 @@ export function needsRenew(creep: Creep): boolean {
 
 // Shorthand method for `renewCreep()`.
 export function tryRenew(creep: Creep, spawn: StructureSpawn): number {
+  // console.log("creep " + creep)
   return spawn.renewCreep(creep);
 }
 
-// Moves a creep to a designated renew spot (in this case the spawn).
-export function moveToRenew(creep: Creep, spawn: StructureSpawn): void {
-  if (tryRenew(creep, spawn) === ERR_NOT_IN_RANGE) {
-    moveTo(creep,spawn);
-  }
-}
-
-export function manageRenew(creep: Creep): boolean {
+export function manageRenew(creep: Creep, spawn :StructureSpawn): boolean {
   if (needsRenew(creep)) {
     say(creep,'Heck renew')
-    const spawn = _FIND_SPAWN(creep)
+    // let spawn : StructureSpawn = Memory.my_structures[creep.room.name]['spawn']
     if (tryRenew(creep, spawn) === ERR_NOT_IN_RANGE) {
       moveTo(creep,spawn);
     }
     return true
   }
   return false
-}
-
-// Attempts transferring available resources to the creep.
-export function getEnergy(creep: Creep, roomObject: RoomObject): void {
-  let energy: Resource = <Resource>roomObject;
-
-  if (energy) {
-    say(creep,'Gonna take that energy bru')
-    if (creep.pos.isNearTo(energy)) {
-      creep.pickup(energy);
-    } else {
-      moveTo(creep,energy.pos);
-    }
-  }
 }

@@ -1,16 +1,17 @@
 import * as Config from "../config";
 import * as skeleton from "./skeleton";
-import {_FIND_SPAWN,_FIND_SOURCE,_FIND_CONTROLLER, _FIND_CONSTRUCTION_SITES, _C} from "../utils/utils"
+import {_C} from "../utils/utils"
 
 function _harvest(creep: Creep, opts?: {} | undefined): void {
-    let source: Source = _FIND_SOURCE(creep.room)
+    let source: Source[] = Memory.my_structures[creep.room.name]['sources']
 
+    //? Builders go to source 2 for now.
     if (source)
-        creep.pos.isNearTo(source) ? creep.harvest(source) : skeleton.moveTo(creep,source.pos);
+        creep.pos.isNearTo(source[1]) ? creep.harvest(source[1]) : skeleton.moveTo(creep,source[1].pos);
 }
 
 function _build(creep: Creep)  {
-    let targets = _FIND_CONSTRUCTION_SITES(creep.room)
+    let targets = Memory.my_structures[creep.room.name]['construction_sites']
     if (targets.length) {
         if(creep.build(targets[0]) == ERR_NOT_IN_RANGE) {
             skeleton.moveTo(creep,targets[0])
@@ -20,7 +21,7 @@ function _build(creep: Creep)  {
 
 
 export function run(creep: Creep) {
-    const to_build = _FIND_CONSTRUCTION_SITES(creep.room)[0]
+    const to_build = Memory.my_structures[creep.room.name]['construction_sites'][0]
     if (to_build && creep.store[RESOURCE_ENERGY] === creep.store.getCapacity())
         creep.memory.working = true
     else if (creep.store[RESOURCE_ENERGY] <= 1)

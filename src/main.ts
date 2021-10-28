@@ -1,5 +1,7 @@
 import { ErrorMapper } from "utils/ErrorMapper";
 import * as Config from "./config";
+import * as Utils from "./utils/utils";
+import * as packRat from "./utils/packrat";
 import * as spawner from "classes/spawner";
 import * as harvester from "classes/harvester";
 import * as skeleton from "classes/skeleton";
@@ -19,8 +21,10 @@ declare global {
     log: any;
     debug_mode: boolean;
     debug_speak: boolean;
-    build_roads_to_controller: boolean;
-    build_roads_to_energy: boolean;
+    build_map: Record<string,Record<string, any>>;
+    my_structures: Record<string, Record<string, any>>;
+    my_creeps: Creep[];
+    safe_delete: boolean;
   }
 
   interface CreepMemory {
@@ -33,37 +37,71 @@ declare global {
   namespace NodeJS {
     interface Global {
       log: any;
+      warn: any;
+      err: any;
+      error: any;
     }
   }
 }
 
-Memory.debug_mode= false;
-Memory.debug_speak= false;
-Memory.build_roads_to_controller= false;
-Memory.build_roads_to_energy= false;
+// function log(arg: string) {
+//   if (Memory.debug_mode) return console.log(arg)
+// }
+// function warn(arg: string) {
+//   if (Memory.debug_mode) return console.log('<span style=color:#FFBF3F>' + arg + '</span>');
+// }
+// function err(arg: string) {
+//   if (Memory.debug_mode) return console.log('<span style=color:#D18F98>' + arg + '</span>');
+// }
+// function error(arg: string) {
+//   if (Memory.debug_mode) return console.log('<span style=color:#D18F98>' + arg + '</span>');
+// }
+
+//     global.log = log;
+//     global.warn = warn;
+//     global.err = err;
+//     global.error = error;
 
 
-export const loop = ErrorMapper.wrapLoop(() => {
-  // console.log(`Current game tick is ${Game.time}`);
+    Utils.init_variables()
 
-  if (!Memory.uuid || Memory.uuid > 100)
-    Memory.uuid = 0;
+    function _manage_memory() {
+      if (!Memory.uuid || Memory.uuid > 100)
+        Memory.uuid = 0;
 
-//* Automatically delete memory of missing creeps
-  for (const name in Memory.creeps) {
-    if (!(name in Game.creeps)) {
-      delete Memory.creeps[name];
-    }
-  }
-
-  for (const spawn_name in Game.spawns) {
-    spawner.handle_creep_spawning(Game.spawns[spawn_name])
-    spawner.create_buildings(Game.spawns[spawn_name])
-    let creeps = Game.spawns[spawn_name].room.find(FIND_MY_CREEPS);
-    _.each(creeps, (creep: Creep) => {
-      if(!skeleton.manageRenew(creep))
-        run_all_classes[creep.memory.role].run(creep)
+      //* Automatically delete memory of missing creeps
+      for (const name in Memory.creeps) {
+        if (!(name in Game.creeps)) {
+          delete Memory.creeps[name];
+        }
       }
-    );
-  }
-});
+    }
+
+    export const loop = ErrorMapper.wrapLoop(() => {
+      _manage_memory()
+
+      for (const spawn_name in Game.spawns) {
+        let spawn = Game.spawns[spawn_name]
+        // let creeps = spawn.room.find(FIND_MY_CREEPS);
+        const room_name = spawn.room.name
+        Utils.manage_roombased_variables(spawn)
+        if (Utils.check_if_roombased_variables_are_up(spawn)) {
+          spawner.handle_creep_spawning(spawn)
+
+          //? Create roads
+          if (Memory.build_map[room_name]['build_roads']) {
+            spawner.create_roads(spawn)
+            Memory.build_map[room_name]['build_roads'] = false
+          }
+          if (Memory.safe_delete)
+            spawner.delete_all(spawn.room)
+
+          _.each(Memory.my_creeps, (creep: Creep) => {
+            if (!skeleton.manageRenew(creep, spawn))
+              run_all_classes[creep.memory.role].run(creep)
+          });
+        }
+        else
+          console.log("Room variables couldn't be set , Room : " + room_name)
+      }
+    });

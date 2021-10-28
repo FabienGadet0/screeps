@@ -1,7 +1,7 @@
 //? Spawns handler
 import { config } from "chai";
 import * as Config from "../config";
-import { _FIND_SPAWN, _FIND_SOURCE,_FIND_SOURCES,_FIND_CONTROLLER, _FIND_CONSTRUCTION_SITES, _C } from "../utils/utils"
+import {_FIND_ROADS,_C } from "../utils/utils"
 
 //             SPAWNING
 
@@ -33,53 +33,115 @@ function handle_creep_spawning(spawn: StructureSpawn): Creep | undefined {
     return Game.creeps[creep_name]
 }
 
-
-
-
-
 /// BUILDING
 
-function _delete_all_constructions(spawn: StructureSpawn) {
-     let constructions = _FIND_CONSTRUCTION_SITES(spawn.room)
+function _delete_all_constructions_sites(room: Room) {
+     let constructions = Memory.my_structures[room.name]['construction_sites']
     _.each(constructions, (construction)=> {construction.remove()})
 }
+function _delete_all_roads(room: Room) {
+    let roads = _FIND_ROADS(room)
+   _.each(roads, (construction)=> {construction.destroy()})
+}
 
-function _create_roads(spawn: StructureSpawn) {
+function delete_all(room: Room) {
+    _delete_all_constructions_sites(room)
+    _delete_all_roads(room)
+}
+
+function create_roads(spawn: StructureSpawn) {
+    let not_built = false
+
     //? Roads to sources
-    if (!Memory.build_roads_to_energy) {
-        console.log("Building roads to energy")
-        const sources = _FIND_SOURCES(spawn.room)
-        _.each(sources, (source: Source) => {
-            const path = spawn.pos.findPathTo(source.pos, { ignoreCreeps: true })
-            _.each(path, (pos) => {
-                const position_in_room = spawn.room.getPositionAt(pos.x, pos.y)
-                if (position_in_room && position_in_room.look().length === 1) //? check if position is free
-                    spawn.room.createConstructionSite(pos.x, pos.y, STRUCTURE_ROAD)
-            })
-        })
-        Memory.build_roads_to_energy = true
-    }
+    // const sources = Memory.my_structures[spawn.room.name]['sources']
+    // _.each(sources, (source: Source) => {
+    //     const path = spawn.pos.findPathTo(source.pos, { ignoreCreeps: true })
+    //     _.each(path, (pos) => {
+    //         const position_in_room = spawn.room.getPositionAt(pos.x, pos.y)
+    //         if (position_in_room && position_in_room.look().length === 1) {//? check if position is free
+    //             spawn.room.createConstructionSite(pos.x, pos.y, STRUCTURE_ROAD)
+    //             not_built = true
+    //         }
+    //     })
+    // })
+    // if (not_built)
+    //     console.log("Building roads to energy")
 
-
+    // not_built = false
     // //? Road to controller
-    if (!Memory.build_roads_to_controller) {
-        console.log("Building roads to controller")
-    const controller = _FIND_CONTROLLER(spawn.room)
+
+    const controller = Memory.my_structures[spawn.room.name]['controller'];
     if (controller) {
         const path = spawn.pos.findPathTo(controller.pos,{ignoreCreeps: true})
         _.each(path, (pos) => {
             const position_in_room = spawn.room.getPositionAt(pos.x,pos.y)
-            if(position_in_room && position_in_room.look().length === 1) //? check if position is free
+            if (position_in_room && position_in_room.look().length === 1) { //? check if position is free
                 spawn.room.createConstructionSite(pos.x, pos.y, STRUCTURE_ROAD)
+                not_built = true
+            }
         })
     }
-    Memory.build_roads_to_controller = true
+    if (not_built)
+        console.log("Building roads to controller")
 }
 
+function _get_corners(x: number, y: number, depth: number) {
+   return [[x-depth,y-depth], [x+depth,y-depth], [x-depth,y+depth], [x + depth, y + depth]]
 }
+
+function _coords_between(a : number,b: number,c: number,d: number){
+   let all_pos = []
+   while(a < c || b < d){
+       if(a < c)
+           a += 1
+       else if(b < d)
+           b += 1
+       all_pos.push([a,b])
+   }
+   return all_pos
+}
+
+// 0 -> 1 / 0 -> 2/ 1 -> 3 / 2 -> 3
+function _get_all_position_in_square(x: number, y: number, depth: number) {
+   let all_pos = []
+   const corners = _get_corners(x,y,depth)
+   all_pos.push([corners[0]])
+   all_pos.push(_coords_between(corners[0][0],corners[0][1],corners[1][0],corners[1][1]))
+   all_pos.push(_coords_between(corners[0][0],corners[0][1],corners[2][0],corners[2][1]))
+   all_pos.push(_coords_between(corners[1][0],corners[1][1],corners[3][0],corners[3][1]))
+   all_pos.push(_coords_between(corners[2][0],corners[2][1],corners[3][0],corners[3][1]))
+   all_pos.pop()
+//    return all_pos.flat() //TODO ERROR HERE
+   return all_pos
+}
+
+
+// function create_closest_to_pos(spawn: StructureSpawn,structure: BuildableStructureConstant) {
+//     let x = spawn.pos.x
+//     let y = spawn.pos.y
+//     let depth = 1
+//     const all_pos = _get_all_position_in_square(x,y,depth)
+
+//     //TODO faire la loop qui check si il peut construire .
+//     // while (spawn.room.createConstructionSite(x, y, structure) !== )
+
+// }
+
+
+
+function create_extensions(spawn: StructureSpawn) {
+    let x = spawn.pos.x
+    let y = spawn.pos.y
+    let depth = 1
+    const corners = _get_corners(x, y, depth)
+
+
+    let r = spawn.room.createConstructionSite(x,y,STRUCTURE_EXTENSION)
+}
+
 
 function create_buildings(spawn: StructureSpawn) {
-    _create_roads(spawn)
+    create_roads(spawn)
 }
- /////
-export {space_available, spawn_creep,handle_creep_spawning,create_buildings}
+
+export { space_available, delete_all,spawn_creep, handle_creep_spawning, create_roads, create_buildings }

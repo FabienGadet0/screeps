@@ -1,16 +1,16 @@
 import * as Config from "../config";
 import * as skeleton from "./skeleton";
-import {_FIND_SPAWN,_FIND_SOURCE,_FIND_CONTROLLER, _C} from "../utils/utils"
+import { _C} from "../utils/utils"
 
 function _harvest(creep: Creep, opts?: {} | undefined): void {
-    let source: Source = _FIND_SOURCE(creep.room)
+    let source: Source = Memory.my_structures[creep.room.name]['sources'][0]
     if (source)
         creep.pos.isNearTo(source) ? creep.harvest(source) : skeleton.moveTo(creep,source.pos);
 
 }
 
 function _upgrade_controller(creep: Creep): void {
-    const controller = _FIND_CONTROLLER(creep.room)
+    const controller = Memory.my_structures[creep.room.name]['controller']
         if (controller && creep.upgradeController(controller) === ERR_NOT_IN_RANGE)
             skeleton.moveTo(creep, controller)
 }
