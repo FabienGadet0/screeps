@@ -3,7 +3,7 @@ export const MAX_DEPTH_FOR_BUILDING = 3
 
 export const limit_per_role: Record<string, number> = {
     'harvester': 2,
-    'builder': 4,
+    'builder': 3,
     'upgrader': 4
 }
 

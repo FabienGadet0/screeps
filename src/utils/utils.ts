@@ -40,9 +40,9 @@ function _FIND_MY_STRUCTURES(room: Room): AnyStructure[]
     return room.find(FIND_MY_STRUCTURES);
 }
 
-function _C(code: ScreepsReturnCode | CreepMoveReturnCode | number) {
+function _C(code: ScreepsReturnCode | CreepMoveReturnCode | number, additional_msg : string = "") {
     if (code !== OK && Memory.debug_mode)
-        console.log("[ERROR] :" + code)
+        console.log("[ERROR] :" + code + " " + additional_msg)
     return code
 }
 
@@ -59,6 +59,10 @@ function init_variables() {
     Memory.safe_delete = false;
 }
 
+function _FIND_EXTENSIONS(room: Room): AnyStructure[] {
+    return _.filter(_FIND_MY_STRUCTURES(room), (struct : Structure) => struct.structureType === 'extension')
+}
+
 function _populate_my_structures(spawn: StructureSpawn) {
     Memory.my_structures[spawn.room.name] = {
         'spawn': _FIND_SPAWN(spawn.name),
@@ -66,7 +70,7 @@ function _populate_my_structures(spawn: StructureSpawn) {
         'roads': _FIND_ROADS(spawn.room),
         'sources': _FIND_SOURCES(spawn.room),
         'construction_sites': _FIND_CONSTRUCTION_SITES(spawn.room),
-        'my_structures': _FIND_MY_STRUCTURES(spawn.room),
+        'extensions': _FIND_EXTENSIONS(spawn.room)
     }
 }
 

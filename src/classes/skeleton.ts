@@ -4,9 +4,10 @@ import * as Config from "../config";
 
 //* Skeleton for all  creeps
 
-export function moveTo(creep: Creep, target: ConstructionSite| Structure | RoomPosition, visualize_path: boolean = false, opts?: MoveToOpts | undefined): number {
+export function moveTo(creep: Creep, target: ConstructionSite | Structure | RoomPosition, opts?: MoveToOpts | undefined): number {
+  //todo add opts += { visualizePathStyle: { stroke: '#ffffff' } }
   if (Memory.debug_mode)
-    return creep.moveTo(target, { visualizePathStyle: { stroke: '#ffffff' } });
+    return creep.moveTo(target,opts);
   else
     return creep.moveTo(target,opts);
 }

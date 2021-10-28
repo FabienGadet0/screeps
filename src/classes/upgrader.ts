@@ -5,14 +5,14 @@ import { _C} from "../utils/utils"
 function _harvest(creep: Creep, opts?: {} | undefined): void {
     let source: Source = Memory.my_structures[creep.room.name]['sources'][0]
     if (source)
-        creep.pos.isNearTo(source) ? creep.harvest(source) : skeleton.moveTo(creep,source.pos);
+        creep.pos.isNearTo(source) ? _C(creep.harvest(source),"harvesting " + creep.name) : _C(skeleton.moveTo(creep,source.pos), "moving to" + creep.name);
 
 }
 
 function _upgrade_controller(creep: Creep): void {
     const controller = Memory.my_structures[creep.room.name]['controller']
         if (controller && creep.upgradeController(controller) === ERR_NOT_IN_RANGE)
-            skeleton.moveTo(creep, controller)
+            _C(skeleton.moveTo(creep, controller))
 }
 
 export function run(creep: Creep) {
