@@ -15,9 +15,9 @@ export function harvest(creep: Creep, source_number: number = 0,opts?: {} | unde
 export function moveTo(creep: Creep, target: ConstructionSite | Structure | RoomPosition, opts?: MoveToOpts | undefined): number {
   //todo add opts += { visualizePathStyle: { stroke: '#ffffff' } }
   if (Memory.debug_mode)
-    return creep.moveTo(target,opts);
+    return creep.travelTo(target,opts);
   else
-    return creep.moveTo(target,opts);
+    return creep.travelTo(target,opts);
 }
 
 export function say(creep: Creep, msg: string) {

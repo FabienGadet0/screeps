@@ -1,5 +1,6 @@
 import { ErrorMapper } from "utils/ErrorMapper";
-
+// var Traveler = require('Traveler');
+import './traveler'
 import './utils/init_functions';
 import * as Config from "./config";
 import * as Utils from "./utils/utils";
@@ -7,13 +8,13 @@ import * as packRat from "./utils/packrat";
 import * as spawner from "classes/spawner";
 import * as buildPlanner from "classes/buildplanner";
 
-
 import * as harvester from "classes/harvester";
 import * as mineralharvester from "classes/mineralharvester";
 import * as skeleton from "classes/skeleton";
 import * as builder from "classes/builder";
 import * as upgrader from "classes/upgrader";
 
+import * as Profiler from "./Profiler";
 
 const run_all_classes : Record<string, any> = {
   'harvester': harvester,
@@ -30,6 +31,7 @@ declare global {
     debug_mode: boolean;
     debug_speak: boolean;
     rooms: Record<string, RoomMemory>;
+    empire: any;
   }
 
   interface RoomMemory{
@@ -40,6 +42,7 @@ declare global {
     safe_delete: boolean;
     flags: Flag[];
     to_repair: Structure[];
+    avoid: any;
   }
 
   interface CreepMemory {
@@ -49,6 +52,8 @@ declare global {
     spawn_name: string;
     target_type: any;
     lvl: number;
+    _trav: any;
+    _travel: any;
   }
 
   namespace NodeJS {
@@ -65,12 +70,14 @@ declare global {
       _C: any;
       debug: any;
       update_room_memory: any;
+      Profiler: any;
     }
   }
 }
 
-    Utils.debug()
-    Memory["rooms"] = {}
+Utils.debug();
+Memory["rooms"] = {};
+global.Profiler = Profiler.init();
 
 function _manage_memory() {
       if (!Memory.uuid || Memory.uuid > 100)
@@ -83,8 +90,10 @@ function _manage_memory() {
         }
       }
     }
-
-    export const loop = ErrorMapper.wrapLoop(() => {
+    // profiler.enable();
+export const loop = ErrorMapper.wrapLoop(() => {
+  // profiler.wrap(function() {
+    // Main.js logic should go here.
       _manage_memory()
 
 
@@ -94,7 +103,7 @@ function _manage_memory() {
         const room_name = spawn.room.name
         Utils.manage_roombased_variables(spawn)
         if (Utils.check_if_roombased_variables_are_up(spawn)) {
-          Utils.UPDATE(spawn,['creeps','spawn','sources'])
+          Utils.UPDATE(spawn,['creeps','spawn','sources','to_repair'])
           let creeps = Memory["rooms"][room_name].creeps
           spawner.handle_creep_spawning(spawn)
           buildPlanner.manage_buildings(spawn)
@@ -107,3 +116,4 @@ function _manage_memory() {
           console.log("Room variables couldn't be set , Room : " + room_name)
       }
     });
+  // });

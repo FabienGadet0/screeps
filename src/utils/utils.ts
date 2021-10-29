@@ -19,12 +19,6 @@ function _FIND_SPAWN(c: string | Creep): StructureSpawn
     return Game.spawns[spawn_name]
 }
 
-//todo add closest source etc.
-function _FIND_SOURCE(room: Room): Source
-{
-    return room.find(FIND_SOURCES_ACTIVE)[0]
-}
-
 function _FIND_SOURCES(room: Room): Source[]
 {
     return room.find(FIND_SOURCES_ACTIVE)
@@ -32,7 +26,7 @@ function _FIND_SOURCES(room: Room): Source[]
 
 function _FIND_CONSTRUCTION_SITES(room: Room): ConstructionSite<BuildableStructureConstant>[]
 {
-    return room.find(FIND_MY_CONSTRUCTION_SITES);
+    return room.find(FIND_MY_CONSTRUCTION_SITES).slice(0, 7)
 }
 
 function _FIND_MINERALS(room: Room): Mineral[]
@@ -103,7 +97,8 @@ function init_variables() {
 }
 
 function _FIND_EXTENSIONS(room: Room): AnyStructure[] {
-    return _.filter(_FIND_structures(room), (struct : Structure) => struct.structureType === 'extension')
+    return room.find(FIND_MY_STRUCTURES, { filter: { structureType: 'extension' } });
+    // return _.filter(_FIND_structures(room), (struct: Structure) => struct.structureType === 'extension')
 }
 
 function _FIND_FLAGS(room: Room): Flag[] {
@@ -112,11 +107,10 @@ function _FIND_FLAGS(room: Room): Flag[] {
 
 
 function _FIND_ALL_TO_REPAIR(room: Room): Structure[] {
-    return _.filter(room.find(FIND_MY_STRUCTURES), (struct) => {
-        (struct.hits / struct.hitsMax) < REPAIR_THRESHOLD;
-    });
+    return room.find(FIND_MY_STRUCTURES, { filter: (i) => i.hits / i.hitsMax < REPAIR_THRESHOLD })
+        .concat(room.find(FIND_STRUCTURES, { filter: (i) => i.structureType == STRUCTURE_ROAD && i.hits / i.hitsMax < REPAIR_THRESHOLD }))
+        .slice(0, 3)
 }
-
 
 function _init_room_memory(spawn: StructureSpawn): RoomMemory {
     console.log(spawn.room.name + "-> Init_room_memory")
@@ -159,7 +153,8 @@ function _init_room_memory(spawn: StructureSpawn): RoomMemory {
         creeps: [],
         safe_delete: false,
         flags: [],
-        to_repair:[]
+        to_repair: [],
+        avoid: undefined
     }
 }
 

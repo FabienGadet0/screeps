@@ -13,7 +13,7 @@ function space_available(spawn: StructureSpawn, _role: string, lvl:number): Bool
 
 function spawn_creep(spawn: StructureSpawn, name: string, _role: string,lvl:number): { name: string; spawn_error_code: ScreepsReturnCode; } {
     if (name === "") name = _role + lvl +Game.time
-    return { "name": name, "spawn_error_code" : spawn.spawnCreep(Config.role_to_bodyparts[lvl][_role], name, { memory: { role: _role, working: true, room: spawn.room.name, spawn_name:spawn.name, target_type:"", lvl: lvl} }) }
+    return { "name": name, "spawn_error_code" : spawn.spawnCreep(Config.role_to_bodyparts[lvl][_role], name, { memory: { _trav:undefined, _travel: undefined, role: _role, working: true, room: spawn.room.name, spawn_name:spawn.name, target_type:"", lvl: lvl} }) }
 }
 
 

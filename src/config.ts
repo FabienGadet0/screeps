@@ -1,7 +1,7 @@
 export const DEFAULT_MIN_LIFE_BEFORE_NEEDS_REFILL = 700
 export const MAX_DEPTH_FOR_BUILDING = 3
 export const REPAIR_THRESHOLD = 0.3
-export const REPAIR_WHEN_CONSTRUCTION_SITE_UNDER = 10
+export const REPAIR_WHEN_CONSTRUCTION_SITE_UNDER = 7
 
 export const limit_per_role_per_room: Record<string, number> = {
     'harvester': 2,
@@ -36,6 +36,21 @@ export let role_to_bodyparts: Record<number,Record<string, BodyPartConstant[]>> 
         'upgrader': upgrader_bodyparts_lvl_2,
     }
 }
+
+const roles = {
+    miningCollector: '🚚',
+    miningWorker: '⛏️',
+    worker: '👷',
+    upgrader: '⬆️',
+    hauler: '🚛',
+    scout: '👁️',
+    scoutVision: '🕵️',
+    reserver: '🏴',
+    claimer: '🏁',
+    cleaningCrew: '🧹',
+    feeder: '📦',
+    defender: '🛡️'
+  }
 
 export const total_possible_creeps = _.sum(Object.values(limit_per_role_per_room))
 
