@@ -1,8 +1,16 @@
 import { ErrorMapper } from "utils/ErrorMapper";
 import {} from "utils/utils";
 import * as Config from "../config";
+import * as Utils from "../utils/utils";
 
 //* Skeleton for all  creeps
+
+
+export function harvest(creep: Creep, source_number: number = 0,opts?: {} | undefined): void {
+  let source: Source = Memory["rooms"][creep.room.name].structures['sources'][source_number]
+  if (source)
+      creep.pos.isNearTo(source) ? Utils._C(creep.name,creep.harvest(source),"harvesting " + creep.name) : Utils._C(creep.name,moveTo(creep,source.pos));
+}
 
 export function moveTo(creep: Creep, target: ConstructionSite | Structure | RoomPosition, opts?: MoveToOpts | undefined): number {
   //todo add opts += { visualizePathStyle: { stroke: '#ffffff' } }
@@ -32,7 +40,7 @@ export function tryRenew(creep: Creep, spawn: StructureSpawn): number {
 export function manageRenew(creep: Creep, spawn :StructureSpawn): boolean {
   if (needsRenew(creep)) {
     say(creep,'Heck renew')
-    // let spawn : StructureSpawn = Memory.my_structures[creep.room.name]['spawn']
+    // let spawn : StructureSpawn = Memory["rooms"][creep.room.name].structures['spawn']
     if (tryRenew(creep, spawn) === ERR_NOT_IN_RANGE) {
       moveTo(creep,spawn);
     }

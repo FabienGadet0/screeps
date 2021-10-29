@@ -6,14 +6,14 @@ import {_FIND_ROADS,flatten,_C } from "../utils/utils"
 import * as Utils from "../utils/utils";
 
 function space_available(spawn: StructureSpawn, _role: string, lvl:number): Boolean {
-    const already_spawned = _.size(_.filter(spawn.room.find(FIND_MY_CREEPS), (c : Creep) => c.memory.role === _role))
+    const already_spawned = _.size(_.filter(Memory["rooms"][spawn.room.name].creeps, (c : Creep) => c.memory.role === _role))
     return spawn.spawnCreep(Config.role_to_bodyparts[lvl][_role], "testspace", { dryRun: true }) === 0
         && already_spawned < Config.limit_per_role_per_room[_role] ;
 }
 
 function spawn_creep(spawn: StructureSpawn, name: string, _role: string,lvl:number): { name: string; spawn_error_code: ScreepsReturnCode; } {
-    if (name === "") name = _role + Game.time
-    return { "name": name, "spawn_error_code" : spawn.spawnCreep(Config.role_to_bodyparts[lvl][_role], name, { memory: { role: _role, working: true, room: spawn.room.name, spawn_name:spawn.name, target_type:""} }) }
+    if (name === "") name = _role + lvl +Game.time
+    return { "name": name, "spawn_error_code" : spawn.spawnCreep(Config.role_to_bodyparts[lvl][_role], name, { memory: { role: _role, working: true, room: spawn.room.name, spawn_name:spawn.name, target_type:"", lvl: lvl} }) }
 }
 
 

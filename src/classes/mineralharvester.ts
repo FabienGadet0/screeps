@@ -3,14 +3,14 @@ import * as skeleton from "./skeleton";
 import {_C} from "../utils/utils"
 
 function _harvest(creep: Creep, opts?: {} | undefined): void {
-    let mineral: Mineral = Memory.my_structures[creep.room.name]['minerals'][0]
+    let mineral: Mineral = Memory["rooms"][creep.room.name].structures['minerals'][0]
 
     if (mineral)
         creep.pos.isNearTo(mineral) ? creep.harvest(mineral) : skeleton.moveTo(creep,mineral.pos,{reusePath:10});
 }
 
 function _transfer_to_spawn(creep: Creep): number {
-    let spawn = Memory.my_structures[creep.room.name]['spawn']
+    let spawn = Memory["rooms"][creep.room.name].structures['spawn']
     if (creep.pos.isNearTo(spawn))
         return _C(creep.name,creep.transfer(spawn, RESOURCE_ENERGY))
     else

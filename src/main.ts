@@ -29,11 +29,17 @@ declare global {
     log: any;
     debug_mode: boolean;
     debug_speak: boolean;
-    build_map: Record<string, Record<string, any>>;
-    my_structures: Record<string, Record<string, any>>;
-    my_creeps: Creep[];
+    rooms: Record<string, RoomMemory>;
+  }
+
+  interface RoomMemory{
+    updater: Record<string, number>;
+    build_map: Record<string, any>;
+    structures: Record<string, any>;
+    creeps: Creep[];
     safe_delete: boolean;
-    // energy: Record<string, any>;
+    flags: Flag[];
+    to_repair: Structure[];
   }
 
   interface CreepMemory {
@@ -41,7 +47,8 @@ declare global {
     room: string;
     working: boolean;
     spawn_name: string;
-    target_type: string;
+    target_type: any;
+    lvl: number;
   }
 
   namespace NodeJS {
@@ -54,23 +61,18 @@ declare global {
       delete_all_roads : any;
       delete_all : any;
       create_roads : any;
-      create_extensions : any;
-      create_containers:any
+      create_struct:any
       _C: any;
       debug: any;
-      populate_build_map : any;
-      populate_my_structures: any;
+      update_room_memory: any;
     }
   }
 }
 
-
-// global.test = test;
-
-    Utils.init_variables()
     Utils.debug()
+    Memory["rooms"] = {}
 
-    function _manage_memory() {
+function _manage_memory() {
       if (!Memory.uuid || Memory.uuid > 100)
         Memory.uuid = 0;
 
@@ -85,15 +87,18 @@ declare global {
     export const loop = ErrorMapper.wrapLoop(() => {
       _manage_memory()
 
+
       for (const spawn_name in Game.spawns) {
+
         let spawn = Game.spawns[spawn_name]
-        let creeps = spawn.room.find(FIND_MY_CREEPS);
         const room_name = spawn.room.name
         Utils.manage_roombased_variables(spawn)
         if (Utils.check_if_roombased_variables_are_up(spawn)) {
+          Utils.UPDATE(spawn,['creeps','spawn','sources'])
+          let creeps = Memory["rooms"][room_name].creeps
           spawner.handle_creep_spawning(spawn)
           buildPlanner.manage_buildings(spawn)
-          _.each(Memory.my_creeps, (creep: Creep) => {
+          _.each(creeps, (creep: Creep) => {
             if (!skeleton.manageRenew(creep, spawn))
               run_all_classes[creep.memory.role].run(creep)
           });

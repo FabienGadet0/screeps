@@ -5,11 +5,9 @@ global.delete_all_construction_sites = buildPlanner.delete_all_construction_site
 global.delete_all_roads = buildPlanner.delete_all_roads;
 global.delete_all = buildPlanner.delete_all;
 global.create_roads = buildPlanner.create_roads;
-global.create_extensions = buildPlanner.create_extensions;
+global.create_struct = buildPlanner.create_struct ;
 global.create_roads = buildPlanner.create_roads;
-global.create_containers = buildPlanner.create_containers
 
 global._C = Utils._C
-global.populate_build_map = Utils.populate_build_map
-global.populate_my_structures = Utils.populate_my_structures
+// global.update_room_memory = Utils.update_room_memory
 global.debug = Utils.debug

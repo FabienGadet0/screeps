@@ -1,10 +1,12 @@
 export const DEFAULT_MIN_LIFE_BEFORE_NEEDS_REFILL = 700
 export const MAX_DEPTH_FOR_BUILDING = 3
+export const REPAIR_THRESHOLD = 0.3
+export const REPAIR_WHEN_CONSTRUCTION_SITE_UNDER = 10
 
 export const limit_per_role_per_room: Record<string, number> = {
     'harvester': 2,
     // 'mineralharvester': 2,
-    'builder': 3,
+    'builder': 5,
     'upgrader': 2
 }
 
@@ -19,7 +21,7 @@ export const builder_bodyparts_lvl_2 = [MOVE,MOVE,MOVE,MOVE,WORK,WORK,CARRY,CARR
 export const upgrader_bodyparts_lvl_2 = [MOVE,MOVE,MOVE,WORK,WORK,CARRY,CARRY,CARRY,CARRY]
 
 
-
+//? Lvl = controller lvl if all extensions have been built , example -> lvl2 is 650 energy in total.
 export let role_to_bodyparts: Record<number,Record<string, BodyPartConstant[]>> = {
     1 : {
         'harvester': harvester_bodyparts,
