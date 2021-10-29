@@ -85,7 +85,7 @@ export function profile(
   key?: string | symbol,
   _descriptor?: TypedPropertyDescriptor<Function>,
 ): void {
-  if (!__PROFILER_ENABLED__) { return; }
+  // if (!__PROFILER_ENABLED__) { return; }
 
   if (key) {
     // case of method decorator
@@ -160,7 +160,9 @@ function outputProfilerData() {
   let output = "";
 
   // get function name max length
-  const longestName = (_.max(data, (d) => d.name.length)).name.length + 2;
+  let longestName = 0
+  if(data)
+    longestName = (_.max(data, (d) => d.name.length)).name.length + 2;
 
   //// Header line
   output += _.padRight("Function", longestName);

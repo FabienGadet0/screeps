@@ -89,7 +89,7 @@ function _manage_memory() {
           delete Memory.creeps[name];
         }
       }
-    }
+  }
     // profiler.enable();
 export const loop = ErrorMapper.wrapLoop(() => {
   // profiler.wrap(function() {

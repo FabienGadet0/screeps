@@ -1,5 +1,6 @@
 import { spawn } from "child_process"
 import { REPAIR_THRESHOLD } from "../config"
+import {profile}  from "../Profiler";
 
 function flatten(arr: any[][]) : any[] { return arr.reduce((acc, val) => acc.concat(val), []); }
 

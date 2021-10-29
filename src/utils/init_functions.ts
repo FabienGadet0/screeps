@@ -11,3 +11,4 @@ global.create_roads = buildPlanner.create_roads;
 global._C = Utils._C
 // global.update_room_memory = Utils.update_room_memory
 global.debug = Utils.debug
+// global.update_room_memory = Utils.update_room_memory
