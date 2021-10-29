@@ -15,32 +15,40 @@ function _transfer_to_first_available_extensions(creep: Creep): number {
         (struct: StructureExtension) => struct.isActive()
             && struct.store
             && (struct.store.getCapacity(RESOURCE_ENERGY) - struct.store[RESOURCE_ENERGY]) > 0)
-    if (not_full_extensions) {
+    if (not_full_extensions.length > 1) {
         if (creep.pos.isNearTo(not_full_extensions[0]))
-            return _C(creep.transfer(not_full_extensions[0], RESOURCE_ENERGY))
+            return _C(creep.name,creep.transfer(not_full_extensions[0], RESOURCE_ENERGY), " transfer")
         else
-            return _C(skeleton.moveTo(creep, not_full_extensions[0].pos))
+            return _C(creep.name,skeleton.moveTo(creep, not_full_extensions[0].pos))
     }
     return -1000
 }
 
 function _transfer_to_structs(creep: Creep): void {
+
     //? Transfer to spawn in priority and if full transfer to extensions.
-    if (_transfer_to_spawn(creep) === ERR_FULL)
+    if (creep.memory.target_type === 'spawn') {
+        if (_C(creep.id, _transfer_to_spawn(creep)) === ERR_FULL) {
+            creep.memory.target_type = 'extensions'
+        }
+    }
+    else if (creep.memory.target_type === 'extensions')
         _transfer_to_first_available_extensions(creep)
 }
 
 function _transfer_to_spawn(creep: Creep): number {
     let spawn = Memory.my_structures[creep.room.name]['spawn']
     if (creep.pos.isNearTo(spawn))
-        return _C(creep.transfer(spawn, RESOURCE_ENERGY))
+        return _C(creep.name,creep.transfer(spawn, RESOURCE_ENERGY))
     else
-        return _C(skeleton.moveTo(creep,spawn.pos))
+        return _C(creep.name,skeleton.moveTo(creep,spawn.pos))
 }
 
 export function run(creep: Creep) {
-    if (creep.store[RESOURCE_ENERGY] === creep.store.getCapacity())
+    if (creep.store[RESOURCE_ENERGY] === creep.store.getCapacity()) {
         creep.memory.working = true
+        creep.memory.target_type = 'spawn'
+    }
     else if (creep.store[RESOURCE_ENERGY] <= 1)
         creep.memory.working = false
 

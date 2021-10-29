@@ -1,24 +1,40 @@
-export const DEFAULT_MIN_LIFE_BEFORE_NEEDS_REFILL = 400
+export const DEFAULT_MIN_LIFE_BEFORE_NEEDS_REFILL = 700
 export const MAX_DEPTH_FOR_BUILDING = 3
 
-export const limit_per_role: Record<string, number> = {
+export const limit_per_role_per_room: Record<string, number> = {
     'harvester': 2,
+    // 'mineralharvester': 2,
     'builder': 3,
-    'upgrader': 4
+    'upgrader': 2
 }
 
 
-export const harvester_bodyparts = [MOVE,WORK,CARRY,CARRY,CARRY]
-export const builder_bodyparts = [MOVE,WORK,CARRY,CARRY,CARRY]
-export const upgrader_bodyparts = [MOVE,WORK,CARRY,CARRY,CARRY]
+export const harvester_bodyparts = [MOVE,WORK,CARRY]
+export const builder_bodyparts = [MOVE,WORK,CARRY]
+export const upgrader_bodyparts = [MOVE, WORK, CARRY]
 
-export const role_to_bodyparts : Record<string, BodyPartConstant[]> = {
-    'harvester': harvester_bodyparts,
-    'builder': builder_bodyparts,
-    'upgrader': upgrader_bodyparts
+//? lvl 2
+export const harvester_bodyparts_lvl_2 = [MOVE, MOVE, MOVE, WORK, WORK, CARRY, CARRY, CARRY, CARRY]
+export const builder_bodyparts_lvl_2 = [MOVE,MOVE,MOVE,MOVE,WORK,WORK,CARRY,CARRY]
+export const upgrader_bodyparts_lvl_2 = [MOVE,MOVE,MOVE,WORK,WORK,CARRY,CARRY,CARRY,CARRY]
+
+
+
+export let role_to_bodyparts: Record<number,Record<string, BodyPartConstant[]>> = {
+    1 : {
+        'harvester': harvester_bodyparts,
+        'mineralharvester': harvester_bodyparts,
+        'builder': builder_bodyparts,
+        'upgrader': upgrader_bodyparts
+    },
+    2 : {
+        'harvester': harvester_bodyparts_lvl_2,
+        'mineralharvester': harvester_bodyparts_lvl_2,
+        'builder': builder_bodyparts_lvl_2,
+        'upgrader': upgrader_bodyparts_lvl_2,
+    }
 }
 
+export const total_possible_creeps = _.sum(Object.values(limit_per_role_per_room))
 
-export const total_possible_creeps = _.sum(Object.values(limit_per_role))
-
-export const all_roles = Object.keys(limit_per_role)
+export const all_roles = Object.keys(limit_per_role_per_room)

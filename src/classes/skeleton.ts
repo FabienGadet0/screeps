@@ -25,9 +25,7 @@ export function needsRenew(creep: Creep): boolean {
   return false
 }
 
-// Shorthand method for `renewCreep()`.
 export function tryRenew(creep: Creep, spawn: StructureSpawn): number {
-  // console.log("creep " + creep)
   return spawn.renewCreep(creep);
 }
 

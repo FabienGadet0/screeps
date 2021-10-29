@@ -1,15 +1,23 @@
 import { ErrorMapper } from "utils/ErrorMapper";
+
+import './utils/init_functions';
 import * as Config from "./config";
 import * as Utils from "./utils/utils";
 import * as packRat from "./utils/packrat";
 import * as spawner from "classes/spawner";
+import * as buildPlanner from "classes/buildplanner";
+
+
 import * as harvester from "classes/harvester";
+import * as mineralharvester from "classes/mineralharvester";
 import * as skeleton from "classes/skeleton";
 import * as builder from "classes/builder";
 import * as upgrader from "classes/upgrader";
 
+
 const run_all_classes : Record<string, any> = {
   'harvester': harvester,
+  'mineralharvester': mineralharvester,
   'builder': builder,
   'upgrader': upgrader
 }
@@ -21,10 +29,11 @@ declare global {
     log: any;
     debug_mode: boolean;
     debug_speak: boolean;
-    build_map: Record<string,Record<string, any>>;
+    build_map: Record<string, Record<string, any>>;
     my_structures: Record<string, Record<string, any>>;
     my_creeps: Creep[];
     safe_delete: boolean;
+    // energy: Record<string, any>;
   }
 
   interface CreepMemory {
@@ -32,6 +41,7 @@ declare global {
     room: string;
     working: boolean;
     spawn_name: string;
+    target_type: string;
   }
 
   namespace NodeJS {
@@ -40,30 +50,25 @@ declare global {
       warn: any;
       err: any;
       error: any;
+      delete_all_construction_sites : any;
+      delete_all_roads : any;
+      delete_all : any;
+      create_roads : any;
+      create_extensions : any;
+      create_containers:any
+      _C: any;
+      debug: any;
+      populate_build_map : any;
+      populate_my_structures: any;
     }
   }
 }
 
-// function log(arg: string) {
-//   if (Memory.debug_mode) return console.log(arg)
-// }
-// function warn(arg: string) {
-//   if (Memory.debug_mode) return console.log('<span style=color:#FFBF3F>' + arg + '</span>');
-// }
-// function err(arg: string) {
-//   if (Memory.debug_mode) return console.log('<span style=color:#D18F98>' + arg + '</span>');
-// }
-// function error(arg: string) {
-//   if (Memory.debug_mode) return console.log('<span style=color:#D18F98>' + arg + '</span>');
-// }
 
-//     global.log = log;
-//     global.warn = warn;
-//     global.err = err;
-//     global.error = error;
-
+// global.test = test;
 
     Utils.init_variables()
+    Utils.debug()
 
     function _manage_memory() {
       if (!Memory.uuid || Memory.uuid > 100)
@@ -87,19 +92,7 @@ declare global {
         Utils.manage_roombased_variables(spawn)
         if (Utils.check_if_roombased_variables_are_up(spawn)) {
           spawner.handle_creep_spawning(spawn)
-
-          // spawner.create_buildings(spawn)
-          if (Memory.build_map[room_name]['build_roads']) {
-            spawner.create_roads(spawn)
-            Memory.build_map[room_name]['build_roads'] = false
-          }
-              if (Memory.build_map[room_name]['build_extensions']) {
-                spawner.create_extensions(spawn)
-                Memory.build_map[room_name]['build_extensions'] = false
-          }
-          if (Memory.safe_delete)
-            spawner.delete_all(spawn.room)
-
+          buildPlanner.manage_buildings(spawn)
           _.each(Memory.my_creeps, (creep: Creep) => {
             if (!skeleton.manageRenew(creep, spawn))
               run_all_classes[creep.memory.role].run(creep)
