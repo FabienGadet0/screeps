@@ -27,7 +27,7 @@ function _FIND_SOURCES(room: Room): Source[]
 
 function _FIND_CONSTRUCTION_SITES(room: Room): ConstructionSite<BuildableStructureConstant>[]
 {
-    return room.find(FIND_MY_CONSTRUCTION_SITES).slice(0, 7)
+    return room.find(FIND_MY_CONSTRUCTION_SITES).slice(0, 8)
 }
 
 function _FIND_MINERALS(room: Room): Mineral[]

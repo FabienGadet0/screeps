@@ -4,15 +4,17 @@ import {_C,UPDATE} from "../utils/utils"
 
 function _transfer_to_first_available_extensions(creep: Creep): number {
     //? Find extensions that aren't full yet.
-    let not_full_extensions = _.filter(Memory["rooms"][creep.room.name].structures['extensions'],
-        (struct: StructureExtension) => struct && struct.isActive()
-            && struct.store
-            && (struct.store.getCapacity(RESOURCE_ENERGY) - struct.store[RESOURCE_ENERGY]) > 0)
-    if (not_full_extensions.length > 1) {
-        if (creep.pos.isNearTo(not_full_extensions[0]))
-            return _C(creep.name, creep.transfer(not_full_extensions[0], RESOURCE_ENERGY), " transfer")
-        else
-            return _C(creep.name, skeleton.moveTo(creep, not_full_extensions[0].pos))
+    if (UPDATE(Game.spawns[creep.memory.spawn_name], ["extensions"])) {
+        let not_full_extensions = _.filter(Memory["rooms"][creep.room.name].structures['extensions'],
+            (struct: StructureExtension) => struct && struct.isActive()
+                && struct.store
+                && (struct.store.getCapacity(RESOURCE_ENERGY) - struct.store[RESOURCE_ENERGY]) > 0)
+        if (not_full_extensions.length > 1) {
+            if (creep.pos.isNearTo(not_full_extensions[0]))
+                return _C(creep.name, creep.transfer(not_full_extensions[0], RESOURCE_ENERGY), " transfer")
+            else
+                return _C(creep.name, skeleton.moveTo(creep, not_full_extensions[0].pos))
+        }
     }
     return -1000
 }

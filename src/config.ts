@@ -4,16 +4,16 @@ export const REPAIR_THRESHOLD = 0.3
 export const REPAIR_WHEN_CONSTRUCTION_SITE_UNDER = 7
 
 export const limit_per_role_per_room: Record<string, number> = {
-    'harvester': 2,
+    'harvester': 3,
     // 'mineralharvester': 2,
-    'builder': 5,
+    'builder': 7,
     'upgrader': 2
 }
 
 
-export const harvester_bodyparts = [MOVE,WORK,CARRY]
-export const builder_bodyparts = [MOVE,WORK,CARRY]
-export const upgrader_bodyparts = [MOVE, WORK, CARRY]
+export const harvester_bodyparts = [MOVE,MOVE,WORK,CARRY]
+export const builder_bodyparts = [MOVE,MOVE,WORK,CARRY]
+export const upgrader_bodyparts = [MOVE,MOVE,WORK,CARRY]
 
 //? lvl 2
 export const harvester_bodyparts_lvl_2 = [MOVE, MOVE, MOVE, WORK, WORK, CARRY, CARRY, CARRY, CARRY]
