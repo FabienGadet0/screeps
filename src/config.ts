@@ -6,8 +6,8 @@ export const REPAIR_WHEN_CONSTRUCTION_SITE_UNDER = 7
 export const limit_per_role_per_room: Record<string, number> = {
     'harvester': 3,
     // 'mineralharvester': 2,
-    'builder': 7,
-    'upgrader': 2
+    'builder': 3,
+    'upgrader': 3
 }
 
 

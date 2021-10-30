@@ -5,7 +5,7 @@ import * as Config from "../config";
 import {_FIND_ROADS,flatten,_C } from "../utils/utils"
 import * as Utils from "../utils/utils";
 
-function space_available(spawn: StructureSpawn, _role: string, lvl:number): Boolean {
+function space_available(spawn: StructureSpawn, _role: string, lvl: number): Boolean {
     const already_spawned = _.size(_.filter(Memory["rooms"][spawn.room.name].creeps, (c : Creep) => c.memory.role === _role))
     return spawn.spawnCreep(Config.role_to_bodyparts[lvl][_role], "testspace", { dryRun: true }) === 0
         && already_spawned < Config.limit_per_role_per_room[_role] ;
@@ -19,18 +19,21 @@ function spawn_creep(spawn: StructureSpawn, name: string, _role: string,lvl:numb
 
 function handle_creep_spawning(spawn: StructureSpawn): Creep | undefined {
     let creep_name = ""
-    const count_creeps = _.size(spawn.room.find(FIND_MY_CREEPS))
-    let lvl = Utils.GET_ENERGY_STATS(spawn)["max_energy"] < 650 ? 1 : 2
-
+    let lvl = 1
+    let total = 0
+    const count_creeps = _.size(Memory["rooms"][spawn.room.name].creeps);
+    Utils.UPDATE(spawn, ["extensions"])
     if (count_creeps < Config.total_possible_creeps) {
-        _.each(Config.all_roles, (role: string) => {
-            if (space_available(spawn, role,lvl) && !spawn.spawning) {
-                const new_creep = spawn_creep(spawn, "", role,lvl)
-                creep_name = new_creep.name
-                _C(spawn.name,new_creep.spawn_error_code)
-            }
-        })
-    }
+            _.each(Config.all_roles, (role: string) => {
+                if (space_available(spawn, role, lvl) && !spawn.spawning) {
+                    Utils.UPDATE(spawn, ["extensions"])
+                    lvl = spawn.energyCapacity + (_.size(Memory["rooms"][spawn.room.name].structures["extensions"]) * 50) < 650 ? 1 : 2;
+                    const new_creep = spawn_creep(spawn, "", role, lvl)
+                    creep_name = new_creep.name
+                    _C(spawn.name, new_creep.spawn_error_code)
+                }
+            })
+        }
     return Game.creeps[creep_name]
 }
 
