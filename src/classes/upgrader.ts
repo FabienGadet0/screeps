@@ -1,17 +1,18 @@
 import * as Config from "../config";
 import * as skeleton from "./skeleton";
-import { UPDATE, _C} from "../utils/utils"
+import * as Utils from "../utils/utils"
+import * as finder from "../utils/finder"
 
 
 function _upgrade_controller(creep: Creep): void {
-    if (UPDATE(Game.spawns[creep.memory.spawn_name], ['controller'])) {
+    if (finder.UPDATE(Game.spawns[creep.memory.spawn_name], ['controller'])) {
         const controller = Memory["rooms"][creep.room.name].structures['controller']
         if (controller && creep.upgradeController(controller) === ERR_NOT_IN_RANGE)
-            _C(creep.name, skeleton.moveTo(creep, controller))
+            Utils._C(creep.name, skeleton.moveTo(creep, controller))
     }
 }
 
-export function run(creep: Creep) {
+export function run(creep: Creep, opts?: {} | undefined) {
     if (creep.store[RESOURCE_ENERGY] === creep.store.getCapacity())
         creep.memory.working = true
     else if (creep.store[RESOURCE_ENERGY] <= 1)

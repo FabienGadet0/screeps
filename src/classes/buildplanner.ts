@@ -2,14 +2,16 @@ import { config } from "chai";
 import { all } from "lodash";
 import { off } from "process";
 import * as Config from "../config";
-import {_FIND_ROADS,flatten,_C,UPDATE } from "../utils/utils"
+import * as Utils from "../utils/utils"
+import * as finder from "../utils/finder"
 
 function delete_all_construction_sites(room: Room) {
     let constructions = Memory["rooms"][room.name].structures['construction_sites']
    _.each(constructions, (construction)=> {construction.remove()})
 }
 function delete_all_roads(room: Room) {
-   let roads = _FIND_ROADS(room)
+    //todo Delete this call.
+   let roads = finder._FIND_ROADS(room)
   _.each(roads, (construction)=> {construction.destroy()})
 }
 
@@ -28,7 +30,7 @@ function create_roads(spawn: StructureSpawn) {
             _.each(path, (pos) => {
                 const position_in_room = spawn.room.getPositionAt(pos.x, pos.y)
                 if (position_in_room && position_in_room.look().length === 1) {//? check if position is free
-                    _C(spawn.id, spawn.room.createConstructionSite(pos.x, pos.y, STRUCTURE_ROAD))
+                    Utils._C(spawn.id, spawn.room.createConstructionSite(pos.x, pos.y, STRUCTURE_ROAD))
                     built = true
                 }
             })
@@ -44,7 +46,7 @@ function create_roads(spawn: StructureSpawn) {
             _.each(path, (pos) => {
                 const position_in_room = spawn.room.getPositionAt(pos.x, pos.y)
                 if (position_in_room && position_in_room.look().length === 1) { //? check if position is free
-                    _C(spawn.id, spawn.room.createConstructionSite(pos.x, pos.y, STRUCTURE_ROAD))
+                    Utils._C(spawn.id, spawn.room.createConstructionSite(pos.x, pos.y, STRUCTURE_ROAD))
                     built = true
                 }
             })
@@ -59,7 +61,7 @@ function create_roads(spawn: StructureSpawn) {
                 _.each(path, (pos) => {
                     const position_in_room = spawn.room.getPositionAt(pos.x, pos.y)
                     if (position_in_room && position_in_room.look().length === 1) { //? check if position is free
-                        _C(spawn.id, spawn.room.createConstructionSite(pos.x, pos.y, STRUCTURE_ROAD))
+                        Utils._C(spawn.id, spawn.room.createConstructionSite(pos.x, pos.y, STRUCTURE_ROAD))
                         built = true
                     }
                 });
@@ -113,7 +115,7 @@ function _get_all_position_in_square(x: number, y: number, depth: number) {
   all_pos.push(_coords_between(corners[1][0],corners[1][1],corners[3][0],corners[3][1]))
   all_pos.push(_coords_between(corners[2][0],corners[2][1],corners[3][0],corners[3][1]))
   all_pos.pop()
-  return flatten(all_pos)
+  return Utils.flatten(all_pos)
 }
 
 
@@ -124,9 +126,9 @@ function _create_closest_to_pos(pos: RoomPosition, spawn: StructureSpawn, struct
    while (!breaker && depth <= Config.MAX_DEPTH_FOR_BUILDING) {
        const all_pos = _get_all_position_in_square(pos.x,pos.y, depth)
        for (let pos of all_pos) {
-           const r = _C(spawn.id, spawn.room.createConstructionSite(pos[0], pos[1], structure))
+           const r = Utils._C(spawn.id, spawn.room.createConstructionSite(pos[0], pos[1], structure))
            if (r === ERR_INVALID_ARGS) {
-               _C(spawn.id, r, "Construction fail");
+               Utils._C(spawn.id, r, "Construction fail");
                break;
            }
            if (r === ERR_FULL || r === ERR_RCL_NOT_ENOUGH) {
@@ -147,17 +149,17 @@ function _search_flaggy_flaggy(spawn : StructureSpawn, name: string) {
 }
 
 function create_struct(spawn: StructureSpawn, struct: BuildableStructureConstant) {
-        if(UPDATE(spawn,["flags"])){
-        const flags = _search_flaggy_flaggy(spawn, struct)
-        let pos = spawn.pos
-        //? Set an offset if there is no flag to not spawn structures directly at the spawn.
-        let offset = 3
-
-        if (flags) {
-            pos = flags[0].pos
-            offset = 0
-        }
-        _create_closest_to_pos(pos, spawn, struct)
+        if(finder.UPDATE(spawn,["flags"])){
+            const flags = _search_flaggy_flaggy(spawn, struct);
+            let pos = spawn.pos;
+            //? Set an offset if there is no flag to not spawn structures directly at the spawn.
+            let offset = 3;
+            if (flags) {
+                pos = flags[0].pos;
+                offset = 0;
+            }
+            console.log("test")
+            _create_closest_to_pos(pos, spawn, struct)
     }
 }
 

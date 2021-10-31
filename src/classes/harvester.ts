@@ -1,54 +1,76 @@
-import * as Config from "../config";
 import * as skeleton from "./skeleton";
-import {_C,UPDATE} from "../utils/utils"
+import * as Config from "../config";
+import * as Utils from "../utils/utils";
+import * as finder from "../utils/finder";
 
-function _transfer_to_first_available_extensions(creep: Creep): number {
-    //? Find extensions that aren't full yet.
-    if (UPDATE(Game.spawns[creep.memory.spawn_name], ["extensions"])) {
-        let not_full_extensions = _.filter(Memory["rooms"][creep.room.name].structures['extensions'],
-            (struct: StructureExtension) => struct && struct.isActive()
-                && struct.store
-                && (struct.store.getCapacity(RESOURCE_ENERGY) - struct.store[RESOURCE_ENERGY]) > 0)
-        if (not_full_extensions.length > 1) {
-            if (creep.pos.isNearTo(not_full_extensions[0]))
-                return _C(creep.name, creep.transfer(not_full_extensions[0], RESOURCE_ENERGY), " transfer")
-            else
-                return _C(creep.name, skeleton.moveTo(creep, not_full_extensions[0].pos))
+
+//* LOGIC : -----------------------------------------
+// target = spawn
+// if no energy
+    //working = false
+//if not working
+    // go to energy
+// if working
+    // if target === spawn
+        // transfer to spawn
+            // if not in range go to spawn
+                //if spawn is full -> target = extensions
+    // else (extension)
+        // get extensions that aren't full
+            //if extensions is null
+                // target = spawn && working = false (which mean that he will go take energy if not full)
+            //else
+                // transfer to extensions[0]
+                    // if not in range go to extensions[0]
+//* -------------------------------------------------
+function _next_target(creep: Creep) {
+    if (creep.memory.target_type === "spawn")
+        creep.memory.target_type = "extensions_not_full";
+    else  {
+        //? Check if all target have been filled. before going next.
+        finder.UPDATE(Memory.rooms[creep.room.name].structures.spawn, [creep.memory.target_type]);
+        if (_.size(Memory["rooms"][creep.room.name].structures[creep.memory.target_type]) <= 0) {
+            if (creep.memory.target_type === "extensions_not_full")
+                creep.memory.target_type = "containers_not_full";
+            else if (creep.memory.target_type === "containers_not_full")
+                creep.memory.target_type = "spawn";
         }
     }
-    return -1000
+    return Memory["rooms"][creep.room.name].structures[creep.memory.target_type]
 }
 
-function _transfer_to_structs(creep: Creep): void {
+function _work(creep: Creep): void {
+    let r = 0;
 
-    //? Transfer to spawn in priority and if full transfer to extensions.
-    if (creep.memory.target_type === 'spawn') {
-        if (_C(creep.id, _transfer_to_spawn(creep)) === ERR_FULL) {
-            if (UPDATE(Game.spawns[creep.memory.spawn_name], ["extensions"])) {
-                if (Memory["rooms"][creep.room.name].structures["extensions"].length > 1)
-                    creep.memory.target_type = 'extensions'
-            }
-        }
+    let target = Memory["rooms"][creep.room.name].structures["spawn"]
+    if (creep.memory.target_type === 'spawn' && Memory["rooms"][creep.room.name].structures["spawn"].energy === 300)
+        _next_target(creep)
+    // if ((target.store.getFreeCapacity() || 0) > 50) //? if spawn isnt full , it's the priority.
+        // creep.memory.target_type = 'spawn'
+    if (creep.memory.target_type !== 'spawn') {
+        finder.UPDATE(Game.spawns[creep.memory.spawn_name], [creep.memory.target_type]);
+        target = Memory["rooms"][creep.room.name].structures[creep.memory.target_type][0];
+        if (!target)
+            target = _next_target(creep)
     }
-    else if (creep.memory.target_type === 'extensions')
-        _transfer_to_first_available_extensions(creep)
-}
 
-function _transfer_to_spawn(creep: Creep): number {
-    let spawn = Memory["rooms"][creep.room.name].structures['spawn']
-    if (creep.pos.isNearTo(spawn))
-        return _C(creep.name,creep.transfer(spawn, RESOURCE_ENERGY))
-    else
-        return _C(creep.name,skeleton.moveTo(creep,spawn.pos))
-}
-
-export function run(creep: Creep) {
-    if (creep.store[RESOURCE_ENERGY] === creep.store.getCapacity()) {
-        creep.memory.working = true
-        creep.memory.target_type = 'spawn'
+    r = creep.transfer(target, RESOURCE_ENERGY)
+    if (r === ERR_NOT_IN_RANGE)
+        creep.moveTo(target)
+    else if (r === ERR_FULL) {
+        if (creep.memory.target_type === 'spawn')
+            _next_target(creep)
     }
-    else if (creep.store[RESOURCE_ENERGY] <= 1)
-        creep.memory.working = false
 
-    creep.memory.working ? _transfer_to_structs(creep) : skeleton.harvest(creep, 1)
+}
+
+export function run(creep: Creep, opts?: {} | undefined) {
+    //? to reset
+    //creep.memory.target_type = 'spawn'
+
+    if (!creep.memory.target_type)
+        creep.memory.target_type = 'spawn' //? Transfer to spawn in priority and if full transfer to extensions.
+
+    creep.memory.working = creep.store[RESOURCE_ENERGY] == creep.store.getCapacity();
+    creep.memory.working ? _work(creep) : skeleton.harvest(creep, 1)
 }

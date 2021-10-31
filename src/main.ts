@@ -1,15 +1,14 @@
 import { ErrorMapper } from "utils/ErrorMapper";
-// var Traveler = require('Traveler');
-import './traveler'
+import './utils/traveler'
 import './utils/init_functions';
 import * as Config from "./config";
 import * as Utils from "./utils/utils";
+import * as finder from "./utils/finder";
 import * as packRat from "./utils/packrat";
 import * as spawner from "classes/spawner";
 import * as buildPlanner from "classes/buildplanner";
 
 import * as harvester from "classes/harvester";
-import * as mineralharvester from "classes/mineralharvester";
 import * as skeleton from "classes/skeleton";
 import * as builder from "classes/builder";
 import * as upgrader from "classes/upgrader";
@@ -18,7 +17,6 @@ import * as Profiler from "./Profiler";
 
 const run_all_classes : Record<string, any> = {
   'harvester': harvester,
-  'mineralharvester': mineralharvester,
   'builder': builder,
   'upgrader': upgrader
 }
@@ -41,8 +39,8 @@ declare global {
     creeps: Creep[];
     safe_delete: boolean;
     flags: Flag[];
-    to_repair: Structure[];
     avoid: any;
+    lvl: number;
   }
 
   interface CreepMemory {
@@ -52,6 +50,7 @@ declare global {
     spawn_name: string;
     target_type: any;
     lvl: number;
+    is_renewing: boolean;
     _trav: any;
     _travel: any;
   }
@@ -77,7 +76,7 @@ declare global {
 
 Utils.debug();
 Memory["rooms"] = {};
-global.Profiler = Profiler.init();
+// global.Profiler = Profiler.init();
 
 function _manage_memory() {
       if (!Memory.uuid || Memory.uuid > 100)
@@ -90,10 +89,7 @@ function _manage_memory() {
         }
       }
   }
-    // profiler.enable();
 export const loop = ErrorMapper.wrapLoop(() => {
-  // profiler.wrap(function() {
-    // Main.js logic should go here.
       _manage_memory()
 
 
@@ -103,17 +99,20 @@ export const loop = ErrorMapper.wrapLoop(() => {
         const room_name = spawn.room.name
         Utils.manage_roombased_variables(spawn)
         if (Utils.check_if_roombased_variables_are_up(spawn)) {
-          Utils.UPDATE(spawn,['creeps','spawn','sources','to_repair'])
+          finder.UPDATE(spawn,['creeps','spawn','sources','to_repair'])
           let creeps = Memory["rooms"][room_name].creeps
           spawner.handle_creep_spawning(spawn)
           buildPlanner.manage_buildings(spawn)
           _.each(creeps, (creep: Creep) => {
+            //? EMERGENCY
+            // run_all_classes["harvester"].run(creep)
+
             if (!skeleton.manageRenew(creep, spawn))
               run_all_classes[creep.memory.role].run(creep)
-          });
+          }
+          );
         }
         else
           console.log("Room variables couldn't be set , Room : " + room_name)
       }
     });
-  // });
