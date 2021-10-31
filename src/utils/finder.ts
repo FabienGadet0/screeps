@@ -77,7 +77,7 @@ function _FIND_FLAGS(room: Room): Flag[] {
 }
 
 function _GET_LVL_OF_ROOM(spawn: StructureSpawn) {
-    return spawn.store[RESOURCE_ENERGY] + (_.size(Memory["rooms"][spawn.room.name].structures["extensions"]) * 50) < 650 ? 1 : 2;
+    return 300 + (_.size(Memory["rooms"][spawn.room.name].structures["extensions"]) * 50) < 650 ? 1 : 2;
 }
 
 function _FIND_ALL_TO_REPAIR(room: Room): Structure[] {
@@ -85,6 +85,34 @@ function _FIND_ALL_TO_REPAIR(room: Room): Structure[] {
         .concat(room.find(FIND_STRUCTURES, { filter: (i) => i.structureType == STRUCTURE_ROAD && i.hits / i.hitsMax < REPAIR_THRESHOLD }))
         .slice(0, 3)
 }
+function UPDATE_IDS(spawn: StructureSpawn, update_list: string[]): boolean {
+    let r = true
+    if (update_list.length >= 1)
+        _.each(update_list, (up) => {
+            if (!Memory["rooms"][spawn.room.name].updater[up] || Memory["rooms"][spawn.room.name].updater[up] !== Game.time) {
+                // console.log(Game.time + " = " + up)
+                switch (up) {
+                    case "lvl": { Memory["rooms"][spawn.room.name].lvl = _GET_LVL_OF_ROOM(spawn); break; }
+                    case "spawn": { Memory["rooms"][spawn.room.name].structures['spawn'] = _FIND_SPAWN(spawn.name).id;  break; }
+                    case 'controller': { Memory["rooms"][spawn.room.name].structures['controller'] = _FIND_CONTROLLER(spawn.room);  break; }
+                    case 'roads': { Memory["rooms"][spawn.room.name].structures['roads'] = _FIND_ROADS(spawn.room);  break; } //? too costly.
+                    case 'sources': { Memory["rooms"][spawn.room.name].structures['sources'] = _FIND_SOURCES(spawn.room);  break; }
+                    case 'construction_sites': { Memory["rooms"][spawn.room.name].structures['construction_sites'] = _FIND_CONSTRUCTION_SITES(spawn.room);  break; }
+                    case 'extensions': { Memory["rooms"][spawn.room.name].structures['extensions'] = _FIND_EXTENSIONS(spawn.room);  break; }
+                    case 'minerals': { Memory["rooms"][spawn.room.name].structures['minerals'] = _FIND_MINERALS(spawn.room);  break; }
+                    case 'creeps': { Memory["rooms"][spawn.room.name].creeps = spawn.room.find(FIND_MY_CREEPS);  break; }
+                    case 'flags': { Memory["rooms"][spawn.room.name].flags = _FIND_FLAGS(spawn.room);  break; }
+                    case 'to_repair': { Memory["rooms"][spawn.room.name].structures['to_repair'] = _FIND_ALL_TO_REPAIR(spawn.room); break; }
+                    case 'extensions_not_full' : { Memory["rooms"][spawn.room.name].structures['extensions_not_full'] = _FIND_NOT_FULL_EXTENSIONS(spawn.room); break;}
+                    case 'containers_not_full' : { Memory["rooms"][spawn.room.name].structures['containers_not_full'] = _FIND_NOT_FULL_CONTAINERS(spawn.room); break;}
+                    default: { _C("UPDATER", -1000, "Couldn't find corresponding update for" + up); r = false; break; }
+                }
+                Memory["rooms"][spawn.room.name].updater[up] = Game.time
+        }
+        });
+        return r
+}
+
 function UPDATE(spawn: StructureSpawn, update_list: string[]): boolean {
     let r = true
     if (update_list.length >= 1)

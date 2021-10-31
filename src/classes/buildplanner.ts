@@ -158,7 +158,6 @@ function create_struct(spawn: StructureSpawn, struct: BuildableStructureConstant
                 pos = flags[0].pos;
                 offset = 0;
             }
-            console.log("test")
             _create_closest_to_pos(pos, spawn, struct)
     }
 }

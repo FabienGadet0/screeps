@@ -1,4 +1,7 @@
-TODO: softlock for lvl 2 creep that never get created because extensions arent getting full.
 TODO: manage better creeps lvl
-TODO: manage better renew creeps.
+
 TODO: store only id and do Game.getObjectById to retrieve it .
+
+
+TODO: softlock for lvl 2 creep that never get created because extensions arent getting full.
+TODO: get lvl of the room and kill low lvl creeps to get them replaced .

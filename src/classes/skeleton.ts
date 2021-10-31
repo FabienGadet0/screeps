@@ -31,7 +31,6 @@ export function needsRenew(creep: Creep): boolean {
 
 export function tryRenew(creep: Creep, spawn: StructureSpawn): number {
   let r = spawn.renewCreep(creep)
-  console.log(creep.name + " + " + r)
   if (r === -6 && creep.store[RESOURCE_ENERGY] !== 0) { //? If not enough energy , everybody will give energy regarding of it's class.
     creep.transfer(spawn, RESOURCE_ENERGY);
     if(Memory.debug_mode)
