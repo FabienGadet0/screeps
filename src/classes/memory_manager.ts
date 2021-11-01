@@ -37,7 +37,21 @@ class Memory_manager {
     constructor(room_name: string) {
         this.room_name = room_name;
     }
-    public update() {}
+    public update() {
+        this.update_ids(Game.rooms[this.room_name], [
+            "lvl",
+            "controller",
+            "roads",
+            "sources",
+            "construction_sites",
+            "extensions",
+            "minerals",
+            "to_repair",
+            "creeps_ids",
+            "extensions_not_full",
+            "containers_not_full",
+        ]);
+    }
     public run() {}
 
     //? Find original spawn of the creep
@@ -219,60 +233,60 @@ class Memory_manager {
     public update_ids(room: Room, update_list: string[]): void {
         if (update_list.length >= 1)
             _.each(update_list, (up) => {
-                // if (!Memory["rooms"][spawn.room.name].updater[up] || Memory["rooms"][spawn.room.name].updater[up] !== Game.time) {
-                // console.log(Game.time + " = " + up)
-                switch (up) {
-                    case "lvl": {
-                        Memory["rooms"][room.name]["lvl"] = this.GET_LVL_OF_ROOM(room);
-                        break;
+                if (!Memory["rooms"][room.name].updater[up] || Memory["rooms"][room.name].updater[up] !== Game.time) {
+                    console.log(Game.time + " = " + up);
+                    switch (up) {
+                        case "lvl": {
+                            Memory["rooms"][room.name]["lvl"] = this.GET_LVL_OF_ROOM(room);
+                            break;
+                        }
+                        case "controller": {
+                            Memory["rooms"][room.name].structure_ids["controller"] = this._FIND_CONTROLLER_ID(room);
+                            break;
+                        }
+                        case "roads": {
+                            Memory["rooms"][room.name].structure_ids["roads"] = this._FIND_ROADS_IDS(room);
+                            break;
+                        } //? too costly.
+                        case "sources": {
+                            Memory["rooms"][room.name].structure_ids["sources"] = this._FIND_SOURCES_IDS(room);
+                            break;
+                        }
+                        case "construction_sites": {
+                            Memory["rooms"][room.name].structure_ids["construction_sites"] = this._FIND_CONSTRUCTION_SITES_IDS(room);
+                            break;
+                        }
+                        case "extensions": {
+                            Memory["rooms"][room.name].structure_ids["extensions"] = this._FIND_EXTENSIONS_IDS(room);
+                            break;
+                        }
+                        case "minerals": {
+                            Memory["rooms"][room.name].structure_ids["minerals"] = this._FIND_MINERALS_IDS(room);
+                            break;
+                        }
+                        case "creeps_ids": {
+                            Memory["rooms"][room.name].creeps_name = this._FIND_ALL_CREEPS(room);
+                            break;
+                        }
+                        case "to_repair": {
+                            Memory["rooms"][room.name].structure_ids["to_repair"] = this._FIND_ALL_TO_REPAIR_IDS(room);
+                            break;
+                        }
+                        case "extensions_not_full": {
+                            Memory["rooms"][room.name].structure_ids["extensions_not_full"] = this._FIND_NOT_FULL_EXTENSION_IDS(room);
+                            break;
+                        }
+                        case "containers_not_full": {
+                            Memory["rooms"][room.name].structure_ids["containers_not_full"] = this._FIND_NOT_FULL_CONTAINERS_IDS(room); //TODO doesn't do shit
+                            break;
+                        }
+                        default: {
+                            Utils._C("UPDATER", -1000, "Couldn't find corresponding update for" + up);
+                            break;
+                        }
                     }
-                    case "controller": {
-                        Memory["rooms"][room.name].structure_ids["controller"] = this._FIND_CONTROLLER_ID(room);
-                        break;
-                    }
-                    case "roads": {
-                        Memory["rooms"][room.name].structure_ids["roads"] = this._FIND_ROADS_IDS(room);
-                        break;
-                    } //? too costly.
-                    case "sources": {
-                        Memory["rooms"][room.name].structure_ids["sources"] = this._FIND_SOURCES_IDS(room);
-                        break;
-                    }
-                    case "construction_sites": {
-                        Memory["rooms"][room.name].structure_ids["construction_sites"] = this._FIND_CONSTRUCTION_SITES_IDS(room);
-                        break;
-                    }
-                    case "extensions": {
-                        Memory["rooms"][room.name].structure_ids["extensions"] = this._FIND_EXTENSIONS_IDS(room);
-                        break;
-                    }
-                    case "minerals": {
-                        Memory["rooms"][room.name].structure_ids["minerals"] = this._FIND_MINERALS_IDS(room);
-                        break;
-                    }
-                    case "creeps_ids": {
-                        Memory["rooms"][room.name].creeps_name = this._FIND_ALL_CREEPS(room);
-                        break;
-                    }
-                    case "to_repair": {
-                        Memory["rooms"][room.name].structure_ids["to_repair"] = this._FIND_ALL_TO_REPAIR_IDS(room);
-                        break;
-                    }
-                    case "extensions_not_full": {
-                        Memory["rooms"][room.name].structure_ids["extensions_not_full"] = this._FIND_NOT_FULL_EXTENSION_IDS(room);
-                        break;
-                    }
-                    case "containers_not_full": {
-                        Memory["rooms"][room.name].structure_ids["containers_not_full"] = this._FIND_NOT_FULL_CONTAINERS_IDS(room); //TODO doesn't do shit
-                        break;
-                    }
-                    default: {
-                        Utils._C("UPDATER", -1000, "Couldn't find corresponding update for" + up);
-                        break;
-                    }
+                    Memory["rooms"][room.name].updater[up] = Game.time;
                 }
-                // Memory["rooms"][spawn.room.name].updater[up] = Game.time;
-                // }
             });
     }
 }

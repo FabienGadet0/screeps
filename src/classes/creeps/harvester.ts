@@ -1,27 +1,30 @@
-// import * as ICreep from "./ICreep";
+import { ICreep } from "./ICreep";
 // import * as Config from "../../config";
 // import * as Utils from "../../utils/utils";
 // import * as Finder from "../../utils/finder";
+import { profile } from "../../Profiler/Profiler";
 
-// //* LOGIC : -----------------------------------------
-// // target = spawn
-// // if no energy1
-// //working = false
-// //if not working
-// // go to energy
-// // if working
-// // if target === spawn
-// // transfer to spawn
-// // if not in range go to spawn
-// //if spawn is full -> target = extensions
-// // else (extension)
-// // get extensions that aren't full
-// //if extensions is null
-// // target = spawn && working = false (which mean that he will go take energy if not full)
-// //else
-// // transfer to extensions[0]
-// // if not in range go to extensions[0]
-// //* -------------------------------------------------
+@profile
+export class Harvester extends ICreep {
+    constructor(creep_name: string) {
+        super(creep_name);
+    }
+
+    // protected logic() {
+    //     //* LOGIC : -----------------------------------------
+    //     // harvest source
+    //     // transfer to spawn
+    //     // if spawn is full
+    //     // transfer to extensions.
+    //     //* -------------------------------------------------
+    //     if (this.creep.store[RESOURCE_ENERGY] === this.creep.store.getCapacity() && !this.upgrading) {
+    //         this.set(ACTION.UPGRADE_CONTROLLER, this.controler_id);
+    //         this.upgrading = !this.upgrading;
+    //     } else if (this.creep.store[RESOURCE_ENERGY] === 0) {
+    //         this.set(ACTION.HARVEST, this.source_ids[0]);
+    //     }
+    // }
+}
 
 // function _next_target(creep: Creep) {
 //     if (creep.memory.target === "spawn") creep.memory.target = "extensions_not_full";

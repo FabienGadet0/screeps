@@ -11,6 +11,7 @@ export enum ACTION {
     RENEW = "RENEW",
     BUILD = "BUILD",
     REPAIR = "REPAIR",
+    UPGRADE_CONTROLLER = "UPGRADE_CONTROLLER",
     TRANSFER = "TRANSFER",
 }
 
@@ -23,8 +24,9 @@ export class ICreep {
     spawn_name: string;
     creep: Creep;
     ticksToLive?: number;
+    source_ids: Id<Source>[];
 
-    _ACTION_to_func: Record<string, any> = {
+    _ACTION_to_func: Record<ACTION, any> = {
         IDLE: undefined,
         HARVEST: this.harvest,
         MOVETO: this.moveTo,
@@ -32,7 +34,14 @@ export class ICreep {
         BUILD: this.build,
         REPAIR: this.repair,
         TRANSFER: this.transfer,
+        UPGRADE_CONTROLLER: this.upgrade_controller,
     };
+
+    protected _get_sources() {
+        return _.map(this.creep.room.find(FIND_SOURCES_ACTIVE), (source: Source) => {
+            return source.id;
+        });
+    }
 
     constructor(creep_name: string) {
         const c = Game.creeps[creep_name];
@@ -44,6 +53,7 @@ export class ICreep {
         this.spawn_name = c.memory.spawn_name;
         this.ticksToLive = c.ticksToLive;
         this.creep = c;
+        this.source_ids = this._get_sources();
         console.log("New creep " + creep_name + " in spawn " + this.spawn_name);
     }
 
@@ -112,6 +122,10 @@ export class ICreep {
 
     public transfer(...target: any): any {
         return this.creep.transfer(target[0], target[1]);
+    }
+
+    public upgrade_controller(...target: any): any {
+        return this.creep.upgradeController(target[0]);
     }
 
     protected say(creep: Creep, msg: string) {

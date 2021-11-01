@@ -1,6 +1,5 @@
 import * as Config from "../config";
 import * as Utils from "../utils/utils";
-import * as Finder from "../utils/finder";
 import { Memory_manager } from "./memory_manager";
 import { Creep_factory } from "./creep_factory";
 import { Build_planner } from "./build_planner";
@@ -11,7 +10,7 @@ import * as packRat from "../utils/packrat";
 export class Room_orchestrator {
     spawn_id: Id<StructureSpawn>;
     spawn_name: string;
-    controller?: StructureController;
+    // controller_id?: Id<StructureController>;
     room_name: string;
     memory_manager: Memory_manager;
     build_planner: Build_planner;
@@ -22,8 +21,8 @@ export class Room_orchestrator {
         this.room_name = room_name;
         this.spawn_id = spawn.id;
         this.spawn_name = spawn.name;
-        // this.controller = Game.rooms[room_name].controller ;
-        this.lvl = 1;
+        // this.controller_id = spawn.room.controller ? spawn.room.controller.id : undefined;
+        this.lvl = 300;
         this.memory_manager = new Memory_manager(room_name);
         this.build_planner = new Build_planner(room_name, this.spawn_id);
 
@@ -32,22 +31,18 @@ export class Room_orchestrator {
         console.log("Room orchestrator of " + room_name + " created");
     }
 
-    public update(): void {
-        Finder.UPDATE_IDS(Game.spawns[this.spawn_name].room, [
-            "lvl",
-            "controller",
-            "roads",
-            "sources",
-            "construction_sites",
-            "extensions",
-            "minerals",
-            "to_repair",
-            "creeps_ids",
-            "extensions_not_full",
-            "containers_not_full",
-        ]);
+    protected set_lvl_of_room() {
+        //? lvl is the total amount of energy that can be used.
+        this.lvl = 300 + _.size(Memory.rooms[this.room_name].structure_ids["extensions"]) * 50;
+        //TODO if there are many spawns it doesn't work.
+    }
 
-        this.memory_manager.update();
+    public update(): void {
+        this.memory_manager.update(); //* Always first
+
+        this.set_lvl_of_room();
+        this.creep_manager.set_lvl(this.lvl);
+
         this.build_planner.update();
         this.creep_manager.update();
     }

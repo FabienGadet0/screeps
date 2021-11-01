@@ -14,30 +14,19 @@ class Creep_manager {
     spawn_id: Id<StructureSpawn>;
     creeps: Record<string, any>;
     creep_factory: Creep_factory;
-    // _role_to_class: Record<string, any> = {
-    //     // harvester: Harvester,
-    //     builder: Builder,
-    //     // upgrader: Upgrader,
-    // };
+    lvl: number;
 
     constructor(room_name: string, spawn_id: Id<StructureSpawn>) {
         this.room_name = room_name;
         this.creeps = {};
         this.spawn_id = spawn_id;
         this.creep_factory = new Creep_factory(room_name, spawn_id);
+        this.lvl = 300;
 
         _.each(Game.rooms[room_name].find(FIND_MY_CREEPS), (creep: Creep) => {
-            // this.creeps[creep.name] = new ICreep(creep.name) as Builder;
-            this.creeps[creep.name] = this.creep_factory.generate(creep.memory.role, room_name);
+            this.creeps[creep.name] = this.creep_factory.generate(creep.memory.role, creep.name);
         });
     }
-
-    //  [17:22:39][shard3]TypeError: Cannot read property 'id' of undefined
-    // at new ICreep  (../src/classes/creeps/ICreep.ts:40:26)
-    // at new Builder  (../src/classes/creeps/builder.ts:10:8)
-    // at Creep_factory.generate [as __generate__]  (../src/classes/creep_factory.ts:32:23)
-    // at Creep_factory.<anonymous>  (../src/Profiler/Profiler.ts:88:44)
-    // at Creep_manager._.each(../src/classes / creep_manager.ts: 31: 57)
 
     public run(): void {
         this.creep_factory.run();
@@ -47,7 +36,12 @@ class Creep_manager {
         });
     }
 
+    public set_lvl(lvl: number) {
+        this.lvl = lvl;
+    }
+
     public update(): boolean {
+        this.creep_factory.set_lvl(this.lvl);
         this.creep_factory.update();
 
         const diff = _.size(this.creeps) - _.size(Memory.rooms[this.room_name].creeps_name);
@@ -64,7 +58,7 @@ class Creep_manager {
         });
         if (to_add.length > 0)
             _.each(to_add, (creep_name: string) => {
-                this.creeps[creep_name] = this.creep_factory.generate(Game.creeps[creep_name].memory.role, this.room_name);
+                this.creeps[creep_name] = this.creep_factory.generate(Game.creeps[creep_name].memory.role, creep_name);
             });
         console.log("Creep added " + to_add);
         return to_add.length > 0;

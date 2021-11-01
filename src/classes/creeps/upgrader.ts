@@ -1,14 +1,43 @@
 import * as Config from "../../config";
-import * as ICreep from "./ICreep";
 import * as Utils from "../../utils/utils";
 import * as Finder from "../../utils/finder";
+import { ICreep, ACTION } from "./ICreep";
+// import * as Config from "../../config";
+// import * as Utils from "../../utils/utils";
+// import * as Finder from "../../utils/finder";
+import { profile } from "../../Profiler/Profiler";
 
-function _upgrade_controller(creep: Creep): void {
-    // if (finder.UPDATE(Game.spawns[creep.memory.spawn_name], ["controller"])) {
-    const controller = Finder.from_id(Memory["rooms"][creep.room.name].structure_ids["controller"]);
-    if (controller && creep.upgradeController(controller) === ERR_NOT_IN_RANGE) Utils._C(creep.name, creep.moveTo(creep, controller));
-    // }
+@profile
+export class Upgrader extends ICreep {
+    controler_id: Id<StructureController>;
+    upgrading: boolean;
+
+    constructor(creep_name: string) {
+        super(creep_name);
+        this.controler_id = Game.spawns[this.spawn_name].room.controller!.id;
+        this.upgrading = false;
+    }
+
+    protected logic() {
+        //* LOGIC : -----------------------------------------
+        // harvest source
+        // upgrade controller
+        //* -------------------------------------------------
+        if (this.creep.store[RESOURCE_ENERGY] === this.creep.store.getCapacity() && !this.upgrading) {
+            this.set(ACTION.UPGRADE_CONTROLLER, this.controler_id);
+            this.upgrading = !this.upgrading;
+        } else if (this.creep.store[RESOURCE_ENERGY] === 0) {
+            this.set(ACTION.HARVEST, this.source_ids[0]);
+        }
+    }
 }
+
+// function _upgrade_controller(creep: Creep): void {
+//     // if (finder.UPDATE(Game.spawns[creep.memory.spawn_name], ["controller"])) {
+//     const controller = Finder.from_id(Memory["rooms"][creep.room.name].structure_ids["controller"]);
+//     if (controller && creep.upgradeController(controller) === ERR_NOT_IN_RANGE) Utils._C(creep.name, creep.moveTo(creep, controller));
+//     // }
+// }
 
 // export function run(creep: Creep, opts?: {} | undefined) {
 //     if (creep.store[RESOURCE_ENERGY] === creep.store.getCapacity()) creep.memory.working = true;

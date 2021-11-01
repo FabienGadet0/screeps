@@ -8,12 +8,9 @@ import { profile } from "../../Profiler/Profiler";
 export class Builder extends ICreep {
     constructor(creep_name: string) {
         super(creep_name);
-        console.log("it's me the builder " + this.creep.memory.role + " gonna " + this.action);
     }
 
-    protected logic() {
-        console.log("it's me the builder " + this.creep.memory.role + " gonna " + this.action);
-    }
+    protected logic() {}
 }
 
 // //* LOGIC : -----------------------------------------

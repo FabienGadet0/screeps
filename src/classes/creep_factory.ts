@@ -5,10 +5,10 @@ import * as Utils from "../utils/utils";
 import * as Finder from "../utils/finder";
 import { profile } from "../Profiler/Profiler";
 
-// import * as Harvester from "./creeps/harvester";
-import { ICreep, ACTION } from "./creeps/ICreep";
+// import { ICreep, ACTION } from "./creeps/ICreep";
+import { Harvester } from "./creeps/harvester";
 import { Builder } from "./creeps/builder";
-// import * as Upgrader from "./creeps/upgrader";
+import { Upgrader } from "./creeps/upgrader";
 
 @profile
 class Creep_factory {
@@ -19,21 +19,26 @@ class Creep_factory {
     constructor(room_name: string, spawn_id: Id<StructureSpawn>) {
         this.room_name = room_name;
         // this.lvl = Finder.GET_LVL_OF_ROOM(Game.rooms[room_name]);
-        this.lvl = 0;
+        this.lvl = 300;
         this.spawn_id = spawn_id;
     }
 
-    //TODO Make it a factory
+    //TODO Make it a real factory with <T>
     public generate(role: string, room_name: string): any {
         switch (role) {
-            // case "harvester":
-            // return new Harvester(room_name, spawn_id);
+            case "harvester":
+                return new Harvester(room_name);
             case "builder":
                 return new Builder(room_name);
-            // case "upgrader":
-            // return new Upgrader(room_name, spawn_id);
+            case "upgrader":
+                return new Upgrader(room_name);
         }
     }
+
+    public set_lvl(lvl: number) {
+        this.lvl = lvl;
+    }
+
     private _get_amount_of_creep_with_role(room_name: string, _role: string) {
         return _.size(_.filter(Game.creeps, (c: Creep) => c.name in Memory.rooms[room_name].creeps_name && c.memory.role === _role));
     }
