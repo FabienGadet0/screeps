@@ -1,28 +1,66 @@
-import { ErrorMapper } from "utils/ErrorMapper";
-import "./utils/traveler";
-import "./utils/init_functions";
 import * as Config from "../config";
 import * as Utils from "../utils/utils";
-import * as finder from "../utils/finder";
+import * as Finder from "../utils/finder";
+import { Memory_manager } from "./memory_manager";
+import { Creep_factory } from "./creep_factory";
+import { Build_planner } from "./build_planner";
+import { Creep_manager } from "./creep_manager";
+
 import * as packRat from "../utils/packrat";
-import * as spawner from "classes/spawner";
-import * as buildPlanner from "classes/buildplanner";
 
-import * as harvester from "classes/harvester";
-import * as skeleton from "classes/skeleton";
-import * as builder from "classes/builder";
-import * as upgrader from "classes/upgrader";
-
-import * as Profiler from "../Profiler";
-
-class Room_orchestrator {
-    spawn: StructureSpawn;
+export class Room_orchestrator {
+    spawn_id: Id<StructureSpawn>;
+    spawn_name: string;
+    controller?: StructureController;
     room_name: string;
+    memory_manager: Memory_manager;
+    creep_factory: Creep_factory;
+    build_planner: Build_planner;
+    creep_manager: Creep_manager;
+    lvl: number;
 
     constructor(room_name: string, spawn: StructureSpawn) {
         this.room_name = room_name;
-        this.spawn = spawn;
+        this.spawn_id = spawn.id;
+        this.spawn_name = spawn.name;
+        // this.controller = Game.rooms[room_name].controller ;
+        this.lvl = 1;
+        this.memory_manager = new Memory_manager(room_name);
+        this.build_planner = new Build_planner(room_name, this.spawn_id);
+
+        this.creep_manager = new Creep_manager(room_name);
+        this.creep_factory = new Creep_factory(room_name, this.spawn_id);
+
+        console.log("Room orchestrator of " + room_name + " created");
     }
 
-    greet() {}
+    public update(): void {
+        Finder.UPDATE_IDS(Game.spawns[this.spawn_name].room, [
+            "lvl",
+            "controller",
+            "roads",
+            "sources",
+            "construction_sites",
+            "extensions",
+            "minerals",
+            "to_repair",
+            "creeps_ids",
+            "extensions_not_full",
+            "containers_not_full",
+        ]);
+
+        this.memory_manager.update();
+        this.creep_factory.update();
+        this.build_planner.update();
+        this.creep_manager.update();
+    }
+
+    public run(): void {
+        if (Utils.check_if_roombased_variables_are_up(this.room_name)) {
+            this.memory_manager.run();
+            this.creep_factory.run();
+            this.creep_manager.run();
+            this.build_planner.run();
+        } else console.log("[" + this.room_name + "]" + "[" + this.spawn_id + "]" + " Roombased variables aren't up!");
+    }
 }

@@ -1,7 +1,7 @@
-import * as skeleton from "./skeleton";
-import * as Config from "../config";
-import * as Utils from "../utils/utils";
-import * as finder from "../utils/finder";
+import * as ICreep from "./ICreep";
+import * as Config from "../../config";
+import * as Utils from "../../utils/utils";
+import * as Finder from "../../utils/finder";
 
 //* LOGIC : -----------------------------------------
 // target = spawn
@@ -36,22 +36,22 @@ function _next_target(creep: Creep) {
     //     creep.memory.target_type = "spawn";
     // }
     // }
-    finder.UPDATE(Game.spawns[creep.memory.spawn_name], [creep.memory.target_type]);
-    return Memory["rooms"][creep.room.name].structures[creep.memory.target_type];
+    // finder.UPDATE(Game.spawns[creep.memory.spawn_name], [creep.memory.target_type]);
+    return Finder.from_id(Memory["rooms"][creep.room.name].structure_ids[creep.memory.target_type]);
 }
 
 function _work(creep: Creep): void {
     let r = 0;
 
     let target = undefined;
-    if (creep.memory.target_type === "spawn" && Memory["rooms"][creep.room.name].structures["spawn"].energy === 300)
+    if (creep.memory.target_type === "spawn" && Game.spawns[creep.memory.spawn_name].store.getFreeCapacity(RESOURCE_ENERGY) === 0)
         target = _next_target(creep);
     // if ((target.store.getFreeCapacity() || 0) > 50) //? if spawn isnt full , it's the priority.
     // creep.memory.target_type = 'spawn'
     // if (creep.memory.target_type !== 'spawn') {
     // finder.UPDATE(Game.spawns[creep.memory.spawn_name], [creep.memory.target_type]);
-    finder.UPDATE(Game.spawns[creep.memory.spawn_name], [creep.memory.target_type]);
-    target = Memory["rooms"][creep.room.name].structures[creep.memory.target_type];
+    // finder.UPDATE(Game.spawns[creep.memory.spawn_name], [creep.memory.target_type]);
+    target = Finder.from_id(Memory["rooms"][creep.room.name].structure_ids[creep.memory.target_type]);
     // }
     // else
     //     target = Memory["rooms"][creep.room.name].structures[creep.memory.target_type]
@@ -75,5 +75,5 @@ export function run(creep: Creep, opts?: {} | undefined) {
     creep.memory.working =
         (!creep.memory.working && creep.store[RESOURCE_ENERGY] === creep.store.getCapacity()) ||
         (creep.memory.working && creep.store[RESOURCE_ENERGY] > 0);
-    creep.memory.working ? _work(creep) : skeleton.harvest(creep, 1);
+    creep.memory.working ? _work(creep) : ICreep.harvest(creep, 1);
 }

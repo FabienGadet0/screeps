@@ -1,12 +1,11 @@
-//* Skeleton for all  creeps
+//* ICreep for all  creeps
 
-import { ErrorMapper } from "utils/ErrorMapper";
-import {} from "utils/utils";
-import * as Config from "../config";
-import * as Utils from "../utils/utils";
+import * as Config from "../../config";
+import * as Utils from "../../utils/utils";
+import * as Finder from "../../utils/finder";
 
 export function harvest(creep: Creep, source_number: number = 0, opts?: {} | undefined): void {
-    let source: Source = Memory["rooms"][creep.room.name].structures["sources"][source_number];
+    let source: Source = Finder.from_id(Memory["rooms"][creep.room.name].structure_ids["sources"][source_number]);
     if (source)
         creep.pos.isNearTo(source)
             ? Utils._C(creep.name, creep.harvest(source), "harvesting " + creep.name)
@@ -36,14 +35,14 @@ export function tryRenew(creep: Creep, spawn: StructureSpawn): number {
     return r;
 }
 
-export function manageRenew(creep: Creep, spawn: StructureSpawn): boolean {
+export function manageRenew(creep: Creep): boolean {
     // if ((creep.memory.role === 'harvester' && spawn.store[RESOURCE_ENERGY] >= 200) || ( creep.memory.role !== 'harvester' && spawn.store[RESOURCE_ENERGY] > 20 ) ) { //* Harvester sacrifice to bring energy for others
+    const spawn = Game.spawns[creep.memory.spawn_name]; //todo change it to Finder.from_id(
+
     if (!creep.memory.is_renewing) creep.memory.is_renewing = needsRenew(creep);
     else if ((creep.ticksToLive || 0) >= Config.MAX_TICKS_TO_LIVE) creep.memory.is_renewing = false;
 
-    if (creep.memory.is_renewing) {
-        if (tryRenew(creep, spawn) === ERR_NOT_IN_RANGE) moveTo(creep, spawn);
-    }
+    if (creep.memory.is_renewing && tryRenew(creep, spawn) === ERR_NOT_IN_RANGE) moveTo(creep, spawn);
 
     return creep.memory.is_renewing;
 }
