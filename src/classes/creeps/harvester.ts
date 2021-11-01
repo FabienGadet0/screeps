@@ -5,7 +5,7 @@
 
 // //* LOGIC : -----------------------------------------
 // // target = spawn
-// // if no energy
+// // if no energy1
 // //working = false
 // //if not working
 // // go to energy

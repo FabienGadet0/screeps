@@ -1,7 +1,20 @@
 // import * as Config from "../../config";
 // import * as Utils from "../../utils/utils";
-// import * as ICreep from "./ICreep";
+import { ICreep } from "./ICreep";
 // import * as Finder from "../../utils/finder";
+import { profile } from "../../Profiler/Profiler";
+
+@profile
+export class Builder extends ICreep {
+    constructor(creep_name: string) {
+        super(creep_name);
+        console.log("it's me the builder " + this.creep.memory.role + " gonna " + this.action);
+    }
+
+    protected logic() {
+        console.log("it's me the builder " + this.creep.memory.role + " gonna " + this.action);
+    }
+}
 
 // //* LOGIC : -----------------------------------------
 // // if no energy

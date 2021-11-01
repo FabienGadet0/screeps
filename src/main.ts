@@ -43,7 +43,7 @@ function _init_room_memory(): RoomMemory {
             build_roads: false,
             build_extensions: false,
         },
-        creeps: [],
+        // creeps: [],
         creeps_name: [],
         safe_delete: false,
         flags: [],
@@ -68,7 +68,7 @@ export const loop = ErrorMapper.wrapLoop(() => {
 
     if (_.size(Game.rooms) !== _.size(room_orchestators)) {
         for (const room_name in Game.rooms) {
-            let spawn = Game.rooms[room_name].find(FIND_MY_SPAWNS)[0]; //TODO get only first spawn.
+            let spawn = Game.rooms[room_name].find(FIND_MY_SPAWNS)[0]; //TODO don't get only first spawn.
 
             if (!(room_name in Object.keys(room_orchestators))) {
                 Memory["rooms"][room_name] = _init_room_memory();

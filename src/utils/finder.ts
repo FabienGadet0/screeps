@@ -297,10 +297,10 @@ function UPDATE(spawn: StructureSpawn, update_list: string[]): boolean {
                         Memory["rooms"][spawn.room.name].structures["minerals"] = _FIND_MINERALS(spawn.room);
                         break;
                     }
-                    case "creeps": {
-                        Memory["rooms"][spawn.room.name].creeps = spawn.room.find(FIND_MY_CREEPS);
-                        break;
-                    }
+                    // case "creeps": {
+                    //     Memory["rooms"][spawn.room.name].creeps = spawn.room.find(FIND_MY_CREEPS);
+                    //     break;
+                    // }
                     case "flags": {
                         Memory["rooms"][spawn.room.name].flags = _FIND_FLAGS(spawn.room);
                         break;

@@ -14,7 +14,6 @@ export class Room_orchestrator {
     controller?: StructureController;
     room_name: string;
     memory_manager: Memory_manager;
-    creep_factory: Creep_factory;
     build_planner: Build_planner;
     creep_manager: Creep_manager;
     lvl: number;
@@ -28,8 +27,7 @@ export class Room_orchestrator {
         this.memory_manager = new Memory_manager(room_name);
         this.build_planner = new Build_planner(room_name, this.spawn_id);
 
-        this.creep_manager = new Creep_manager(room_name);
-        this.creep_factory = new Creep_factory(room_name, this.spawn_id);
+        this.creep_manager = new Creep_manager(room_name, this.spawn_id);
 
         console.log("Room orchestrator of " + room_name + " created");
     }
@@ -50,7 +48,6 @@ export class Room_orchestrator {
         ]);
 
         this.memory_manager.update();
-        this.creep_factory.update();
         this.build_planner.update();
         this.creep_manager.update();
     }
@@ -58,7 +55,6 @@ export class Room_orchestrator {
     public run(): void {
         if (Utils.check_if_roombased_variables_are_up(this.room_name)) {
             this.memory_manager.run();
-            this.creep_factory.run();
             this.creep_manager.run();
             this.build_planner.run();
         } else console.log("[" + this.room_name + "]" + "[" + this.spawn_id + "]" + " Roombased variables aren't up!");

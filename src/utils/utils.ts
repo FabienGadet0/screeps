@@ -80,7 +80,7 @@ function _init_room_memory(room_name: string): RoomMemory {
             build_roads: false,
             build_extensions: false,
         },
-        creeps: [],
+        // creeps: [],
         creeps_name: [],
         safe_delete: false,
         flags: [],

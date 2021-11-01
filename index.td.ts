@@ -11,7 +11,7 @@ interface RoomMemory {
     updater: Record<string, number>;
     build_map: Record<string, any>;
     structures: Record<string, any>;
-    creeps: Creep[];
+    // creeps: Creep[];
     safe_delete: boolean;
     avoid: any;
     lvl: number;
@@ -30,7 +30,7 @@ interface CreepMemory {
     action: any;
     // target_type: any;
     lvl: number;
-    is_renewing: boolean;
+    // is_renewing: boolean;
     _trav: any;
     _travel: any;
 }
