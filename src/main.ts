@@ -44,7 +44,7 @@ function _init_room_memory(): RoomMemory {
             build_extensions: false,
         },
         creeps: [],
-        creeps_ids: [],
+        creeps_name: [],
         safe_delete: false,
         flags: [],
         structure_ids: {},

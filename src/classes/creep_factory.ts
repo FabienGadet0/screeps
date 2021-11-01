@@ -38,10 +38,11 @@ class Creep_factory {
                 _travel: undefined,
                 is_renewing: false,
                 role: _role,
-                working: false,
+                target: undefined,
+                action: "IDLE",
                 room: spawn.room.name,
                 spawn_name: spawn.name,
-                target_type: "",
+                // target_type: "",
                 lvl: lvl,
             },
         });

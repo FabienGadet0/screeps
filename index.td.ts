@@ -18,15 +18,17 @@ interface RoomMemory {
 
     flags: Flag[];
     structure_ids: Record<string, any>;
-    creeps_ids: Id<Creep>[];
+    creeps_name: string[];
 }
 
 interface CreepMemory {
     role: string;
     room: string;
-    working: boolean;
+    // working: boolean;
     spawn_name: string;
-    target_type: any;
+    target?: Id<any>;
+    action: any;
+    // target_type: any;
     lvl: number;
     is_renewing: boolean;
     _trav: any;

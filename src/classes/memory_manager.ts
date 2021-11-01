@@ -2,7 +2,7 @@ import { REPAIR_THRESHOLD } from "../config";
 import * as Utils from "../utils/utils";
 
 function get(room_name: string, val: string): any {
-    if (val === "lvl" || val === "creeps_ids") return Memory.rooms[room_name][val];
+    if (val === "lvl" || val === "creeps_name") return Memory.rooms[room_name][val];
 
     return Memory.rooms[room_name].structure_ids[val];
 }
@@ -18,7 +18,7 @@ function from_ids(ids: Id<any>[]): any[] {
 }
 
 function push_id(room_name: string, to: string, id: Id<any>): void {
-    if (to === "creeps_ids") Memory.rooms[room_name][to].push(id);
+    if (to === "creeps_name") Memory.rooms[room_name][to].push(id);
 
     Memory.rooms[room_name].structure_ids[to].push(id);
 }
@@ -183,7 +183,7 @@ class Memory_manager {
     }
     private _FIND_ALL_CREEPS(room: Room) {
         return _.map(room.find(FIND_MY_CREEPS), (creep: Creep) => {
-            return creep.id;
+            return creep.name;
         });
     }
 
@@ -251,7 +251,7 @@ class Memory_manager {
                         break;
                     }
                     case "creeps_ids": {
-                        Memory["rooms"][room.name].creeps_ids = this._FIND_ALL_CREEPS(room);
+                        Memory["rooms"][room.name].creeps_name = this._FIND_ALL_CREEPS(room);
                         break;
                     }
                     case "to_repair": {

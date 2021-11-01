@@ -3,46 +3,79 @@
 import * as Config from "../../config";
 import * as Utils from "../../utils/utils";
 import * as Finder from "../../utils/finder";
+import { profile } from "../../Profiler/Profiler";
 
-export function harvest(creep: Creep, source_number: number = 0, opts?: {} | undefined): void {
-    let source: Source = Finder.from_id(Memory["rooms"][creep.room.name].structure_ids["sources"][source_number]);
-    if (source)
-        creep.pos.isNearTo(source)
-            ? Utils._C(creep.name, creep.harvest(source), "harvesting " + creep.name)
-            : Utils._C(creep.name, moveTo(creep, source.pos));
+//todo MAYBE NO ICREEP CLASS BECAUSE IM JUST USING MEMORY BASICALLY . BUT OK FOR ROLE BASED CLASSES.
+export enum ACTION {
+    IDLE = "IDLE",
+    HARVEST = "HARVEST",
+    MOVETO = "MOVETO",
+    RENEW = "RENEW",
+    BUILD = "BUILD",
+    REPAIR = "REPAIR",
+    TRANSFER = "TRANSFER",
 }
 
-export function moveTo(creep: Creep, target: ConstructionSite | Structure | RoomPosition, opts?: MoveToOpts | undefined): number {
-    if (Memory.debug_mode) return creep.travelTo(target, opts);
-    else return creep.travelTo(target, opts);
-}
+@profile
+export class ICreep {
+    creep_name: string;
+    creep_id: Id<Creep>;
+    is_renewing: boolean;
+    action: ACTION;
+    target?: Id<any>;
+    lvl: number;
+    spawn_name: string;
+    obj: Creep;
+    ticksToLive?: number;
 
-export function say(creep: Creep, msg: string) {
-    if (Memory.debug_speak) creep.say(msg);
-}
-
-export function needsRenew(creep: Creep): boolean {
-    return (creep.ticksToLive || 0) / Config.MAX_TICKS_TO_LIVE <= Config.PERCENTAGE_TICKS_BEFORE_NEEDS_REFILL;
-}
-
-export function tryRenew(creep: Creep, spawn: StructureSpawn): number {
-    let r = spawn.renewCreep(creep);
-    if (r === -6 && creep.store[RESOURCE_ENERGY] !== 0) {
-        //? If not enough energy , everybody will give energy regarding of it's class.
-        creep.transfer(spawn, RESOURCE_ENERGY);
-        if (Memory.debug_mode) console.log("Renewing " + creep.name + "->ERR_NOT_ENOUGH_ENERGY/RESSOURCES/EXTENSIONS");
+    constructor(creep_name: string) {
+        const c = Game.creeps[creep_name];
+        this.creep_name = creep_name;
+        this.creep_id = c.id;
+        this.action = c.memory.action;
+        this.target = c.memory.target;
+        this.is_renewing = c.memory.is_renewing;
+        this.lvl = c.memory.lvl;
+        this.spawn_name = c.memory.spawn_name;
+        this.ticksToLive = c.ticksToLive;
+        this.obj = c;
     }
-    return r;
-}
 
-export function manageRenew(creep: Creep): boolean {
-    // if ((creep.memory.role === 'harvester' && spawn.store[RESOURCE_ENERGY] >= 200) || ( creep.memory.role !== 'harvester' && spawn.store[RESOURCE_ENERGY] > 20 ) ) { //* Harvester sacrifice to bring energy for others
-    const spawn = Game.spawns[creep.memory.spawn_name]; //todo change it to Finder.from_id(
+    public update() {
+        const c = Game.creeps[this.creep_name];
+        this.action = c.memory.action;
+        this.is_renewing = c.memory.is_renewing;
+        this.target = c.memory.target;
+        this.ticksToLive = c.ticksToLive;
+        this.obj = c;
+    }
 
-    if (!creep.memory.is_renewing) creep.memory.is_renewing = needsRenew(creep);
-    else if ((creep.ticksToLive || 0) >= Config.MAX_TICKS_TO_LIVE) creep.memory.is_renewing = false;
+    public run() {
+        //todo -> parse all actions and set to target.
+    }
 
-    if (creep.memory.is_renewing && tryRenew(creep, spawn) === ERR_NOT_IN_RANGE) moveTo(creep, spawn);
+    public set(action: ACTION, target: Id<any>) {
+        this.obj.memory.action = action;
+        this.obj.memory.target = target;
+        this.action = action;
+        this.target = target;
+    }
 
-    return creep.memory.is_renewing;
+    // protected harvest(source_number: number = 0, opts?: {} | undefined): void {
+    //     let source: Source = Finder.from_id(Memory["rooms"][creep.mem room.name].structure_ids["sources"][source_number]);
+    //     if (source)
+    //         creep.pos.isNearTo(source)
+    //             ? Utils._C(creep.name, creep.harvest(source), "harvesting " + creep.name)
+    //             : Utils._C(creep.name, this.moveTo(creep, source.pos));
+    // }
+
+    public moveTo(target: ConstructionSite | Structure | RoomPosition, opts?: MoveToOpts | undefined): number {
+        if (this.obj) return this.obj.travelTo(target, opts);
+        else console.log("OBJ isn't here " + this.creep_name);
+        return -1000;
+    }
+
+    protected say(creep: Creep, msg: string) {
+        if (Memory.debug_speak) creep.say(msg);
+    }
 }

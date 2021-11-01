@@ -162,7 +162,7 @@ function _FIND_FLAGS_NAMES(room: Room): string[] {
 }
 function _FIND_ALL_CREEPS(room: Room) {
     return _.map(room.find(FIND_MY_CREEPS), (creep: Creep) => {
-        return creep.id;
+        return creep.name;
     });
 }
 
@@ -192,7 +192,7 @@ function _FIND_ALL_TO_REPAIR_IDS(room: Room): Id<any>[] {
 }
 
 function get(room_name: string, val: string): any {
-    if (val === "lvl" || val === "creeps_ids") return Memory.rooms[room_name][val];
+    if (val === "lvl" || val === "creeps_name") return Memory.rooms[room_name][val];
 
     return Memory.rooms[room_name].structure_ids[val];
 }
@@ -234,7 +234,7 @@ function UPDATE_IDS(room: Room, update_list: string[]): boolean {
                     break;
                 }
                 case "creeps_ids": {
-                    Memory["rooms"][room.name].creeps_ids = _FIND_ALL_CREEPS(room);
+                    Memory["rooms"][room.name].creeps_name = _FIND_ALL_CREEPS(room);
                     break;
                 }
                 case "to_repair": {
