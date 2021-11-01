@@ -76,6 +76,7 @@ function _init_room_memory(spawn: StructureSpawn): RoomMemory {
     return {
         updater: {},
         structures: {},
+        structure_ids: {},
         build_map: {
             build_roads: false,
             build_extensions: false,

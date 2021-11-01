@@ -33,40 +33,16 @@ function _FIND_MINERALS(room: Room): Mineral[] {
     return room.find(FIND_MINERALS);
 }
 
-function _FIND_SOURCES_IDS(room: Room): Id<Source>[] {
-    return _.map(Game.spawns["Spawn1"].room.find(FIND_SOURCES_ACTIVE), (struct) => {
-        return struct.id;
-    });
-}
-
 function _FIND_ROADS(room: Room): AnyStructure[] {
     return room.find(FIND_STRUCTURES, { filter: { structureType: STRUCTURE_ROAD } });
-}
-
-function _FIND_SOURCES_IDS(room: Room): Id<Source>[] {
-    return _.map(Game.spawns["Spawn1"].room.find(FIND_SOURCES_ACTIVE), (struct) => {
-        return struct.id;
-    });
 }
 
 function _FIND_structures(room: Room): AnyStructure[] {
     return room.find(FIND_MY_STRUCTURES);
 }
 
-function _FIND_SOURCES_IDS(room: Room): Id<Source>[] {
-    return _.map(Game.spawns["Spawn1"].room.find(FIND_SOURCES_ACTIVE), (struct) => {
-        return struct.id;
-    });
-}
-
 function _FIND_CONTROLLER(room: Room): StructureController | undefined {
     return room.controller;
-}
-
-function _FIND_SOURCES_IDS(room: Room): Id<Source>[] {
-    return _.map(Game.spawns["Spawn1"].room.find(FIND_SOURCES_ACTIVE), (struct) => {
-        return struct.id;
-    });
 }
 
 function GET_ENERGY_STATS(spawn: StructureSpawn): { max_energy: number; available_energy: number } {
@@ -92,21 +68,9 @@ function _FIND_EXTENSIONS(room: Room): AnyStructure[] {
     return room.find(FIND_MY_STRUCTURES, { filter: { structureType: "extension" } });
 }
 
-function _FIND_SOURCES_IDS(room: Room): Id<Source>[] {
-    return _.map(Game.spawns["Spawn1"].room.find(FIND_SOURCES_ACTIVE), (struct) => {
-        return struct.id;
-    });
-}
-
 function _FIND_NOT_FULL_EXTENSIONS(room: Room): AnyStructure[] {
     return room.find(FIND_MY_STRUCTURES, {
         filter: (i: StructureExtension) => i.structureType === "extension" && i.store.getFreeCapacity(RESOURCE_ENERGY) > 0,
-    });
-}
-
-function _FIND_SOURCES_IDS(room: Room): Id<Source>[] {
-    return _.map(Game.spawns["Spawn1"].room.find(FIND_SOURCES_ACTIVE), (struct) => {
-        return struct.id;
     });
 }
 
@@ -117,20 +81,8 @@ function _FIND_NOT_FULL_CONTAINERS(room: Room): AnyStructure[] {
     });
 }
 
-function _FIND_SOURCES_IDS(room: Room): Id<Source>[] {
-    return _.map(Game.spawns["Spawn1"].room.find(FIND_SOURCES_ACTIVE), (struct) => {
-        return struct.id;
-    });
-}
-
 function _FIND_FLAGS(room: Room): Flag[] {
     return room.find(FIND_FLAGS);
-}
-
-function _FIND_SOURCES_IDS(room: Room): Id<Source>[] {
-    return _.map(Game.spawns["Spawn1"].room.find(FIND_SOURCES_ACTIVE), (struct) => {
-        return struct.id;
-    });
 }
 
 function _GET_LVL_OF_ROOM(spawn: StructureSpawn) {
