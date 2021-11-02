@@ -3,7 +3,6 @@ import * as Utils from "../utils/utils";
 import * as Finder from "../utils/finder";
 import { profile } from "../Profiler/Profiler";
 
-@profile
 class Build_planner {
     room_name: string;
     spawn_id: Id<StructureSpawn>;

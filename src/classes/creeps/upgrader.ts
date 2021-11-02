@@ -7,7 +7,6 @@ import { ICreep, ACTION } from "./ICreep";
 // import * as Finder from "../../utils/finder";
 import { profile } from "../../Profiler/Profiler";
 
-@profile
 export class Upgrader extends ICreep {
     controler_id: Id<StructureController>;
     upgrading: boolean;
@@ -16,6 +15,8 @@ export class Upgrader extends ICreep {
         super(creep_name);
         this.controler_id = Game.spawns[this.spawn_name].room.controller!.id;
         this.upgrading = false;
+        this.creep.memory.action = ACTION.UPGRADE_CONTROLLER;
+        this.creep.memory.target = this.controler_id;
     }
 
     protected logic() {
@@ -25,9 +26,10 @@ export class Upgrader extends ICreep {
         //* -------------------------------------------------
         if (this.creep.store[RESOURCE_ENERGY] === this.creep.store.getCapacity() && !this.upgrading) {
             this.set(ACTION.UPGRADE_CONTROLLER, this.controler_id);
-            this.upgrading = !this.upgrading;
+            this.upgrading = false;
         } else if (this.creep.store[RESOURCE_ENERGY] === 0) {
             this.set(ACTION.HARVEST, this.source_ids[0]);
+            this.upgrading = true;
         }
     }
 }

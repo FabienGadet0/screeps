@@ -41,17 +41,17 @@ export class Room_orchestrator {
         this.memory_manager.update(); //* Always first
 
         this.set_lvl_of_room();
-        this.creep_manager.set_lvl(this.lvl);
 
         this.build_planner.update();
+        this.creep_manager.set_lvl(this.lvl);
         this.creep_manager.update();
     }
 
     public run(): void {
         if (Utils.check_if_roombased_variables_are_up(this.room_name)) {
             this.memory_manager.run();
-            this.creep_manager.run();
             this.build_planner.run();
+            this.creep_manager.run();
         } else console.log("[" + this.room_name + "]" + "[" + this.spawn_id + "]" + " Roombased variables aren't up!");
     }
 }

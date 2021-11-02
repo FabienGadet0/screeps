@@ -25,17 +25,9 @@ export class ICreep {
     creep: Creep;
     ticksToLive?: number;
     source_ids: Id<Source>[];
+    last_return_code: ScreepsReturnCode | CreepMoveReturnCode | number;
 
-    _ACTION_to_func: Record<ACTION, any> = {
-        IDLE: undefined,
-        HARVEST: this.harvest,
-        MOVETO: this.moveTo,
-        RENEW: this.renew,
-        BUILD: this.build,
-        REPAIR: this.repair,
-        TRANSFER: this.transfer,
-        UPGRADE_CONTROLLER: this.upgrade_controller,
-    };
+    _ACTION_to_func: Record<ACTION, any>;
 
     protected _get_sources() {
         return _.map(this.creep.room.find(FIND_SOURCES_ACTIVE), (source: Source) => {
@@ -54,7 +46,48 @@ export class ICreep {
         this.ticksToLive = c.ticksToLive;
         this.creep = c;
         this.source_ids = this._get_sources();
+        this.last_return_code = OK;
+        this.creep.memory.action = this.action;
+        this.creep.memory.target = this.target;
+        this._ACTION_to_func = {
+            IDLE: this.idle,
+            HARVEST: this.creep.harvest,
+            MOVETO: this.moveTo,
+            RENEW: this.renew,
+            BUILD: this.creep.build,
+            REPAIR: this.creep.repair,
+            TRANSFER: this.creep.transfer,
+            UPGRADE_CONTROLLER: this.creep.upgradeController,
+        };
         console.log("New creep " + creep_name + " in spawn " + this.spawn_name);
+    }
+
+    private action_to_func(...target: any): any {
+        switch (this.action) {
+            case ACTION.IDLE:
+                return this.idle(target[0]);
+
+            case ACTION.HARVEST:
+                return this.creep.harvest(target[0]);
+
+            case ACTION.MOVETO:
+                return this.moveTo(target[0]);
+
+            case ACTION.RENEW:
+                return this.renew(target[0]);
+
+            case ACTION.BUILD:
+                return this.creep.build(target[0]);
+
+            case ACTION.REPAIR:
+                return this.creep.repair(target[0]);
+
+            case ACTION.TRANSFER:
+                return this.creep.transfer(target[0], RESOURCE_ENERGY); //TODO for now it's only resource energy , but maybe i can do a second arg thing.
+
+            case ACTION.UPGRADE_CONTROLLER:
+                return this.creep.upgradeController(target[0]);
+        }
     }
 
     public is_renewing(): boolean {
@@ -63,8 +96,8 @@ export class ICreep {
     public set(action: ACTION, target?: Id<any>) {
         this.creep.memory.action = action;
         this.creep.memory.target = target;
-        // this.action = action;
-        // this.target = target;
+        this.action = action;
+        this.target = target;
     }
 
     public update() {
@@ -80,21 +113,16 @@ export class ICreep {
         this.logic();
         if (this.action && this.target) {
             const target_obj = Game.getObjectById(this.target);
-            let r = this._ACTION_to_func[this.action](target_obj);
-            if (r === ERR_NOT_IN_RANGE) this.moveTo(target_obj);
+
+            this.last_return_code = this.action_to_func(target_obj);
+            console.log(
+                this.creep + " action " + this.action + " " + target_obj + " r " + Utils._C(this.creep_name, this.last_return_code),
+            );
+            if (this.last_return_code === ERR_NOT_IN_RANGE) {
+                // this.creep.travelTo(target_obj);
+                this.moveTo(target_obj);
+            }
         }
-    }
-
-    // protected harvest(source_number: number = 0, opts?: {} | undefined): void {
-    //     let source: Source = Finder.from_id(Memory["rooms"][creep.mem room.name].structure_ids["sources"][source_number]);
-    //     if (source)
-    //         creep.pos.isNearTo(source)
-    //             ? Utils._C(creep.name, creep.harvest(source), "harvesting " + creep.name)
-    //             : Utils._C(creep.name, this.moveTo(creep, source.pos));
-    // }
-
-    public harvest(...target: any): any {
-        return this.creep.harvest(target);
     }
 
     public moveTo(target: ConstructionSite | Structure | RoomPosition, opts?: MoveToOpts | undefined): number {
@@ -104,31 +132,12 @@ export class ICreep {
     //* Renew is a bit special because the creep needs to go to a spawn
     //* and renew is made from spawn side (in creep_manager)
     public renew(...target: any): any {
-        if (!this.creep.pos.isNearTo(target)) return this.moveTo(target);
+        console.log(this.creep.pos.isNearTo(target));
+        if (!this.creep.pos.isNearTo(target)) return ERR_NOT_IN_RANGE;
         return 0;
     }
 
-    public attack(...target: any): any {
-        return this.creep.attack(target);
-    }
-
-    public build(...target: any): any {
-        return this.creep.build(target);
-    }
-
-    public repair(...target: any): any {
-        return this.creep.repair(target);
-    }
-
-    public transfer(...target: any): any {
-        return this.creep.transfer(target[0], target[1]);
-    }
-
-    public upgrade_controller(...target: any): any {
-        return this.creep.upgradeController(target[0]);
-    }
-
-    protected say(creep: Creep, msg: string) {
-        if (Memory.debug_speak) creep.say(msg);
+    protected idle(_: any): any {
+        return this.creep.say("i'm IDLE wtf");
     }
 }

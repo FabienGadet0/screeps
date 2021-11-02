@@ -8,7 +8,6 @@ import { Builder } from "./creeps/builder";
 import { profile } from "../Profiler/Profiler";
 import { Creep_factory } from "./creep_factory";
 
-@profile
 class Creep_manager {
     room_name: string;
     spawn_id: Id<StructureSpawn>;
@@ -31,8 +30,13 @@ class Creep_manager {
     public run(): void {
         this.creep_factory.run();
 
+        // this._set_target_distribution("harvester")
+        // this._set_target_distribution("builder")
+
         _.each(this.creeps, (creep: ICreep) => {
-            if (!this.manageRenew(creep)) creep.run();
+            if (!this.manageRenew(creep)) {
+                creep.run();
+            }
         });
     }
 
@@ -40,16 +44,51 @@ class Creep_manager {
         this.lvl = lvl;
     }
 
+    // private _set_target_distribution(role:string): void {
+    //     //* Harvester's logic ---------------------
+    //     let harvesters: ICreep[] = [];
+    //     let builders: ICreep[] = [];
+
+    //     _.map(this.creeps, (creep: any) => {
+    //         if(creep.creep.role === 'harvester')
+    //             harvesters.push(creep)
+    //         if(creep.creep.role === 'builder')
+    //             builders.push(creep)
+    //     })
+
+    //     console.log("all harvesters : " + harvesters)
+    //     console.log("all builders : " + builders)
+
+    //     const spawn = Game.getObjectById(this.spawn_id)
+    //     if (spawn!.store.getFreeCapacity(RESOURCE_ENERGY) === 0) {
+    //         const extensions_not_full = _.filter(Memory.rooms[this.room_name].structure_ids["extensions"], (ext) => {
+    //             const extension = Game.getObjectById(ext) as StructureExtension;
+    //             return extension.store.getFreeCapacity(RESOURCE_ENERGY) > 0;
+    //         });
+    //     }
+    //     else
+
+    //* -----------------------------------------
+
     public update(): boolean {
         this.creep_factory.set_lvl(this.lvl);
         this.creep_factory.update();
 
         const diff = _.size(this.creeps) - _.size(Memory.rooms[this.room_name].creeps_name);
+
         let game_creeps = Memory.rooms[this.room_name].creeps_name;
+
         if (diff < 0) return this._delete_old(game_creeps);
         else if (diff > 0) return this._add_new(game_creeps);
+
+        _.map(this.creeps, (creep: ICreep) => {
+            creep.update();
+        });
+
         return false;
     }
+
+    //* creeps in memory -------------------------------------------
 
     private _add_new(game_creeps: string[]): boolean {
         const my_creeps_names = Object.keys(this.creeps);
@@ -77,6 +116,8 @@ class Creep_manager {
         return dead_creeps.length > 0;
     }
 
+    //*  -------------------------------------------------------------
+
     protected needsRenew(creep: ICreep): boolean {
         return (creep.ticksToLive || 0) / Config.MAX_TICKS_TO_LIVE <= Config.PERCENTAGE_TICKS_BEFORE_NEEDS_REFILL;
     }
@@ -84,7 +125,7 @@ class Creep_manager {
     protected tryRenew(creep: ICreep, spawn: StructureSpawn): number {
         let r = spawn.renewCreep(creep.creep);
         if (r === -6 && creep.creep.store[RESOURCE_ENERGY] !== 0) creep.set(ACTION.TRANSFER, spawn.id);
-        creep.transfer(spawn, RESOURCE_ENERGY);
+        creep.creep.transfer(spawn, RESOURCE_ENERGY);
         return r;
     }
 

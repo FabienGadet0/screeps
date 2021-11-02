@@ -10,7 +10,6 @@ import { Harvester } from "./creeps/harvester";
 import { Builder } from "./creeps/builder";
 import { Upgrader } from "./creeps/upgrader";
 
-@profile
 class Creep_factory {
     room_name: string;
     lvl: number;
@@ -67,9 +66,7 @@ class Creep_factory {
         });
     }
 
-    public update(): void {
-        this.lvl = Memory["rooms"][this.room_name]["lvl"];
-    }
+    public update(): void {}
 
     public run(): void {
         let total = 0;

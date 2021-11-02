@@ -31,7 +31,6 @@ function push_ids(room_name: string, to: string, ids: Id<any>[]): void {
 
 import { profile } from "../Profiler/Profiler";
 
-@profile
 class Memory_manager {
     room_name: string;
     constructor(room_name: string) {
@@ -234,7 +233,6 @@ class Memory_manager {
         if (update_list.length >= 1)
             _.each(update_list, (up) => {
                 if (!Memory["rooms"][room.name].updater[up] || Memory["rooms"][room.name].updater[up] !== Game.time) {
-                    console.log(Game.time + " = " + up);
                     switch (up) {
                         case "lvl": {
                             Memory["rooms"][room.name]["lvl"] = this.GET_LVL_OF_ROOM(room);

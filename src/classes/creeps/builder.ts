@@ -4,14 +4,18 @@ import { ICreep } from "./ICreep";
 // import * as Finder from "../../utils/finder";
 import { profile } from "../../Profiler/Profiler";
 
-@profile
 export class Builder extends ICreep {
     constructor(creep_name: string) {
         super(creep_name);
     }
 
+    public update() {
+        return super.update();
+    }
     protected logic() {}
 }
+
+//todo builders
 
 // //* LOGIC : -----------------------------------------
 // // if no energy
