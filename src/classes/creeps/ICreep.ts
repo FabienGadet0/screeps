@@ -119,11 +119,16 @@ export class ICreep {
     }
 
     protected _task_finished(): void {
-        delete this.target;
-        this.set(ACTION.IDLE, undefined);
+        // delete this.target;
+        this.set(ACTION.WAITING_NEXT_TASK, undefined);
         this.creep.say("Finished");
     }
 
+    public debug_me() {
+        console.log(
+            "[DEBUG] " + this.creep + " lvl " + this.lvl + " ticks " + this.ticksToLive + " / action->" + this.action + " = " + this.target,
+        );
+    }
     protected _start_task(task_name: string, action?: ACTION): void {
         const act = action ? action : this.main_action;
         if (!_.isEmpty(Memory.rooms[this.creep.room.name].room_tasks[task_name])) {
@@ -153,12 +158,10 @@ export class ICreep {
 
         this.manageRenew(Game.spawns[this.spawn_name] as StructureSpawn);
 
-        // if (this.action !== ACTION.RENEW) {
-        //? Renew is managed by the creep_manager
-        this.set(this.creep.memory.action, this.creep.memory.target);
-        // this.action = this.creep.memory.action;
-        // this.target = this.creep.memory.target;
-        // }
+        if (this.action !== ACTION.RENEW) {
+            //? Renew is managed by the creep_manager
+            this.set(this.creep.memory.action, this.creep.memory.target);
+        }
     }
 
     protected logic() {}
@@ -191,9 +194,6 @@ export class ICreep {
     //* and renew is made from spawn side (in creep_manager)
     public renew(...target: any): any {
         if (!this.creep.pos.isNearTo(target)) return ERR_NOT_IN_RANGE;
-        // else if (this.creep.store.getCapacity(RESOURCE_ENERGY) > 0)
-        //TODO Goes against run() and this.target rule , this.action logic by doing an action directly from here but for now it's ok.
-        // this.creep.transfer(target, RESOURCE_ENERGY);
         return OK;
     }
 
@@ -207,6 +207,10 @@ export class ICreep {
         // return OK;
     }
 
+    public has_energy() {
+        return this.creep.store[RESOURCE_ENERGY] > 0;
+    }
+
     // //* ----------------RENEWING LOGIC --------------------------
     protected needsRenew(): boolean {
         return (this.ticksToLive || 0) / Config.MAX_TICKS_TO_LIVE <= Config.PERCENTAGE_TICKS_BEFORE_NEEDS_REFILL;
@@ -214,15 +218,13 @@ export class ICreep {
 
     protected manageRenew(spawn: StructureSpawn): boolean {
         // if ((creep.memory.role === 'harvester' && spawn.store[RESOURCE_ENERGY] >= 200) || ( creep.memory.role !== 'harvester' && spawn.store[RESOURCE_ENERGY] > 20 ) ) { //* Harvester sacrifice to bring energy for others
-        // const spawn = Game.spawns[this.spawn_name];
-        // if (this.needsRenew())
         if (!this.is_renewing() && this.needsRenew()) {
             this.set(ACTION.RENEW, spawn.id);
             Memory.rooms[this.creep.room.name].cripple_creeps.push(this.creep_name);
         }
         //? if full life and was renewing , set to idle to get out of the renewing loop.
         else if (this.ticksToLive && this.ticksToLive >= Config.MAX_TICKS_TO_LIVE - 50) {
-            this.set(ACTION.IDLE, undefined);
+            this.set(ACTION.WAITING_NEXT_TASK, undefined);
             Memory.rooms[this.creep.room.name].cripple_creeps.splice(
                 Memory.rooms[this.creep.room.name].cripple_creeps.findIndex((item) => item == this.creep_name),
                 1,
