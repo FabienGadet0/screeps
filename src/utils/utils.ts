@@ -70,32 +70,30 @@ function init_variables() {
     Memory.debug_speak = false;
 }
 
-function _init_room_memory(spawn: StructureSpawn): RoomMemory {
-    console.log(spawn.room.name + "-> Init_room_memory");
-
+export function _init_room_memory(): RoomMemory {
     return {
         updater: {},
-        structures: {},
-        structure_ids: {},
         build_map: {
             build_roads: false,
             build_extensions: false,
         },
-        creeps: [],
+        creeps_name: [],
+        room_tasks: {
+            to_transfer: [],
+            to_build: [],
+            to_repair: [],
+        },
+        cripple_creeps: [],
         safe_delete: false,
         flags: [],
+        structure_ids: {},
         avoid: undefined,
-        lvl: 1,
+        lvl: 300,
     };
 }
 
-//? Check if vars are up and update mandatory vars.
-function manage_roombased_variables(spawn: StructureSpawn) {
-    if (!Memory["rooms"][spawn.room.name]) Memory["rooms"][spawn.room.name] = _init_room_memory(spawn);
+function check_if_roombased_variables_are_up(room_name: string): boolean {
+    return Memory["rooms"][room_name].build_map !== undefined;
 }
 
-function check_if_roombased_variables_are_up(spawn: StructureSpawn): boolean {
-    return Memory["rooms"][spawn.room.name].build_map !== undefined;
-}
-
-export { debug, init_variables, check_if_roombased_variables_are_up, manage_roombased_variables, flatten, _C };
+export { debug, init_variables, check_if_roombased_variables_are_up, flatten, _C };
