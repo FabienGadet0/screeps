@@ -40,11 +40,17 @@ class Creep_manager {
         const to_build = Memory.rooms[this.room_name].structure_ids["construction_sites"];
         const to_repair = Memory.rooms[this.room_name].structure_ids["to_repair"];
 
+        // console.log("to transfer + " + Memory.rooms[this.room_name].structure_ids.room_tasks["to_transfer"]);
+        // console.log("empty tasks :" + _.isEmpty(Memory.rooms[this.room_name].room_tasks));
         if (_.isEmpty(Memory.rooms[this.room_name].room_tasks["to_transfer"])) {
             //* Harvester
+
             if (spawn!.store.getFreeCapacity(RESOURCE_ENERGY) > 0)
-                // Memory.rooms[this.room_name].room_tasks["to_transfer"].push(this.spawn_id);
                 Memory.rooms[this.room_name].room_tasks["to_transfer"] = [this.spawn_id].concat(extensions_not_full);
+            // Memory.rooms[this.room_name].room_tasks["to_transfer"].push(this.spawn_id);
+            else
+                Memory.rooms[this.room_name].room_tasks["to_transfer"] =
+                    Memory.rooms[this.room_name].room_tasks["to_transfer"].concat(extensions_not_full);
             // Memory.rooms[this.room_name].room_tasks["to_transfer"].concat(extensions_not_full);
         }
         //*------------------

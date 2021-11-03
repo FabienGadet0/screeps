@@ -35,10 +35,7 @@ class Memory_manager {
     room_name: string;
     constructor(room_name: string) {
         this.room_name = room_name;
-    }
-    public update() {
-        this.update_ids(Game.rooms[this.room_name], [
-            "lvl",
+        this.update_ids(Game.rooms[room_name], [
             "controller",
             "roads",
             "sources",
@@ -49,8 +46,25 @@ class Memory_manager {
             "creeps_ids",
             "extensions_not_full",
             "containers_not_full",
-            "dropped_resources",
+            "lvl",
         ]);
+    }
+
+    public update() {
+        this.update_ids(Game.rooms[this.room_name], ["lvl", "controller", "roads", "sources", "creeps_ids"]);
+        if (Memory.rooms[this.room_name].room_tasks["to_transfer"] && _.isEmpty(Memory.rooms[this.room_name].room_tasks["to_transfer"])) {
+            this.update_ids(Game.rooms[this.room_name], [
+                "construction_sites",
+                "extensions",
+                "extensions_not_full",
+                "containers_not_full",
+                "dropped_resources",
+            ]);
+        }
+        if (Memory.rooms[this.room_name].room_tasks["to_build"] && _.isEmpty(Memory.rooms[this.room_name].room_tasks["to_build"]))
+            this.update_ids(Game.rooms[this.room_name], ["construction_sites"]);
+        if (Memory.rooms[this.room_name].room_tasks["to_repair"] && _.isEmpty(Memory.rooms[this.room_name].room_tasks["to_repair"]))
+            this.update_ids(Game.rooms[this.room_name], ["roads", "to_repair"]);
     }
     public run() {}
 

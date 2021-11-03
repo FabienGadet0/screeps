@@ -23,11 +23,11 @@ export class Room_orchestrator {
         this.spawn_name = spawn.name;
         // this.controller_id = spawn.room.controller ? spawn.room.controller.id : undefined;
         this.lvl = 300;
+        this._manage_roombased_variables(room_name);
         this.memory_manager = new Memory_manager(room_name);
         this.build_planner = new Build_planner(room_name, this.spawn_id);
 
         this.creep_manager = new Creep_manager(room_name, this.spawn_id);
-        this._manage_roombased_variables(room_name);
         console.log("Room orchestrator of " + room_name + " created");
     }
 

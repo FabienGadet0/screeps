@@ -55,19 +55,6 @@ export const loop = ErrorMapper.wrapLoop(() => {
             if (!(room_name in Object.keys(room_orchestators))) {
                 room_orchestators[room_name] = new Room_orchestrator(room_name, spawn);
             }
-            Finder.UPDATE_IDS(Game.rooms[room_name], [
-                "controller",
-                "roads",
-                "sources",
-                "construction_sites",
-                "extensions",
-                "minerals",
-                "to_repair",
-                "creeps_ids",
-                "extensions_not_full",
-                "containers_not_full",
-                "lvl",
-            ]);
         }
     }
 

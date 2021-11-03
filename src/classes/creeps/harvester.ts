@@ -18,8 +18,8 @@ export class Harvester extends ICreep {
         if (!this.target && this.action) {
             if (this.action === ACTION.HARVEST || this.action === ACTION.PICKUP) this.set(ACTION.HARVEST, this.main_source_target);
 
-            if (this.action === ACTION.TRANSFER && Memory.rooms[this.creep.room.name].room_tasks["to_transfer"])
-                this.target = Game.spawns[this.spawn_name].id;
+            // if (this.action === ACTION.TRANSFER && Memory.rooms[this.creep.room.name].room_tasks["to_transfer"])
+            //     this.target = Game.spawns[this.spawn_name].id;
 
             if (this.action !== ACTION.IDLE) {
                 console.log(this.creep + " i got softlock guard , have fun debugging lel " + this.action + " to " + this.target);
@@ -36,13 +36,18 @@ export class Harvester extends ICreep {
         //* -------------------------------------------------
 
         //* start a task
-        if ((this.action === ACTION.HARVEST || this.action === ACTION.PICKUP) && this.creep.store.getFreeCapacity(RESOURCE_ENERGY) === 0)
+        console.log("wesh " + this.target + " -> " + this.creep.store[RESOURCE_ENERGY] + " / " + this.action);
+        if (
+            ((this.action === ACTION.HARVEST || this.action === ACTION.PICKUP || this.action === ACTION.IDLE) &&
+                this.creep.store[RESOURCE_ENERGY] > 0) ||
+            (!this.action && this.creep.store[RESOURCE_ENERGY] > 0)
+        )
             this._start_task("to_transfer");
 
         //* finished task
-        if (this.action === this.main_action && this.target) {
+        if (this.target) {
             const target_obj = Game.getObjectById(this.target);
-            if (target_obj && target_obj.store.getFreeCapacity(RESOURCE_ENERGY) === 0) this._task_finished();
+            if (this.action === ACTION.TRANSFER && target_obj && target_obj.store[RESOURCE_ENERGY] === 0) this._task_finished();
         }
 
         //* harvest if empty

@@ -14,6 +14,7 @@ export enum ACTION {
     UPGRADE_CONTROLLER = "UPGRADE_CONTROLLER",
     TRANSFER = "TRANSFER",
     PICKUP = "PICKUP",
+    WAITING_NEXT_TASK = "WAITING_NEXT_TASK",
 }
 
 export class ICreep {
@@ -29,6 +30,7 @@ export class ICreep {
     last_return_code: ScreepsReturnCode | CreepMoveReturnCode | number;
     main_action: ACTION;
 
+    _ACTION_to_icon: Record<ACTION, string>;
     _ACTION_to_func: Record<ACTION, any>;
 
     protected _get_sources() {
@@ -63,7 +65,22 @@ export class ICreep {
             TRANSFER: this.creep.transfer,
             UPGRADE_CONTROLLER: this.creep.upgradeController,
             PICKUP: this.creep.pickup,
+            WAITING_NEXT_TASK: undefined,
         };
+
+        this._ACTION_to_icon = {
+            IDLE: "",
+            HARVEST: "⛏️Harvest",
+            MOVETO: "",
+            RENEW: "⬆️Renew",
+            BUILD: "👷Build",
+            REPAIR: "👷Repair",
+            TRANSFER: "🚚Transfer",
+            UPGRADE_CONTROLLER: "Upgrade",
+            PICKUP: "Pickup",
+            WAITING_NEXT_TASK: "",
+        };
+
         // console.log("New creep " + creep_name + " in spawn " + this.spawn_name);
     }
 
@@ -103,13 +120,16 @@ export class ICreep {
 
     protected _task_finished(): void {
         delete this.target;
+        this.set(ACTION.IDLE, undefined);
+        this.creep.say("Finished");
     }
 
     protected _start_task(task_name: string, action?: ACTION): void {
         const act = action ? action : this.main_action;
-        if (!this.target && this.action === this.main_action && !_.isEmpty(Memory.rooms[this.creep.room.name].room_tasks[task_name])) {
+        if (!_.isEmpty(Memory.rooms[this.creep.room.name].room_tasks[task_name])) {
             this.set(act, Memory.rooms[this.creep.room.name].room_tasks[task_name].shift());
             console.log(this.creep + " task is " + this.target, " act " + act + " -> " + this.action);
+            this.creep.say(this._ACTION_to_icon[this.action]);
         }
     }
 
@@ -135,8 +155,9 @@ export class ICreep {
 
         // if (this.action !== ACTION.RENEW) {
         //? Renew is managed by the creep_manager
-        this.action = this.creep.memory.action;
-        this.target = this.creep.memory.target;
+        this.set(this.creep.memory.action, this.creep.memory.target);
+        // this.action = this.creep.memory.action;
+        // this.target = this.creep.memory.target;
         // }
     }
 
