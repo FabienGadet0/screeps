@@ -198,7 +198,7 @@ function get(room_name: string, val: string): any {
     return Memory.rooms[room_name].structure_ids[val];
 }
 
-function UPDATE_IDS(room: Room, update_list: string[]): boolean {
+function update_room_component(room: Room, update_list: string[]): boolean {
     let r = true;
     if (update_list.length >= 1)
         _.each(update_list, (up) => {
@@ -330,4 +330,4 @@ function UPDATE_IDS(room: Room, update_list: string[]): boolean {
 //     return r;
 // }
 
-export { _FIND_ROADS, UPDATE_IDS, from_id, from_ids, GET_LVL_OF_ROOM };
+export { _FIND_ROADS, update_room_component, from_id, from_ids, GET_LVL_OF_ROOM };

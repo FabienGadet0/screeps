@@ -58,6 +58,8 @@ class Creep_factory {
                 _trav: undefined,
                 _travel: undefined,
                 role: _role,
+                source_to_target: 0,
+                needs_energy: false,
                 target: undefined,
                 action: "IDLE",
                 room: spawn.room.name,
@@ -67,7 +69,9 @@ class Creep_factory {
         });
     }
 
-    public update(): void {}
+    public update(): void {
+        this.lvl = Memory.rooms[this.room_name].lvl;
+    }
 
     public run(): void {
         let total = 0;

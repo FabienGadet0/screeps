@@ -4,7 +4,7 @@ import * as Finder from "../utils/finder";
 import { profile } from "../Profiler/Profiler";
 
 @profile
-class Build_planner {
+class Room_build_planner {
     room_name: string;
     spawn_id: Id<StructureSpawn>;
 
@@ -177,7 +177,7 @@ class Build_planner {
         //? Set an offset if there is no flag to not spawn structures directly at the spawn.
         let offset = 3;
         if (flags) {
-            pos = flags[0].pos;
+            pos = Game.flags[flags[0]].pos;
             offset = 0;
         }
         this._create_closest_to_pos(pos, struct);
@@ -200,4 +200,4 @@ class Build_planner {
     }
 }
 
-export { Build_planner };
+export { Room_build_planner };

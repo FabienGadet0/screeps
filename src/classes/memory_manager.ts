@@ -35,7 +35,7 @@ class Memory_manager {
     room_name: string;
     constructor(room_name: string) {
         this.room_name = room_name;
-        this.update_ids(Game.rooms[room_name], [
+        this.update_room_component(Game.rooms[room_name], [
             "controller",
             "roads",
             "sources",
@@ -51,9 +51,15 @@ class Memory_manager {
     }
 
     public update() {
-        this.update_ids(Game.rooms[this.room_name], ["lvl", "controller", "roads", "sources", "creeps_ids"]);
-        if (Memory.rooms[this.room_name].room_tasks["to_transfer"] && _.isEmpty(Memory.rooms[this.room_name].room_tasks["to_transfer"])) {
-            this.update_ids(Game.rooms[this.room_name], [
+        this.update_room_component(Game.rooms[this.room_name], ["lvl", "controller", "roads", "sources", "creeps_ids", "flags"]);
+        if (
+            Memory.rooms[this.room_name].room_tasks["to_transfer"] &&
+            _.isEmpty(Memory.rooms[this.room_name].room_tasks["to_transfer"])
+            // && Game.time >= Memory.rooms[this.room_name].updater.construction_sites + 5
+        ) {
+            //?Update it only every 5 ticks
+            // console.log("Updating room component ! " + Game.time + ">= " + (Memory.rooms[this.room_name].updater.construction_sites + 5));
+            this.update_room_component(Game.rooms[this.room_name], [
                 "construction_sites",
                 "extensions",
                 "extensions_not_full",
@@ -61,10 +67,12 @@ class Memory_manager {
                 "dropped_resources",
             ]);
         }
-        if (Memory.rooms[this.room_name].room_tasks["to_build"] && _.isEmpty(Memory.rooms[this.room_name].room_tasks["to_build"]))
-            this.update_ids(Game.rooms[this.room_name], ["construction_sites"]);
+        if (Memory.rooms[this.room_name].room_tasks["to_build"] && _.isEmpty(Memory.rooms[this.room_name].room_tasks["to_build"])) {
+            this.update_room_component(Game.rooms[this.room_name], ["construction_sites"]);
+            // console.log("Searching room to build " + Memory.rooms[this.room_name].structure_ids.construction_sites);
+        }
         if (Memory.rooms[this.room_name].room_tasks["to_repair"] && _.isEmpty(Memory.rooms[this.room_name].room_tasks["to_repair"]))
-            this.update_ids(Game.rooms[this.room_name], ["roads", "to_repair"]);
+            this.update_room_component(Game.rooms[this.room_name], ["roads", "to_repair"]);
     }
     public run() {}
 
@@ -81,16 +89,17 @@ class Memory_manager {
     }
 
     private _FIND_SOURCES_IDS(room: Room): Id<Source>[] {
-        return _.map(room.find(FIND_SOURCES_ACTIVE), (struct) => {
+        return _.map(room.find(FIND_SOURCES), (struct) => {
+            //? TOOK OF _ACTIVE
             return struct.id;
         });
     }
 
-    private _FIND_CONSTRUCTION_SITES(room: Room): ConstructionSite<BuildableStructureConstant>[] {
-        return room.find(FIND_MY_CONSTRUCTION_SITES).slice(0, 8);
-    }
+    // private _FIND_CONSTRUCTION_SITES(room: Room): ConstructionSite<BuildableStructureConstant>[] {
+    //     return room.find(FIND_MY_CONSTRUCTION_SITES).slice(0, 8);
+    // }
 
-    private _FIND_CONSTRUCTION_SITES_IDS(room: Room): Id<ConstructionSite<BuildableStructureConstant>>[] {
+    private _FIND_CONSTRUCTION_SITES_IDS(room: Room): Id<any>[] {
         return _.map(room.find(FIND_MY_CONSTRUCTION_SITES), (struct) => {
             return struct.id;
         });
@@ -177,14 +186,14 @@ class Memory_manager {
         );
     }
 
-    private _FIND_NOT_FULL_CONTAINERS(room: Room): AnyStructure[] {
-        return room.find(FIND_MY_STRUCTURES, {
-            filter: (i: StructureExtension) =>
-                i.structureType !== STRUCTURE_EXTENSION &&
-                i.structureType === STRUCTURE_CONTAINER &&
-                i.store.getFreeCapacity(RESOURCE_ENERGY) > 0,
-        });
-    }
+    // private _FIND_NOT_FULL_CONTAINERS(room: Room): AnyStructure[] {
+    //     return room.find(FIND_MY_STRUCTURES, {
+    //         filter: (i: StructureExtension) =>
+    //             i.structureType !== STRUCTURE_EXTENSION &&
+    //             i.structureType === STRUCTURE_CONTAINER &&
+    //             i.store.getFreeCapacity(RESOURCE_ENERGY) > 0,
+    //     });
+    // }
 
     private _FIND_NOT_FULL_CONTAINERS_IDS(room: Room): Id<any>[] {
         return _.map(
@@ -210,8 +219,8 @@ class Memory_manager {
     }
 
     private _FIND_FLAGS_NAMES(room: Room): string[] {
-        return _.map(room.find(FIND_FLAGS), (struct) => {
-            return struct.name;
+        return _.map(room.find(FIND_FLAGS), (flag) => {
+            return flag.name;
         });
     }
     private _FIND_ALL_CREEPS(room: Room) {
@@ -221,7 +230,7 @@ class Memory_manager {
     }
 
     private GET_LVL_OF_ROOM(room: Room) {
-        return 300 + _.size(Memory["rooms"][room.name].structure_ids["extensions"]) * 50 < 650 ? 1 : 2;
+        return 300 + _.size(Memory["rooms"][room.name].structure_ids["extensions"]) * 50;
     }
 
     private _FIND_ALL_TO_REPAIR(room: Room): Structure[] {
@@ -230,9 +239,10 @@ class Memory_manager {
             .concat(
                 room.find(FIND_STRUCTURES, { filter: (i) => i.structureType == STRUCTURE_ROAD && i.hits / i.hitsMax < REPAIR_THRESHOLD }),
             )
-            .slice(0, 3);
+            .slice(0, 5);
     }
 
+    //TODO CAN BE OPTIMIZED
     private _FIND_ALL_TO_REPAIR_IDS(room: Room): Id<any>[] {
         return _.map(
             room
@@ -242,14 +252,14 @@ class Memory_manager {
                         filter: (i) => i.structureType == STRUCTURE_ROAD && i.hits / i.hitsMax < REPAIR_THRESHOLD,
                     }),
                 )
-                .slice(0, 3),
+                .slice(0, 5),
             (struct) => {
                 return struct.id;
             },
         );
     }
 
-    public update_ids(room: Room, update_list: string[]): void {
+    public update_room_component(room: Room, update_list: string[]): void {
         if (update_list.length >= 1)
             _.each(update_list, (up) => {
                 if (!Memory["rooms"][room.name].updater[up] || Memory["rooms"][room.name].updater[up] !== Game.time) {
@@ -288,6 +298,10 @@ class Memory_manager {
                         }
                         case "to_repair": {
                             Memory["rooms"][room.name].structure_ids["to_repair"] = this._FIND_ALL_TO_REPAIR_IDS(room);
+                            break;
+                        }
+                        case "flags": {
+                            Memory["rooms"][room.name].flags = this._FIND_FLAGS_NAMES(room);
                             break;
                         }
                         case "extensions_not_full": {

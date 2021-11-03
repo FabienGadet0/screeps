@@ -14,7 +14,7 @@ interface RoomMemory {
     avoid: any;
     lvl: number;
 
-    flags: Flag[];
+    flags: string[];
     structure_ids: Record<string, any>;
     creeps_name: string[];
     room_tasks: Record<string, Id<any>[]>;
@@ -28,8 +28,10 @@ interface CreepMemory {
     spawn_name: string;
     target?: Id<any>;
     action: any;
+    needs_energy: boolean;
     // target_type: any;
     lvl: number;
+    source_to_target: number;
     // is_renewing: boolean;
     _trav: any;
     _travel: any;

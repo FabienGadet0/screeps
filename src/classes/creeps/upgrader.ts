@@ -7,22 +7,19 @@ import { profile } from "../../Profiler/Profiler";
 @profile
 export class Upgrader extends ICreep {
     controler_id: Id<StructureController>;
-    upgrading: boolean;
 
     constructor(creep_name: string) {
         super(creep_name);
         this.controler_id = Game.spawns[this.spawn_name].room.controller!.id;
-        this.upgrading = false;
         this.main_action = ACTION.UPGRADE_CONTROLLER;
-        this.set(this.main_action, this.controler_id);
+        this.set(ACTION.UPGRADE_CONTROLLER, this.controler_id);
+        this.creep.memory.source_to_target = 0;
     }
 
     protected _softlock_guard() {
-        if (!this.target) {
-            if (this.action === ACTION.IDLE) this.set(ACTION.HARVEST, this.source_ids[0]);
-            if (this.action === ACTION.HARVEST) this.target = this.source_ids[0];
-            if (this.action === ACTION.UPGRADE_CONTROLLER) this.target = this.controler_id;
-        }
+        if (!this.target && this.action === ACTION.UPGRADE_CONTROLLER) this.target = this.controler_id;
+        if (!this.doing_task) this.doing_task = true; //? upgraders always work.
+        if (this.action === ACTION.WAITING_NEXT_TASK) this.doing_task = false; //? upgraders always work.
     }
 
     protected logic() {
@@ -31,12 +28,9 @@ export class Upgrader extends ICreep {
         // upgrade controller
         //* -------------------------------------------------
 
-        if (this.creep.store[RESOURCE_ENERGY] === this.creep.store.getCapacity() && this.action !== ACTION.UPGRADE_CONTROLLER) {
+        if (!this.doing_task) {
             this.set(ACTION.UPGRADE_CONTROLLER, this.controler_id);
-            this.upgrading = false;
-        } else if (this.creep.store[RESOURCE_ENERGY] === 0) {
-            this.set(ACTION.HARVEST, this.source_ids[0]);
-            this.upgrading = true;
+            this.doing_task = true;
         }
         this._softlock_guard();
     }

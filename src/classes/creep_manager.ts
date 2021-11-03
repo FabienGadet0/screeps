@@ -31,7 +31,7 @@ class Creep_manager {
         });
     }
 
-    private _manage_tasks() {
+    private _manage_tasks(): void {
         //* harvesters tasks
 
         const spawn = Game.getObjectById(this.spawn_id);
@@ -58,8 +58,7 @@ class Creep_manager {
         //* - builder tasks -
         if (_.isEmpty(Memory.rooms[this.room_name].room_tasks["to_repair"]))
             Memory.rooms[this.room_name].room_tasks["to_repair"] = to_repair;
-        if (_.isEmpty(Memory.rooms[this.room_name].room_tasks["to_build"]))
-            Memory.rooms[this.room_name].room_tasks["to_build"].push(to_build || undefined);
+        if (_.isEmpty(Memory.rooms[this.room_name].room_tasks["to_build"])) Memory.rooms[this.room_name].room_tasks["to_build"] = to_build;
         //*-------------------
     }
 
@@ -81,7 +80,8 @@ class Creep_manager {
     }
 
     public update(): boolean {
-        this.creep_factory.set_lvl(this.lvl);
+        this.lvl = Memory.rooms[this.room_name].lvl;
+        // this.creep_factory.set_lvl(this.lvl);
         this.creep_factory.update();
 
         let game_creeps = Memory.rooms[this.room_name].creeps_name;
@@ -117,16 +117,20 @@ class Creep_manager {
     //* creeps in memory -------------------------------------------
 
     private _manage_new_and_dead_creeps(): void {
-        for (const name in Object.keys(this.creeps)) {
+        for (const name in this.creeps) {
             if (!(name in Game.creeps)) {
                 delete this.creeps[name];
                 console.log(name, " deleted");
             }
+            if (name in Memory.rooms[this.room_name].cripple_creeps)
+                //TODO idk if this shit works.
+                Memory.rooms[this.room_name].cripple_creeps = _.filter(Memory.rooms[this.room_name].cripple_creeps, (c: string) => {
+                    return !(c in this.creeps);
+                });
         }
         for (const name in Game.creeps) {
-            if (!(name in Object.keys(this.creeps))) {
+            if (!(name in this.creeps)) {
                 this.creeps[name] = this.creep_factory.generate(Game.creeps[name].memory.role, name);
-                delete this.creeps[name];
                 console.log(name, " added");
             }
         }

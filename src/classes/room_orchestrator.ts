@@ -2,7 +2,7 @@ import * as Config from "../config";
 import * as Utils from "../utils/utils";
 import { Memory_manager } from "./memory_manager";
 import { Creep_factory } from "./creep_factory";
-import { Build_planner } from "./build_planner";
+import { Room_build_planner } from "./build_planner";
 import { Creep_manager } from "./creep_manager";
 
 import * as packRat from "../utils/packrat";
@@ -13,7 +13,7 @@ export class Room_orchestrator {
     // controller_id?: Id<StructureController>;
     room_name: string;
     memory_manager: Memory_manager;
-    build_planner: Build_planner;
+    room_build_planner: Room_build_planner;
     creep_manager: Creep_manager;
     lvl: number;
 
@@ -25,7 +25,7 @@ export class Room_orchestrator {
         this.lvl = 300;
         this._manage_roombased_variables(room_name);
         this.memory_manager = new Memory_manager(room_name);
-        this.build_planner = new Build_planner(room_name, this.spawn_id);
+        this.room_build_planner = new Room_build_planner(room_name, this.spawn_id);
 
         this.creep_manager = new Creep_manager(room_name, this.spawn_id);
         console.log("Room orchestrator of " + room_name + " created");
@@ -39,6 +39,7 @@ export class Room_orchestrator {
     protected set_lvl_of_room() {
         //? lvl is the total amount of energy that can be used.
         this.lvl = 300 + _.size(Memory.rooms[this.room_name].structure_ids["extensions"]) * 50;
+        Memory.rooms[this.room_name].lvl = this.lvl;
         //TODO if there are many spawns it doesn't work.
     }
 
@@ -47,15 +48,14 @@ export class Room_orchestrator {
 
         this.set_lvl_of_room();
 
-        this.build_planner.update();
-        this.creep_manager.set_lvl(this.lvl);
+        this.room_build_planner.update();
         this.creep_manager.update();
     }
 
     public run(): void {
         if (Utils.check_if_roombased_variables_are_up(this.room_name)) {
             this.memory_manager.run();
-            this.build_planner.run();
+            this.room_build_planner.run();
             this.creep_manager.run();
         } else console.log("[" + this.room_name + "]" + "[" + this.spawn_id + "]" + " Roombased variables aren't up!");
     }

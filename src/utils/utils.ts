@@ -71,29 +71,12 @@ function init_variables() {
 }
 
 export function _init_room_memory(): RoomMemory {
-    // console.log(room_name + "-> Init_room_memory");
-
     return {
         updater: {},
-        //     lvl: 0,
-        //     controller: 0,
-        //     roads: 0,
-        //     sources: 0,
-        //     construction_sites: 0,
-        //     extensions: 0,
-        //     minerals: 0,
-        //     creeps_ids: 0,
-        //     to_repair: 0,
-        //     extensions_not_full: 0,
-        //     dropped_resources: 0,
-        //     containers_not_full: 0,
-        // },
-        // structures: {},
         build_map: {
             build_roads: false,
             build_extensions: false,
         },
-        // creeps: [],
         creeps_name: [],
         room_tasks: {
             to_transfer: [],
