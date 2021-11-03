@@ -70,33 +70,47 @@ function init_variables() {
     Memory.debug_speak = false;
 }
 
-function _init_room_memory(room_name: string): RoomMemory {
-    console.log(room_name + "-> Init_room_memory");
+export function _init_room_memory(): RoomMemory {
+    // console.log(room_name + "-> Init_room_memory");
 
     return {
         updater: {},
-        structures: {},
+        //     lvl: 0,
+        //     controller: 0,
+        //     roads: 0,
+        //     sources: 0,
+        //     construction_sites: 0,
+        //     extensions: 0,
+        //     minerals: 0,
+        //     creeps_ids: 0,
+        //     to_repair: 0,
+        //     extensions_not_full: 0,
+        //     dropped_resources: 0,
+        //     containers_not_full: 0,
+        // },
+        // structures: {},
         build_map: {
             build_roads: false,
             build_extensions: false,
         },
         // creeps: [],
         creeps_name: [],
+        room_tasks: {
+            to_transfer: [],
+            to_build: [],
+            to_repair: [],
+        },
+        cripple_creeps: [],
         safe_delete: false,
         flags: [],
         structure_ids: {},
         avoid: undefined,
-        lvl: 1,
+        lvl: 300,
     };
-}
-
-//? Check if vars are up and update mandatory vars.
-function manage_roombased_variables(room_name: string) {
-    if (!Memory["rooms"][room_name]) Memory["rooms"][room_name] = _init_room_memory(room_name);
 }
 
 function check_if_roombased_variables_are_up(room_name: string): boolean {
     return Memory["rooms"][room_name].build_map !== undefined;
 }
 
-export { debug, init_variables, check_if_roombased_variables_are_up, manage_roombased_variables, flatten, _C };
+export { debug, init_variables, check_if_roombased_variables_are_up, flatten, _C };

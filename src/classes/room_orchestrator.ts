@@ -27,8 +27,13 @@ export class Room_orchestrator {
         this.build_planner = new Build_planner(room_name, this.spawn_id);
 
         this.creep_manager = new Creep_manager(room_name, this.spawn_id);
-
+        this._manage_roombased_variables(room_name);
         console.log("Room orchestrator of " + room_name + " created");
+    }
+
+    //? Check if vars are up and update mandatory vars.
+    private _manage_roombased_variables(room_name: string) {
+        if (!Memory["rooms"][room_name]) Memory["rooms"][room_name] = Utils._init_room_memory();
     }
 
     protected set_lvl_of_room() {

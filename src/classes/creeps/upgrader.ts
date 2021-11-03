@@ -2,11 +2,9 @@ import * as Config from "../../config";
 import * as Utils from "../../utils/utils";
 import * as Finder from "../../utils/finder";
 import { ICreep, ACTION } from "./ICreep";
-// import * as Config from "../../config";
-// import * as Utils from "../../utils/utils";
-// import * as Finder from "../../utils/finder";
 import { profile } from "../../Profiler/Profiler";
 
+@profile
 export class Upgrader extends ICreep {
     controler_id: Id<StructureController>;
     upgrading: boolean;
@@ -15,8 +13,16 @@ export class Upgrader extends ICreep {
         super(creep_name);
         this.controler_id = Game.spawns[this.spawn_name].room.controller!.id;
         this.upgrading = false;
-        this.creep.memory.action = ACTION.UPGRADE_CONTROLLER;
-        this.creep.memory.target = this.controler_id;
+        this.main_action = ACTION.UPGRADE_CONTROLLER;
+        this.set(this.main_action, this.controler_id);
+    }
+
+    protected _softlock_guard() {
+        if (!this.target) {
+            if (this.action === ACTION.IDLE) this.set(ACTION.HARVEST, this.source_ids[0]);
+            if (this.action === ACTION.HARVEST) this.target = this.source_ids[0];
+            if (this.action === ACTION.UPGRADE_CONTROLLER) this.target = this.controler_id;
+        }
     }
 
     protected logic() {
@@ -24,28 +30,14 @@ export class Upgrader extends ICreep {
         // harvest source
         // upgrade controller
         //* -------------------------------------------------
-        if (this.creep.store[RESOURCE_ENERGY] === this.creep.store.getCapacity() && !this.upgrading) {
+
+        if (this.creep.store[RESOURCE_ENERGY] === this.creep.store.getCapacity() && this.action !== ACTION.UPGRADE_CONTROLLER) {
             this.set(ACTION.UPGRADE_CONTROLLER, this.controler_id);
             this.upgrading = false;
         } else if (this.creep.store[RESOURCE_ENERGY] === 0) {
             this.set(ACTION.HARVEST, this.source_ids[0]);
             this.upgrading = true;
         }
+        this._softlock_guard();
     }
 }
-
-// function _upgrade_controller(creep: Creep): void {
-//     // if (finder.UPDATE(Game.spawns[creep.memory.spawn_name], ["controller"])) {
-//     const controller = Finder.from_id(Memory["rooms"][creep.room.name].structure_ids["controller"]);
-//     if (controller && creep.upgradeController(controller) === ERR_NOT_IN_RANGE) Utils._C(creep.name, creep.moveTo(creep, controller));
-//     // }
-// }
-
-// export function run(creep: Creep, opts?: {} | undefined) {
-//     if (creep.store[RESOURCE_ENERGY] === creep.store.getCapacity()) creep.memory.working = true;
-//     else if (creep.store[RESOURCE_ENERGY] <= 1) creep.memory.working = false;
-
-//     creep.memory.working ? _upgrade_controller(creep) : ICreep.harvest(creep);
-//     // creep.memory.working = creep.store[RESOURCE_ENERGY] < 10 ? creep.memory.working
-//     // ? _harvest(creep) : _upgrade_controller(creep)
-// }

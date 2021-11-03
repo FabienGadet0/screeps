@@ -1,5 +1,6 @@
 import { REPAIR_THRESHOLD } from "../config";
 import * as Utils from "../utils/utils";
+import { profile } from "../Profiler/Profiler";
 
 function get(room_name: string, val: string): any {
     if (val === "lvl" || val === "creeps_name") return Memory.rooms[room_name][val];
@@ -29,8 +30,7 @@ function push_ids(room_name: string, to: string, ids: Id<any>[]): void {
     });
 }
 
-import { profile } from "../Profiler/Profiler";
-
+@profile
 class Memory_manager {
     room_name: string;
     constructor(room_name: string) {
@@ -49,6 +49,7 @@ class Memory_manager {
             "creeps_ids",
             "extensions_not_full",
             "containers_not_full",
+            "dropped_resources",
         ]);
     }
     public run() {}
@@ -113,28 +114,28 @@ class Memory_manager {
         return room.controller ? room.controller.id : undefined;
     }
 
-    private GET_ENERGY_STATS(spawn: StructureSpawn): { max_energy: number; available_energy: number } {
-        let extensions_max_energy = 0;
-        let extensions_available_energy = 0;
+    // private GET_ENERGY_STATS(spawn: StructureSpawn): { max_energy: number; available_energy: number } {
+    //     let extensions_max_energy = 0;
+    //     let extensions_available_energy = 0;
 
-        let spawn_max_energy: number | null = 0;
-        let spawn_available_energy: number | null = 0;
+    //     let spawn_max_energy: number | null = 0;
+    //     let spawn_available_energy: number | null = 0;
 
-        if (spawn.store) {
-            spawn_available_energy = spawn.store.getFreeCapacity() || 0;
-            spawn_max_energy = spawn.store.getCapacity() || 0;
-        }
-        if (Memory["rooms"][spawn.room.name].structures)
-            _.each(Memory["rooms"][spawn.room.name].structures["extensions"], (extension: any) => {
-                extensions_available_energy += extension.energy;
-                extensions_available_energy += extension.energyCapacity;
-            });
+    //     if (spawn.store) {
+    //         spawn_available_energy = spawn.store.getFreeCapacity() || 0;
+    //         spawn_max_energy = spawn.store.getCapacity() || 0;
+    //     }
+    //     if (Memory["rooms"][spawn.room.name].structures)
+    //         _.each(Memory["rooms"][spawn.room.name].structures["extensions"], (extension: any) => {
+    //             extensions_available_energy += extension.energy;
+    //             extensions_available_energy += extension.energyCapacity;
+    //         });
 
-        return {
-            max_energy: extensions_max_energy + spawn_max_energy,
-            available_energy: extensions_available_energy + spawn_available_energy,
-        };
-    }
+    //     return {
+    //         max_energy: extensions_max_energy + spawn_max_energy,
+    //         available_energy: extensions_available_energy + spawn_available_energy,
+    //     };
+    // }
     private _FIND_EXTENSIONS(room: Room): AnyStructure[] {
         return room.find(FIND_MY_STRUCTURES, { filter: { structureType: "extension" } });
     }
@@ -187,6 +188,11 @@ class Memory_manager {
 
     private _FIND_FLAGS(room: Room): Flag[] {
         return room.find(FIND_FLAGS);
+    }
+    private _FIND_DROPPED_RESOURCES_IDS(room: Room): Id<Resource>[] {
+        return _.map(room.find(FIND_DROPPED_RESOURCES), (resource) => {
+            return resource.id;
+        });
     }
 
     private _FIND_FLAGS_NAMES(room: Room): string[] {
@@ -274,12 +280,16 @@ class Memory_manager {
                             Memory["rooms"][room.name].structure_ids["extensions_not_full"] = this._FIND_NOT_FULL_EXTENSION_IDS(room);
                             break;
                         }
+                        case "dropped_resources": {
+                            Memory["rooms"][room.name].structure_ids["dropped_resources"] = this._FIND_DROPPED_RESOURCES_IDS(room);
+                            break;
+                        }
                         case "containers_not_full": {
                             Memory["rooms"][room.name].structure_ids["containers_not_full"] = this._FIND_NOT_FULL_CONTAINERS_IDS(room); //TODO doesn't do shit
                             break;
                         }
                         default: {
-                            Utils._C("UPDATER", -1000, "Couldn't find corresponding update for" + up);
+                            Utils._C("UPDATER", -1000, "Couldn't find corresponding update for " + up);
                             break;
                         }
                     }

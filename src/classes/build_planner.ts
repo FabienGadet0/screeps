@@ -3,6 +3,7 @@ import * as Utils from "../utils/utils";
 import * as Finder from "../utils/finder";
 import { profile } from "../Profiler/Profiler";
 
+@profile
 class Build_planner {
     room_name: string;
     spawn_id: Id<StructureSpawn>;
@@ -13,7 +14,8 @@ class Build_planner {
     }
 
     private _delete_all_construction_sites(room: Room) {
-        let constructions = Memory["rooms"][room.name].structures["construction_sites"];
+        //TODO it's an id and not an object
+        let constructions = Memory["rooms"][room.name].structure_ids["construction_sites"];
         _.each(constructions, (construction) => {
             construction.remove();
         });
@@ -36,7 +38,8 @@ class Build_planner {
         let built = false;
 
         //? Roads to sources
-        const sources = Memory["rooms"][spawn.room.name].structures["sources"];
+        //TODO it's an id and not an object
+        const sources = Memory["rooms"][spawn.room.name].structure_ids["sources"];
         _.each(sources, (source: Source) => {
             const path = spawn.pos.findPathTo(source.pos, { ignoreCreeps: true });
             _.each(path, (pos) => {
@@ -52,7 +55,8 @@ class Build_planner {
 
         built = false;
         // //? Road to controller
-        const controller = Memory["rooms"][spawn.room.name].structures["controller"];
+        //TODO it's an id and not an object
+        const controller = Memory["rooms"][spawn.room.name].structure_ids["controller"];
         if (controller) {
             const path = spawn.pos.findPathTo(controller.pos, { ignoreCreeps: true });
             _.each(path, (pos) => {
@@ -67,7 +71,8 @@ class Build_planner {
 
         built = false;
         //? Road to minerals
-        const minerals = Memory["rooms"][spawn.room.name].structures["minerals"];
+        //TODO it's an id and not an object
+        const minerals = Memory["rooms"][spawn.room.name].structure_ids["minerals"];
         if (minerals) {
             _.each(minerals, (mineral) => {
                 const path = spawn.pos.findPathTo(mineral.pos, { ignoreCreeps: true });

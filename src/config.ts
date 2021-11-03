@@ -6,7 +6,7 @@ export const MAX_TICKS_TO_LIVE = 1400;
 
 export const limit_per_role_per_room: Record<string, number> = {
     harvester: 3,
-    builder: 5,
+    builder: 3,
     upgrader: 3,
 };
 

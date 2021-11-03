@@ -13,6 +13,7 @@ export enum ACTION {
     REPAIR = "REPAIR",
     UPGRADE_CONTROLLER = "UPGRADE_CONTROLLER",
     TRANSFER = "TRANSFER",
+    PICKUP = "PICKUP",
 }
 
 export class ICreep {
@@ -26,6 +27,7 @@ export class ICreep {
     ticksToLive?: number;
     source_ids: Id<Source>[];
     last_return_code: ScreepsReturnCode | CreepMoveReturnCode | number;
+    main_action: ACTION;
 
     _ACTION_to_func: Record<ACTION, any>;
 
@@ -36,19 +38,21 @@ export class ICreep {
     }
 
     constructor(creep_name: string) {
-        const c = Game.creeps[creep_name];
+        this.creep = Game.creeps[creep_name];
         this.creep_name = creep_name;
-        this.creep_id = c.id;
-        this.action = c.memory.action;
-        this.target = c.memory.target;
-        this.lvl = c.memory.lvl;
-        this.spawn_name = c.memory.spawn_name;
-        this.ticksToLive = c.ticksToLive;
-        this.creep = c;
+        this.creep_id = this.creep.id;
         this.source_ids = this._get_sources();
         this.last_return_code = OK;
-        this.creep.memory.action = this.action;
-        this.creep.memory.target = this.target;
+        this.lvl = this.creep.memory.lvl;
+        this.spawn_name = this.creep.memory.spawn_name;
+        this.ticksToLive = this.creep.ticksToLive;
+        this.creep.memory.action = ACTION.IDLE;
+        this.main_action = ACTION.IDLE;
+        this.creep.memory.target = undefined; // Memory.rooms[Memory.spawns[this.spawn_name].room.name].flags["IDLES"] | undefined;
+
+        this.action = this.creep.memory.action;
+        this.target = this.creep.memory.target;
+
         this._ACTION_to_func = {
             IDLE: this.idle,
             HARVEST: this.creep.harvest,
@@ -58,8 +62,9 @@ export class ICreep {
             REPAIR: this.creep.repair,
             TRANSFER: this.creep.transfer,
             UPGRADE_CONTROLLER: this.creep.upgradeController,
+            PICKUP: this.creep.pickup,
         };
-        console.log("New creep " + creep_name + " in spawn " + this.spawn_name);
+        // console.log("New creep " + creep_name + " in spawn " + this.spawn_name);
     }
 
     private action_to_func(...target: any): any {
@@ -82,12 +87,34 @@ export class ICreep {
             case ACTION.REPAIR:
                 return this.creep.repair(target[0]);
 
+            case ACTION.RENEW:
+                return this.renew(target[0]);
+
             case ACTION.TRANSFER:
                 return this.creep.transfer(target[0], RESOURCE_ENERGY); //TODO for now it's only resource energy , but maybe i can do a second arg thing.
 
             case ACTION.UPGRADE_CONTROLLER:
                 return this.creep.upgradeController(target[0]);
+
+            case ACTION.PICKUP:
+                return this.creep.pickup(target[0]);
         }
+    }
+
+    protected _task_finished(): void {
+        delete this.target;
+    }
+
+    protected _start_task(task_name: string, action?: ACTION): void {
+        const act = action ? action : this.main_action;
+        if (!this.target && this.action === this.main_action && !_.isEmpty(Memory.rooms[this.creep.room.name].room_tasks[task_name])) {
+            this.set(act, Memory.rooms[this.creep.room.name].room_tasks[task_name].shift());
+            console.log(this.creep + " task is " + this.target, " act " + act + " -> " + this.action);
+        }
+    }
+
+    protected _task_available(task_name: string): boolean {
+        return _.isEmpty(Memory.rooms[this.creep.room.name].room_tasks[task_name]);
     }
 
     public is_renewing(): boolean {
@@ -102,26 +129,36 @@ export class ICreep {
 
     public update() {
         this.creep = Game.creeps[this.creep_name];
+        this.ticksToLive = this.creep.ticksToLive;
+
+        this.manageRenew(Game.spawns[this.spawn_name] as StructureSpawn);
+
+        // if (this.action !== ACTION.RENEW) {
+        //? Renew is managed by the creep_manager
         this.action = this.creep.memory.action;
         this.target = this.creep.memory.target;
-        this.ticksToLive = this.creep.ticksToLive;
+        // }
     }
 
     protected logic() {}
 
     public run() {
-        this.logic();
+        if (this.action !== ACTION.RENEW) this.logic();
+
+        //? if beside spawn and has energy , then give it.
+        if (
+            this.action === ACTION.RENEW &&
+            this.creep.store[RESOURCE_ENERGY] !== 0 &&
+            this.creep.pos.isNearTo(Game.spawns[this.spawn_name].pos)
+        )
+            this.creep.transfer(Game.spawns[this.spawn_name], RESOURCE_ENERGY);
+
         if (this.action && this.target) {
             const target_obj = Game.getObjectById(this.target);
-
             this.last_return_code = this.action_to_func(target_obj);
-            console.log(
-                this.creep + " action " + this.action + " " + target_obj + " r " + Utils._C(this.creep_name, this.last_return_code),
-            );
-            if (this.last_return_code === ERR_NOT_IN_RANGE) {
-                // this.creep.travelTo(target_obj);
-                this.moveTo(target_obj);
-            }
+
+            if (this.last_return_code === ERR_NOT_IN_RANGE) this.moveTo(target_obj);
+            else Utils._C(this.creep, this.last_return_code);
         }
     }
 
@@ -132,12 +169,48 @@ export class ICreep {
     //* Renew is a bit special because the creep needs to go to a spawn
     //* and renew is made from spawn side (in creep_manager)
     public renew(...target: any): any {
-        console.log(this.creep.pos.isNearTo(target));
         if (!this.creep.pos.isNearTo(target)) return ERR_NOT_IN_RANGE;
-        return 0;
+        // else if (this.creep.store.getCapacity(RESOURCE_ENERGY) > 0)
+        //TODO Goes against run() and this.target rule , this.action logic by doing an action directly from here but for now it's ok.
+        // this.creep.transfer(target, RESOURCE_ENERGY);
+        return OK;
     }
 
-    protected idle(_: any): any {
-        return this.creep.say("i'm IDLE wtf");
+    protected idle(target: any): any {
+        console.log("go idle there " + Game.flags["IDLES"].pos);
+        if (Game.flags["IDLES"])
+            //TODO Game.flags will get all flags from all rooms , so it wont work if not in the same room
+            this.creep.moveTo(Game.flags["IDLES"].pos);
+        return OK;
+        // if (!this.creep.pos.isNearTo(target)) return ERR_NOT_IN_RANGE;
+        // return OK;
+    }
+
+    // //* ----------------RENEWING LOGIC --------------------------
+    protected needsRenew(): boolean {
+        return (this.ticksToLive || 0) / Config.MAX_TICKS_TO_LIVE <= Config.PERCENTAGE_TICKS_BEFORE_NEEDS_REFILL;
+    }
+
+    protected manageRenew(spawn: StructureSpawn): boolean {
+        // if ((creep.memory.role === 'harvester' && spawn.store[RESOURCE_ENERGY] >= 200) || ( creep.memory.role !== 'harvester' && spawn.store[RESOURCE_ENERGY] > 20 ) ) { //* Harvester sacrifice to bring energy for others
+        // const spawn = Game.spawns[this.spawn_name];
+        // if (this.needsRenew())
+        if (!this.is_renewing() && this.needsRenew()) {
+            this.set(ACTION.RENEW, spawn.id);
+            Memory.rooms[this.creep.room.name].cripple_creeps.push(this.creep_name);
+        }
+        //? if full life and was renewing , set to idle to get out of the renewing loop.
+        else if (this.ticksToLive && this.ticksToLive >= Config.MAX_TICKS_TO_LIVE - 50) {
+            this.set(ACTION.IDLE, undefined);
+            Memory.rooms[this.creep.room.name].cripple_creeps.splice(
+                Memory.rooms[this.creep.room.name].cripple_creeps.findIndex((item) => item == this.creep_name),
+                1,
+            );
+        }
+        // else if ((creep.ticksToLive || 0) >= Config.MAX_TICKS_TO_LIVE) creep.set(ACTION.IDLE, undefined);
+
+        // if (this.is_renewing() && this.creep.pos.isNearTo(spawn)) this.tryRenew(spawn);
+
+        return this.is_renewing();
     }
 }

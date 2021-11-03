@@ -10,8 +10,6 @@ interface Memory {
 interface RoomMemory {
     updater: Record<string, number>;
     build_map: Record<string, any>;
-    structures: Record<string, any>;
-    // creeps: Creep[];
     safe_delete: boolean;
     avoid: any;
     lvl: number;
@@ -19,6 +17,8 @@ interface RoomMemory {
     flags: Flag[];
     structure_ids: Record<string, any>;
     creeps_name: string[];
+    room_tasks: Record<string, Id<any>[]>;
+    cripple_creeps: string[]; //? Creeps that need renew.
 }
 
 interface CreepMemory {

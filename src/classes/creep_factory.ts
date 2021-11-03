@@ -10,6 +10,7 @@ import { Harvester } from "./creeps/harvester";
 import { Builder } from "./creeps/builder";
 import { Upgrader } from "./creeps/upgrader";
 
+@profile
 class Creep_factory {
     room_name: string;
     lvl: number;
@@ -17,7 +18,6 @@ class Creep_factory {
 
     constructor(room_name: string, spawn_id: Id<StructureSpawn>) {
         this.room_name = room_name;
-        // this.lvl = Finder.GET_LVL_OF_ROOM(Game.rooms[room_name]);
         this.lvl = 300;
         this.spawn_id = spawn_id;
     }
@@ -52,6 +52,7 @@ class Creep_factory {
     }
 
     private _spawn_creep(spawn: StructureSpawn, name: string, _role: string, lvl: number): ScreepsReturnCode {
+        console.log("spawn " + lvl + " role " + _role); //TODO BETTER NAMING
         return spawn.spawnCreep(Config.role_to_bodyparts[lvl][_role], name, {
             memory: {
                 _trav: undefined,
@@ -72,17 +73,14 @@ class Creep_factory {
         let total = 0;
         const count_creeps = _.size(Memory["rooms"][this.room_name].creeps_name);
         if (count_creeps < Config.total_possible_creeps) {
-            let lvl = Memory.rooms[this.room_name].lvl;
             const spawn = Finder.from_id(this.spawn_id);
 
             _.each(Config.all_roles, (role: string) => {
                 if (this._can_spawn_new_creep(spawn, role)) {
-                    const name = role + "/" + String(lvl) + "/" + Game.time;
-                    const r = this._spawn_creep(spawn, name, role, lvl);
+                    const name = role + "/" + String(this.lvl) + "/" + Game.time;
+                    const r = this._spawn_creep(spawn, name, role, this.lvl);
 
                     if (r !== OK) Utils._C(spawn.name, r);
-                    //todo done in creep_manager push id creep to creep.
-                    // Memory.rooms[this.room_name].creeps_name.push([name]
                 }
             });
         }
