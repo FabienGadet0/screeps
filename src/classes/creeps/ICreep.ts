@@ -87,12 +87,6 @@ export class ICreep {
             case ACTION.IDLE:
                 return this.idle(target[0]);
 
-            // case ACTION.HARVEST:
-            //     return this.creep.harvest(target[0]);
-
-            // case ACTION.MOVETO:
-            //     return this.moveTo(target[0]);
-
             case ACTION.RENEW:
                 return this.renew(target[0]);
 
@@ -171,9 +165,26 @@ export class ICreep {
 
     protected logic() {}
 
+    private _emergency_handling() {
+        // if (Memory.rooms[this.creep.room.name].emergency.)
+        // {
+        // if (!this.is_renewing())
+        //     if (this.creep.harvest(Game.getObjectById(this.source_ids[0]) as Source) === ERR_NOT_IN_RANGE)
+        //         this.creep.moveTo(Game.getObjectById(this.source_ids[0]) as Source);
+        // if (this.creep.transfer(Game.spawns[this.spawn_name], RESOURCE_ENERGY) === ERR_NOT_IN_RANGE)
+        //     this.creep.moveTo(Game.spawns[this.spawn_name]);
+        // }
+    }
+
     public run() {
+        this._emergency_handling();
+
         if (this.needs_energy && !this.is_renewing()) {
-            const source_target = Game.getObjectById(this.source_ids[this.creep.memory.source_to_target]) as Source;
+            let source_target = Game.getObjectById(this.source_ids[this.creep.memory.source_to_target]) as Source;
+            //? If source is empty try another one , assuming there are only two in the map.
+            if (this.source_ids.length > 0 && source_target.energy === 0)
+                source_target = Game.getObjectById(this.source_ids[this.creep.memory.source_to_target === 0 ? 1 : 0]) as Source;
+
             if (this.creep.harvest(source_target) === ERR_NOT_IN_RANGE) this.moveTo(source_target.pos);
             else Utils._C(this.creep, this.last_return_code);
         }
@@ -238,7 +249,8 @@ export class ICreep {
             Memory.rooms[this.creep.room.name].cripple_creeps.push(this.creep_name);
         }
         //? if full life and was renewing , set to idle to get out of the renewing loop.
-        else if (this.ticksToLive && this.ticksToLive >= Config.MAX_TICKS_TO_LIVE - 50) {
+        else if (this.is_renewing() && this.ticksToLive && this.ticksToLive >= Config.MAX_TICKS_TO_LIVE - 50 && !this.needsRenew()) {
+            console.log(this.creep + " -> cripple is over " + this.ticksToLive);
             this.set(ACTION.WAITING_NEXT_TASK, undefined);
             Memory.rooms[this.creep.room.name].cripple_creeps.splice(
                 Memory.rooms[this.creep.room.name].cripple_creeps.findIndex((item) => item == this.creep_name),

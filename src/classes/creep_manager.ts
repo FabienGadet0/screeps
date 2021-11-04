@@ -122,11 +122,11 @@ class Creep_manager {
                 delete this.creeps[name];
                 console.log(name, " deleted");
             }
-            if (name in Memory.rooms[this.room_name].cripple_creeps)
-                //TODO idk if this shit works.
-                Memory.rooms[this.room_name].cripple_creeps = _.filter(Memory.rooms[this.room_name].cripple_creeps, (c: string) => {
-                    return !(c in this.creeps);
-                });
+            // if (name in Memory.rooms[this.room_name].cripple_creeps)
+            //TODO delete creep in cripples if get deleted while needing heal . Doesn't work atm
+            // Memory.rooms[this.room_name].cripple_creeps = _.filter(Memory.rooms[this.room_name].cripple_creeps, (c: string) => {
+            //     return !(c in this.creeps);
+            // });
         }
         for (const name in Game.creeps) {
             if (!(name in this.creeps)) {

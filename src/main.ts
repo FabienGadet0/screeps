@@ -8,6 +8,17 @@ import * as packRat from "./utils/packrat";
 
 import * as Profiler from "./Profiler";
 import { Room_orchestrator } from "classes/room_orchestrator";
+import { match, __, when, select } from "ts-pattern";
+
+// type Data =
+//   | { type: 'text'; content: string }
+//   | { type: 'img'; src: string };
+
+// type Result =
+//   | { type: 'ok'; data: Data }
+//   | { type: 'error'; error: Error };
+
+// const result: Result = ...;
 
 declare global {
     namespace NodeJS {
@@ -27,7 +38,16 @@ declare global {
             Profiler: any;
         }
     }
+    interface Number {
+        between: (a: number, b: number) => boolean;
+    }
 }
+
+Number.prototype.between = function (a: number, b: number): boolean {
+    var min = Math.min.apply(Math, [a, b]),
+        max = Math.max.apply(Math, [a, b]);
+    return this >= min && this <= max;
+};
 
 global.Profiler = Profiler.init();
 // global.Profiler.start();

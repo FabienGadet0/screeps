@@ -138,3 +138,4 @@ declare const __PROFILER_ENABLED__: boolean;
 
 type Coord = { x: number; y: number };
 type HasPos = { pos: RoomPosition };
+1;
