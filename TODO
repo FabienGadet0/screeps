@@ -1,8 +1,9 @@
-//TODO: manage better creeps lvl
-
 //TODO: softlock for lvl 2 creep that never get created because extensions arent getting full.
+
+
 //TODO: get lvl of the room and kill low lvl creeps to get them replaced .
 
-//TODO: DO an orchestrator that tell which creep of which class should do what .( can go further and switch classes on demand.) -
 
 //TODO Build planner .
+
+//TODO do a task class and implements every tasks types.

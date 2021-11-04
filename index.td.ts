@@ -5,6 +5,8 @@ interface Memory {
     debug_speak: boolean;
     rooms: Record<string, RoomMemory>;
     empire: any;
+    commands: Record<string, boolean>;
+    rooms_new: any;
 }
 
 interface RoomMemory {
@@ -13,7 +15,6 @@ interface RoomMemory {
     safe_delete: boolean;
     avoid: any;
     lvl: number;
-
     flags: string[];
     structure_ids: Record<string, any>;
     creeps_name: string[];

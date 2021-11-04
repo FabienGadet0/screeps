@@ -2,6 +2,7 @@ import { spawn } from "child_process";
 import { REPAIR_THRESHOLD } from "../config";
 import { profile } from "../Profiler";
 import { match, __, when, select } from "ts-pattern";
+import { uniqueNamesGenerator, Config, adjectives, colors, animals } from "unique-names-generator";
 
 function flatten(arr: any[][]): any[] {
     return arr.reduce((acc, val) => acc.concat(val), []);
@@ -12,18 +13,30 @@ function debug(): void {
     console.log("Debug set to " + Memory.debug_mode);
 }
 
-//TODO NAME CREEPS
+export function take_first(a: any): Record<string, any> {
+    //* _and_return_whole_list_without_it
+    const b = a[0];
+    const l = _.size(a);
+
+    return { elem1: b, new_list: a.slice(1, l - 1) };
+}
+
+//* countries , languages, names
+//TODO see if it works.
 export function name_new_creep(role: string, lvl: number): string {
-    return role + "/" + String(lvl) + "/" + Game.time;
+    return uniqueNamesGenerator({
+        dictionaries: [adjectives, colors, animals],
+    });
+    // return role + "/" + String(lvl) + "/" + Game.time;
 }
 
 // prettier-ignore
 export function round_lvl(n: number): number {
     return match(n)
-        .when((n) => n.between(0, 300), () => { return 300 })
-        .when((n) => n.between(301, 550), () => { return 550 })
-        .when((n) => n.between(551, 800), () => { return 800 })
-        .when((n) => n.between(801, 1300), () => { return 1300 })
+        .when((n) => n.between(300, 549), () => { return 300 })
+        .when((n) => n.between(550, 799), () => { return 550 })
+        .when((n) => n.between(800, 1299), () => { return 800 })
+        .when((n) => n.between(1300, 1700), () => { return 1300 })
         .with(__, () => { console.log("No number in range " + n); return -1 })
         .exhaustive();
 }
