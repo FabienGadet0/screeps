@@ -60,22 +60,11 @@ function _FIND_MINERALS_IDS(room: Room): Id<Mineral>[] {
     });
 }
 
-function _FIND_ROADS(room: Room): AnyStructure[] {
-    return room.find(FIND_STRUCTURES, { filter: { structureType: STRUCTURE_ROAD } });
-}
 
 function _FIND_ROADS_IDS(room: Room): Id<any>[] {
     return _.map(room.find(FIND_STRUCTURES, { filter: { structureType: STRUCTURE_ROAD } }), (struct) => {
         return struct.id;
     });
-}
-
-function _FIND_structures(room: Room): AnyStructure[] {
-    return room.find(FIND_MY_STRUCTURES);
-}
-
-function _FIND_CONTROLLER(room: Room): StructureController | undefined {
-    return room.controller;
 }
 
 function _FIND_CONTROLLER_ID(room: Room): Id<StructureController> | undefined {
@@ -101,6 +90,23 @@ function _FIND_CONTROLLER_ID(room: Room): Id<StructureController> | undefined {
 
 //     return { max_energy: extensions_max_energy + spawn_max_energy, available_energy: extensions_available_energy + spawn_available_energy };
 // }
+=======
+function GET_ENERGY_STATS(spawn: StructureSpawn): { max_energy: number; available_energy: number } {
+    let extensions_max_energy = 0;
+    let extensions_available_energy = 0;
+
+    let spawn_max_energy: number | null = 0;
+    let spawn_available_energy: number | null = 0;
+
+    if (spawn.store) {
+        spawn_available_energy = spawn.store.getFreeCapacity() || 0;
+        spawn_max_energy = spawn.store.getCapacity() || 0;
+    }
+    if (Memory["rooms"][spawn.room.name].structures)
+        _.each(Memory["rooms"][spawn.room.name].structures["extensions"], (extension: any) => {
+            extensions_available_energy += extension.energy;
+            extensions_available_energy += extension.energyCapacity;
+        });
 
 function _FIND_EXTENSIONS(room: Room): AnyStructure[] {
     return room.find(FIND_MY_STRUCTURES, { filter: { structureType: "extension" } });
@@ -112,11 +118,6 @@ function _FIND_EXTENSIONS_IDS(room: Room): Id<any>[] {
     });
 }
 
-function _FIND_NOT_FULL_EXTENSIONS(room: Room): AnyStructure[] {
-    return room.find(FIND_MY_STRUCTURES, {
-        filter: (i: StructureExtension) => i.structureType === "extension" && i.store.getFreeCapacity(RESOURCE_ENERGY) > 0,
-    });
-}
 
 function _FIND_NOT_FULL_EXTENSION_IDS(room: Room): Id<any>[] {
     return _.map(
@@ -127,15 +128,6 @@ function _FIND_NOT_FULL_EXTENSION_IDS(room: Room): Id<any>[] {
             return struct.id;
         },
     );
-}
-
-function _FIND_NOT_FULL_CONTAINERS(room: Room): AnyStructure[] {
-    return room.find(FIND_MY_STRUCTURES, {
-        filter: (i: StructureExtension) =>
-            i.structureType !== STRUCTURE_EXTENSION &&
-            i.structureType === STRUCTURE_CONTAINER &&
-            i.store.getFreeCapacity(RESOURCE_ENERGY) > 0,
-    });
 }
 
 function _FIND_NOT_FULL_CONTAINERS_IDS(room: Room): Id<any>[] {
@@ -152,9 +144,6 @@ function _FIND_NOT_FULL_CONTAINERS_IDS(room: Room): Id<any>[] {
     );
 }
 
-function _FIND_FLAGS(room: Room): Flag[] {
-    return room.find(FIND_FLAGS);
-}
 
 function _FIND_FLAGS_NAMES(room: Room): string[] {
     return _.map(room.find(FIND_FLAGS), (struct) => {
@@ -167,9 +156,6 @@ function _FIND_ALL_CREEPS(room: Room) {
     });
 }
 
-function GET_LVL_OF_ROOM(room: Room) {
-    return 300 + _.size(Memory["rooms"][room.name].structure_ids["extensions"]) * 50 < 650 ? 1 : 2;
-}
 
 function _FIND_ALL_TO_REPAIR(room: Room): Structure[] {
     return room
