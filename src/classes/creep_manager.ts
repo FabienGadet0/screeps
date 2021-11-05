@@ -118,39 +118,16 @@ class Creep_manager implements Mnemonic {
     public update(): boolean {
         this.locator();
         this._manage_tasks();
-        // this.lvl = Memory.rooms_new[this.room_name].lvl;
-        // this.creep_factory.set_lvl(this.lvl);
         this.creep_factory.update();
 
-        // let game_creeps = Memory.rooms_new[this.room_name].creeps_name;
-
-        if (_.size(this.creeps) - _.size(Memory.rooms_new[this.room_name].creeps_name) !== 0) this._manage_new_and_dead_creeps();
+        // if (_.size(this.creeps) - _.size(Memory.rooms_new[this.room_name].creeps_name) !== 0) this._manage_new_and_dead_creeps();
 
         _.map(this.creeps, (creep: ICreep) => {
-            creep.update();
+            if (!creep.creep) this._manage_new_and_dead_creeps();
+            else creep.update();
         });
-        // if (creep.is_renewing() && !Memory.rooms_new[this.room_name].cripple_creeps.includes(creep.creep_name)) {
-        //     // console.log("cripple " + creep.creep_name + " in " + Memory.rooms_new[this.room_name].cripple_creeps);
-        //     // console.log("bool : " + !Memory.rooms_new[this.room_name].cripple_creeps.includes(creep.creep_name));
-        //     Memory.rooms_new[this.room_name].cripple_creeps.push(creep.creep_name); //? add if need renew.
-        // }
-        // if (
-        //     creep.is_renewing() &&
-        //     creep.creep_name in Memory.rooms_new[this.room_name].cripple_creeps &&
-        //     (creep.ticksToLive || 0) >= Config.MAX_TICKS_TO_LIVE - 50
-        // )
-        //     //? Delete if no longer needs renew
-        //     delete Memory.rooms_new[this.room_name].cripple_creeps[
-        //         Memory.rooms_new[this.room_name].cripple_creeps.findIndex((item) => item == creep.creep_name)
-        //     ];
-        // });
-        // this.cripple_creeps = Memory.rooms_new[this.room_name].cripple_creeps;
         return false;
     }
-
-    // public set_lvl(lvl: number) {
-    //     this.lvl = lvl;
-    // }
 
     //* creeps in memory -------------------------------------------
 
@@ -159,6 +136,7 @@ class Creep_manager implements Mnemonic {
             if (!(name in Game.creeps)) {
                 delete this.creeps[name];
                 console.log(name, " deleted");
+                if (name in this.cripple_creeps) this.cripple_creeps.remove(name);
             }
             // if (name in Memory.rooms_new[this.room_name].cripple_creeps)
             //TODO delete creep in cripples if get deleted while needing heal . Doesn't work atm

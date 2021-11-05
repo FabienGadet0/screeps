@@ -15,7 +15,7 @@ class Creep_factory implements Mnemonic {
     room_name: string;
 
     @mnemon
-    classes_in_room: Record<string, string[]>;
+    classes_in_room: Record<string, number>;
 
     @mnemon
     lvl: number;
@@ -35,7 +35,7 @@ class Creep_factory implements Mnemonic {
     }
 
     private _get_amount_of_creep_with_role(_role: string): number {
-        return _.size(this.classes_in_room[_role]);
+        return this.classes_in_room[_role];
     }
 
     private _can_spawn_new_creep(_spawn: StructureSpawn, _role: string): Boolean {
@@ -48,7 +48,7 @@ class Creep_factory implements Mnemonic {
     }
 
     private _spawn_creep(spawn: StructureSpawn, name: string, _role: string, lvl: number): ScreepsReturnCode | number {
-        console.log("spawn " + lvl + " role " + _role);
+        console.log("spawn " + lvl + " role " + _role + " Name " + name);
         if (!spawn.spawning)
             return spawn.spawnCreep(Config.role_to_bodyparts[lvl][_role], name, {
                 memory: {
@@ -73,10 +73,10 @@ class Creep_factory implements Mnemonic {
 
     public run(): void {
         let total = 0;
-        const count_creeps = _.size(Memory["rooms"][this.room_name].creeps_name);
+        const count_creeps = _.size(Memory.rooms_new[this.room_name].creeps_name);
         if (count_creeps < Config.total_possible_creeps(this.lvl)) {
             const spawn = Game.getObjectById(this.spawn_id) as StructureSpawn;
-            _.each(Config.all_roles, (role: string) => {
+            _.each(Config.all_roles(this.lvl), (role: string) => {
                 if (this._can_spawn_new_creep(spawn, role)) {
                     const name = Utils.name_new_creep(role, this.lvl);
                     const r = this._spawn_creep(spawn, name, role, this.lvl);

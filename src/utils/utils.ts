@@ -8,18 +8,18 @@ function flatten(arr: any[][]): any[] {
     return arr.reduce((acc, val) => acc.concat(val), []);
 }
 
-function debug(): void {
-    Memory.debug_mode = !Memory.debug_mode;
-    console.log("Debug set to " + Memory.debug_mode);
-}
+// function debug(): void {
+//     Memory.debug_mode = !Memory.debug_mode;
+//     console.log("Debug set to " + Memory.debug_mode);
+// }
 
-export function take_first(a: any): Record<string, any> {
-    //* _and_return_whole_list_without_it
-    const b = a[0];
-    const l = _.size(a);
+// export function take_first(a: any): Record<string, any> {
+//     //* Return the first elem and the whole list without first elem
+//     const b = a[0];
+//     const l = _.size(a);
 
-    return { elem1: b, new_list: a.slice(1, l - 1) };
-}
+//     return { elem1: b, new_list: a.slice(1, l - 1) };
+// }
 
 //* countries , languages, names
 //TODO see if it works.
@@ -27,7 +27,6 @@ export function name_new_creep(role: string, lvl: number): string {
     return uniqueNamesGenerator({
         dictionaries: [adjectives, colors, animals],
     });
-    // return role + "/" + String(lvl) + "/" + Game.time;
 }
 
 // prettier-ignore
@@ -75,30 +74,30 @@ function init_variables() {
     Memory.debug_speak = false;
 }
 
-export function _init_room_memory(): RoomMemory {
-    return {
-        updater: {},
-        build_map: {
-            build_roads: false,
-            build_extensions: false,
-        },
-        creeps_name: [],
-        room_tasks: {
-            to_transfer: [],
-            to_build: [],
-            to_repair: [],
-        },
-        cripple_creeps: [],
-        safe_delete: false,
-        flags: [],
-        structure_ids: {},
-        avoid: undefined,
-        lvl: 300,
-    };
-}
+// export function _init_room_memory(): RoomMemory {
+//     return {
+//         updater: {},
+//         build_map: {
+//             build_roads: false,
+//             build_extensions: false,
+//         },
+//         creeps_name: [],
+//         room_tasks: {
+//             to_transfer: [],
+//             to_build: [],
+//             to_repair: [],
+//         },
+//         cripple_creeps: [],
+//         safe_delete: false,
+//         flags: [],
+//         structure_ids: {},
+//         avoid: undefined,
+//         lvl: 300,
+//     };
+// }
 
 function check_if_roombased_variables_are_up(room_name: string): boolean {
-    return Memory["rooms"][room_name].build_map !== undefined;
+    return Memory.rooms_new[room_name].build_map !== undefined;
 }
 
-export { debug, init_variables, check_if_roombased_variables_are_up, flatten, _C };
+export { init_variables, check_if_roombased_variables_are_up, flatten, _C };

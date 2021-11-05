@@ -81,7 +81,7 @@ export abstract class ICreep {
             WAITING_NEXT_TASK: "",
         };
     }
-
+    //TODO make it better
     private action_to_func(...target: any): any {
         switch (this.action) {
             case ACTION.IDLE:
@@ -123,15 +123,23 @@ export abstract class ICreep {
     protected _start_task(task_name: string, action?: ACTION): void {
         const act = action ? action : this.main_action;
         if (!_.isEmpty(Memory.rooms_new[this.creep.room.name].room_tasks[task_name])) {
-            const tasks = Utils.take_first(Memory.rooms_new[this.creep.room.name].room_tasks[task_name]);
+            // const tasks = Utils.take_first(Memory.rooms_new[this.creep.room.name].room_tasks[task_name]);
 
-            this.set(act, tasks.elem1);
-            Memory.rooms_new[this.creep.room.name].room_tasks[task_name] = tasks.new_list;
+            this.set(act, Memory.rooms_new[this.creep.room.name].room_tasks[task_name].shift());
+            // Memory.rooms_new[this.creep.room.name].room_tasks[task_name] = tasks.new_list;
 
-            console.log("action got taken " + this.action + " -> " + this.target);
+            console.log(
+                "action got taken " +
+                    this.action +
+                    " ->> " +
+                    this.target +
+                    " " +
+                    _.size(Memory.rooms_new[this.creep.room.name].room_tasks[task_name]) +
+                    " tasks left for " +
+                    task_name,
+            );
+
             this.doing_task = true;
-            // Memory.rooms_new[this.creep.room.name].room_tasks[task_name][0] = undefined;
-            console.log(this.creep + " task is " + this.target, " act ");
             this.creep.say(this._ACTION_to_icon[act]);
         }
     }
@@ -227,6 +235,10 @@ export abstract class ICreep {
         return this.creep.travelTo(target, opts);
     }
 
+    public say_random() {
+        this.creep.say("such random uwu");
+    }
+
     //* Renew is a bit special because the creep needs to go to a spawn
     //* and renew is made from spawn side (in creep_manager)
     public renew(...target: any): any {
@@ -268,19 +280,17 @@ export abstract class ICreep {
         }
         //? if full life and was renewing , set to idle to get out of the renewing loop.
         else if (this.is_renewing() && this.ticksToLive && this.ticksToLive >= Config.MAX_TICKS_TO_LIVE - 50 && !this.needsRenew()) {
-            console.log(this.creep + " -> cripple is over " + this.ticksToLive);
+            console.log(this.creep + " -> me to cripple uwu " + this.ticksToLive);
             this.set(ACTION.WAITING_NEXT_TASK, undefined);
-            Memory.rooms_new[this.creep.room.name].cripple_creeps = Utils.take_first(
-                Memory.rooms_new[this.creep.room.name].cripple_creeps,
-            ).new_list;
+            Memory.rooms_new[this.creep.room.name].cripple_creeps.remove(this.creep_name);
         }
     }
 
     //* ------------------------------------------------------------------------------
 
-    public debug_me() {
-        console.log(
-            "[DEBUG] " + this.creep + " lvl " + this.lvl + " ticks " + this.ticksToLive + " / action->" + this.action + " = " + this.target,
+    public debug_me(): string {
+        return (
+            "[DEBUG] " + this.creep + " lvl " + this.lvl + " ticks " + this.ticksToLive + " / action->" + this.action + " = " + this.target
         );
     }
 }

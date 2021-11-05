@@ -11,7 +11,7 @@ import { Mnemonic, mnemon } from "../utils/mnemonic";
 export class Room_orchestrator implements Mnemonic {
     // export class Room_orchestrator {
     spawn_name: string;
-    // controller_id?: Id<StructureController>;
+
     room_name: string;
     memory_manager: Memory_manager;
     room_build_planner: Room_build_planner;
@@ -22,14 +22,18 @@ export class Room_orchestrator implements Mnemonic {
     @mnemon
     spawn_id: Id<StructureSpawn>;
 
+    @mnemon
+    controller: Id<StructureController>;
+
     constructor(room_name: string, spawn: StructureSpawn) {
+        Memory.rooms_new[room_name] = this._init_room(room_name);
+
         this.room_name = room_name;
         this.spawn_id = spawn.id;
         this.spawn_name = spawn.name;
-        // this.controller_id = spawn.room.controller ? spawn.room.controller.id : undefined;
+        this.controller = this.locator().controller;
         this.lvl = this.locator().lvl;
 
-        this._manage_roombased_variables(room_name);
         this.memory_manager = new Memory_manager(room_name);
         this.room_build_planner = new Room_build_planner(room_name, this.spawn_id);
 
@@ -41,34 +45,71 @@ export class Room_orchestrator implements Mnemonic {
         return Memory.rooms_new[this.room_name];
     }
 
-    //? Check if vars are up and update mandatory vars.
-    private _manage_roombased_variables(room_name: string) {
-        if (!Memory["rooms"][room_name]) Memory["rooms"][room_name] = Utils._init_room_memory();
+    private _check_if_room_is_initialized(): boolean {
+        return Memory.rooms_new[this.room_name] && this.spawn_id && this.controller;
     }
 
-    // protected set_lvl_of_room() {
-    //     //? lvl is the total amount of energy that can be used.
-    //     this.lvl = Utils.round_lvl(300 + _.size(Memory.rooms[this.room_name].structure_ids["extensions"]) * 50);
-    //     Memory.rooms[this.room_name].lvl = this.lvl;
-    //     //TODO if there are many spawns it doesn't work.
-    // }
+    private _init_room(room_name: string) {
+        let all_classes: Record<string, number> = {};
+        let creeps_name: string[] = [];
+        _.each(Game.rooms[room_name].find(FIND_MY_CREEPS), (creep: Creep) => {
+            if (!all_classes[creep.memory.role]) all_classes[creep.memory.role] = 1;
+            else all_classes[creep.memory.role] += 1;
+            creeps_name.push(creep.name);
+        });
+
+        return {
+            classes_in_room: all_classes,
+            lvl: 300,
+            room_tasks: { to_transfer: [], to_build: [], to_repair: [] },
+            creeps_name: creeps_name,
+            cripple_creeps: [],
+            structure_id: {
+                updater: {
+                    roads: undefined,
+                    sources: undefined,
+                    construction_sites: undefined,
+                    extensions: undefined,
+                    minerals: undefined,
+                    extensions_not_full: undefined,
+                    flags: undefined,
+                    dropped_resources: undefined,
+                    containers_not_full: undefined,
+                    to_repair: undefined,
+                },
+                roads: [],
+                sources: [],
+                construction_sites: [],
+                extensions: [],
+                minerals: [],
+                extensions_not_full: [],
+                flags: [],
+                dropped_resources: [],
+                containers_not_full: [],
+                to_repair: [],
+            },
+            build_plan: {},
+            commands: { all_harvest: false, all_transfer_to_spawn: false },
+        };
+    }
 
     public update(): void {
         this.memory_manager.update(); //* Always first
 
         this.locator();
-        this.lvl = Utils.round_lvl(300 + _.size(Memory.rooms[this.room_name].structure_ids["extensions"]) * 50);
-        // this.set_lvl_of_room();
+        this.lvl = Utils.round_lvl(300 + _.size(Memory.rooms_new[this.room_name].structure_id["extensions"]) * 50);
 
         this.room_build_planner.update();
         this.creep_manager.update();
     }
 
     public run(): void {
-        if (Utils.check_if_roombased_variables_are_up(this.room_name)) {
+        if (this._check_if_room_is_initialized()) {
             this.memory_manager.run();
             this.room_build_planner.run();
             this.creep_manager.run();
-        } else console.log("[" + this.room_name + "]" + "[" + this.spawn_id + "]" + " Roombased variables aren't up!");
+        } else {
+            console.log("[" + this.room_name + "]" + "[" + this.spawn_id + "]" + " Roombased variables aren't up!");
+        }
     }
 }
