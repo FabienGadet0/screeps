@@ -11,10 +11,11 @@ export class Harvester extends ICreep {
     }
 
     private _softlock_guard() {
+        if (this.action === ACTION.WAITING_NEXT_TASK || (this.action === ACTION.IDLE && this._task_available("to_transfer")))
+            this._start_task("to_transfer", ACTION.TRANSFER);
         // if (!this.action) this.set(ACTION.HARVEST, this.main_source_target);
-
-        if (this.last_return_code !== ERR_NOT_IN_RANGE && this.last_return_code !== OK)
-            console.log(this.creep + " last error is " + Utils._C("", this.last_return_code));
+        // if (this.last_return_code !== ERR_NOT_IN_RANGE && this.last_return_code !== OK)
+        //     console.log(this.creep + " last error is " + Utils._C("", this.last_return_code));
     }
 
     protected logic() {
@@ -28,6 +29,7 @@ export class Harvester extends ICreep {
         //* is doing a task and task is full -> finish task -> not doing task
         if (this.doing_task && this.target) {
             const target_obj = Game.getObjectById(this.target);
+            // console.log("logic -> " + (target_obj.store.getFreeCapacity(RESOURCE_ENERGY) === 0));
             if (target_obj.store.getFreeCapacity(RESOURCE_ENERGY) === 0) this._task_finished();
         }
 

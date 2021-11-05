@@ -16,7 +16,7 @@ export class Builder extends ICreep {
             if (this._task_available("to_repair")) this._start_task("to_repair", ACTION.REPAIR);
             else if (this._task_available("to_build")) this._start_task("to_build", ACTION.BUILD);
         }
-        //* is doing a task and task is full -> finish task -> not doing task
+        //* is doing a task and task is full   finish task -> not doing task
         if (this.doing_task && this.target) {
             const target_obj = Game.getObjectById(this.target);
             if (this.action === ACTION.REPAIR && target_obj.hits === target_obj.hitsMax) this._task_finished();

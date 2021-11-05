@@ -1,64 +1,89 @@
 import { REPAIR_THRESHOLD } from "../config";
 import * as Utils from "../utils/utils";
+import * as Config from "../config";
 import { profile } from "../Profiler/Profiler";
+import { match, __, when, select } from "ts-pattern";
+import { Mnemonic, mnemon } from "../utils/mnemonic";
 
-function get(room_name: string, val: string): any {
-    if (val === "lvl" || val === "creeps_name") return Memory.rooms[room_name][val];
+// function get(room_name: string, val: string): any {
+//     if (val === "lvl" || val === "creeps_name") return Memory.rooms_new[room_name][val];
 
-    return Memory.rooms[room_name].structure_ids[val];
-}
+//     return Memory.rooms_new[room_name].structure_id[val];
+// }
 
-function from_id(id: Id<any>) {
-    return Game.getObjectById(id);
-}
+// function from_id(id: Id<any>) {
+//     return Game.getObjectById(id);
+// }
 
-function from_ids(ids: Id<any>[]): any[] {
-    return _.map(ids, (id: Id<any>) => {
-        return Game.getObjectById(id);
-    });
-}
+// function from_ids(ids: Id<any>[]): any[] {
+//     return _.map(ids, (id: Id<any>) => {
+//         return Game.getObjectById(id);
+//     });
+// }
 
-function push_id(room_name: string, to: string, id: Id<any>): void {
-    if (to === "creeps_name") Memory.rooms[room_name][to].push(id);
+// function push_id(room_name: string, to: string, id: Id<any>): void {
+//     if (to === "creeps_name") Memory.rooms_new[room_name][to].push(id);
 
-    Memory.rooms[room_name].structure_ids[to].push(id);
-}
+//     Memory.rooms_new[room_name].structure_id[to].push(id);
+// }
 
-function push_ids(room_name: string, to: string, ids: Id<any>[]): void {
-    _.map(ids, (id: Id<any>) => {
-        push_id(room_name, to, id);
-    });
-}
+// function push_ids(room_name: string, to: string, ids: Id<any>[]): void {
+//     _.map(ids, (id: Id<any>) => {
+//         push_id(room_name, to, id);
+//     });
+// }
 
 @profile
-class Memory_manager {
+class Memory_manager implements Mnemonic {
     room_name: string;
+
+    @mnemon
+    controller?: Id<StructureController>;
+
+    @mnemon
+    structure_id: Record<string, any[]>;
+
+    @mnemon
+    room_tasks: Record<string, any[]>;
+
+    @mnemon
+    classes_in_room: Record<string, number>;
+
+    @mnemon
+    creeps_name: string[];
+
     constructor(room_name: string) {
         this.room_name = room_name;
+        this.controller = this._find_controller_id(Game.rooms[room_name]);
+        this.structure_id = this.locator().structure_id;
+        this.room_tasks = this.locator().room_tasks;
+        this.classes_in_room = this.locator().classes_in_room;
+        this.creeps_name = this.locator().creeps_name;
+
         this.update_room_component(Game.rooms[room_name], [
-            "controller",
-            "roads",
+            "creeps",
             "sources",
             "construction_sites",
             "extensions",
             "minerals",
             "to_repair",
-            "creeps_ids",
             "extensions_not_full",
             "containers_not_full",
-            "lvl",
         ]);
     }
 
+    public locator(): { [key: string]: any } {
+        return Memory.rooms_new[this.room_name];
+    }
+
     public update() {
-        this.update_room_component(Game.rooms[this.room_name], ["lvl", "controller", "roads", "sources", "creeps_ids", "flags"]);
+        this.locator();
+
         if (
-            Memory.rooms[this.room_name].room_tasks["to_transfer"] &&
-            _.isEmpty(Memory.rooms[this.room_name].room_tasks["to_transfer"])
-            // && Game.time >= Memory.rooms[this.room_name].updater.construction_sites + 5
+            this.room_tasks["to_transfer"] &&
+            _.isEmpty(this.room_tasks["to_transfer"]) &&
+            Game.time >= this.room_tasks.updater["to_transfer"] + Config.REFRESHING_RATE
         ) {
-            //?Update it only every 5 ticks
-            // console.log("Updating room component ! " + Game.time + ">= " + (Memory.rooms[this.room_name].updater.construction_sites + 5));
             this.update_room_component(Game.rooms[this.room_name], [
                 "construction_sites",
                 "extensions",
@@ -67,115 +92,60 @@ class Memory_manager {
                 "dropped_resources",
             ]);
         }
-        if (Memory.rooms[this.room_name].room_tasks["to_build"] && _.isEmpty(Memory.rooms[this.room_name].room_tasks["to_build"])) {
+        if (
+            this.room_tasks["to_build"] &&
+            _.isEmpty(this.room_tasks["to_build"]) &&
+            Game.time >= this.room_tasks.updater["to_build"] + Config.REFRESHING_RATE
+        ) {
             this.update_room_component(Game.rooms[this.room_name], ["construction_sites"]);
-            // console.log("Searching room to build " + Memory.rooms[this.room_name].structure_ids.construction_sites);
         }
-        if (Memory.rooms[this.room_name].room_tasks["to_repair"] && _.isEmpty(Memory.rooms[this.room_name].room_tasks["to_repair"]))
-            this.update_room_component(Game.rooms[this.room_name], ["roads", "to_repair"]);
+        if (
+            this.room_tasks["to_repair"] &&
+            _.isEmpty(this.room_tasks["to_repair"]) &&
+            Game.time >= this.room_tasks.updater["to_repair"] + Config.REFRESHING_RATE
+        )
+            this.update_room_component(Game.rooms[this.room_name], ["to_repair"]);
+        this.locator();
     }
+
     public run() {}
 
-    //? Find original spawn of the creep
-    private _FIND_SPAWN(c: string | Creep): StructureSpawn {
-        let spawn_name = "";
-        if (typeof c === "string") spawn_name = c;
-        else spawn_name = c.memory.spawn_name;
-        return Game.spawns[spawn_name];
-    }
-
-    private _FIND_SOURCES(room: Room): Source[] {
-        return room.find(FIND_SOURCES_ACTIVE);
-    }
-
-    private _FIND_SOURCES_IDS(room: Room): Id<Source>[] {
-        return _.map(room.find(FIND_SOURCES), (struct) => {
+    private _find_sources_ids(room: Room): Id<Source>[] {
+        return _.map(room.find(FIND_SOURCES_ACTIVE), (struct) => {
             //? TOOK OF _ACTIVE
             return struct.id;
         });
     }
 
-    // private _FIND_CONSTRUCTION_SITES(room: Room): ConstructionSite<BuildableStructureConstant>[] {
-    //     return room.find(FIND_MY_CONSTRUCTION_SITES).slice(0, 8);
-    // }
-
-    private _FIND_CONSTRUCTION_SITES_IDS(room: Room): Id<any>[] {
+    private _find_construction_sites_ids(room: Room): Id<any>[] {
         return _.map(room.find(FIND_MY_CONSTRUCTION_SITES), (struct) => {
             return struct.id;
         });
     }
 
-    private _FIND_MINERALS(room: Room): Mineral[] {
-        return room.find(FIND_MINERALS);
-    }
-
-    private _FIND_MINERALS_IDS(room: Room): Id<Mineral>[] {
+    private _find_minerals_ids(room: Room): Id<Mineral>[] {
         return _.map(room.find(FIND_MINERALS), (struct) => {
             return struct.id;
         });
     }
 
-    private _FIND_ROADS(room: Room): AnyStructure[] {
-        return room.find(FIND_STRUCTURES, { filter: { structureType: STRUCTURE_ROAD } });
-    }
-
-    private _FIND_ROADS_IDS(room: Room): Id<any>[] {
+    private _find_roads_ids(room: Room): Id<any>[] {
         return _.map(room.find(FIND_STRUCTURES, { filter: { structureType: STRUCTURE_ROAD } }), (struct) => {
             return struct.id;
         });
     }
 
-    private _FIND_structures(room: Room): AnyStructure[] {
-        return room.find(FIND_MY_STRUCTURES);
-    }
-
-    private _FIND_CONTROLLER(room: Room): StructureController | undefined {
-        return room.controller;
-    }
-
-    private _FIND_CONTROLLER_ID(room: Room): Id<StructureController> | undefined {
+    private _find_controller_id(room: Room): Id<StructureController> | undefined {
         return room.controller ? room.controller.id : undefined;
     }
 
-    // private GET_ENERGY_STATS(spawn: StructureSpawn): { max_energy: number; available_energy: number } {
-    //     let extensions_max_energy = 0;
-    //     let extensions_available_energy = 0;
-
-    //     let spawn_max_energy: number | null = 0;
-    //     let spawn_available_energy: number | null = 0;
-
-    //     if (spawn.store) {
-    //         spawn_available_energy = spawn.store.getFreeCapacity() || 0;
-    //         spawn_max_energy = spawn.store.getCapacity() || 0;
-    //     }
-    //     if (Memory["rooms"][spawn.room.name].structures)
-    //         _.each(Memory["rooms"][spawn.room.name].structures["extensions"], (extension: any) => {
-    //             extensions_available_energy += extension.energy;
-    //             extensions_available_energy += extension.energyCapacity;
-    //         });
-
-    //     return {
-    //         max_energy: extensions_max_energy + spawn_max_energy,
-    //         available_energy: extensions_available_energy + spawn_available_energy,
-    //     };
-    // }
-    private _FIND_EXTENSIONS(room: Room): AnyStructure[] {
-        return room.find(FIND_MY_STRUCTURES, { filter: { structureType: "extension" } });
-    }
-
-    private _FIND_EXTENSIONS_IDS(room: Room): Id<any>[] {
+    private _find_extensions_ids(room: Room): Id<any>[] {
         return _.map(room.find(FIND_MY_STRUCTURES, { filter: { structureType: "extension" } }), (struct) => {
             return struct.id;
         });
     }
 
-    private _FIND_NOT_FULL_EXTENSIONS(room: Room): AnyStructure[] {
-        return room.find(FIND_MY_STRUCTURES, {
-            filter: (i: StructureExtension) => i.structureType === "extension" && i.store.getFreeCapacity(RESOURCE_ENERGY) > 0,
-        });
-    }
-
-    private _FIND_NOT_FULL_EXTENSION_IDS(room: Room): Id<any>[] {
+    private _find_not_full_extension_ids(room: Room): Id<any>[] {
         return _.map(
             room.find(FIND_MY_STRUCTURES, {
                 filter: (i: StructureExtension) => i.structureType === STRUCTURE_EXTENSION && i.store.getFreeCapacity(RESOURCE_ENERGY) > 0,
@@ -186,16 +156,7 @@ class Memory_manager {
         );
     }
 
-    // private _FIND_NOT_FULL_CONTAINERS(room: Room): AnyStructure[] {
-    //     return room.find(FIND_MY_STRUCTURES, {
-    //         filter: (i: StructureExtension) =>
-    //             i.structureType !== STRUCTURE_EXTENSION &&
-    //             i.structureType === STRUCTURE_CONTAINER &&
-    //             i.store.getFreeCapacity(RESOURCE_ENERGY) > 0,
-    //     });
-    // }
-
-    private _FIND_NOT_FULL_CONTAINERS_IDS(room: Room): Id<any>[] {
+    private _find_not_full_containers_ids(room: Room): Id<any>[] {
         return _.map(
             room.find(FIND_MY_STRUCTURES, {
                 filter: (i: StructureExtension) =>
@@ -209,41 +170,29 @@ class Memory_manager {
         );
     }
 
-    private _FIND_FLAGS(room: Room): Flag[] {
-        return room.find(FIND_FLAGS);
-    }
-    private _FIND_DROPPED_RESOURCES_IDS(room: Room): Id<Resource>[] {
+    private _find_dropped_resources_ids(room: Room): Id<Resource>[] {
         return _.map(room.find(FIND_DROPPED_RESOURCES), (resource) => {
             return resource.id;
         });
     }
 
-    private _FIND_FLAGS_NAMES(room: Room): string[] {
+    private _find_flags_names(room: Room): string[] {
         return _.map(room.find(FIND_FLAGS), (flag) => {
             return flag.name;
         });
     }
-    private _FIND_ALL_CREEPS(room: Room) {
+    private _find_all_creeps(room: Room) {
         return _.map(room.find(FIND_MY_CREEPS), (creep: Creep) => {
             return creep.name;
         });
     }
 
-    private GET_LVL_OF_ROOM(room: Room) {
-        return 300 + _.size(Memory["rooms"][room.name].structure_ids["extensions"]) * 50;
-    }
-
-    private _FIND_ALL_TO_REPAIR(room: Room): Structure[] {
-        return room
-            .find(FIND_MY_STRUCTURES, { filter: (i) => i.hits / i.hitsMax < REPAIR_THRESHOLD })
-            .concat(
-                room.find(FIND_STRUCTURES, { filter: (i) => i.structureType == STRUCTURE_ROAD && i.hits / i.hitsMax < REPAIR_THRESHOLD }),
-            )
-            .slice(0, 5);
+    private get_lvl_of_room(room: Room) {
+        return 300 + _.size(Memory.rooms_new[room.name].structure_id["extensions"]) * 50;
     }
 
     //TODO CAN BE OPTIMIZED
-    private _FIND_ALL_TO_REPAIR_IDS(room: Room): Id<any>[] {
+    private _find_all_to_repair_ids(room: Room): Id<any>[] {
         return _.map(
             room
                 .find(FIND_MY_STRUCTURES, { filter: (i) => i.hits / i.hitsMax < REPAIR_THRESHOLD })
@@ -259,72 +208,42 @@ class Memory_manager {
         );
     }
 
+    private _creeps_variables(room: Room) {
+        _.each(room.find(FIND_MY_CREEPS), (creep: Creep) => {
+            if (!this.creeps_name.includes(creep.name)) {
+                if (!this.classes_in_room[creep.memory.role]) this.classes_in_room[creep.memory.role] = 1;
+                else this.classes_in_room[creep.memory.role] += 1;
+                this.creeps_name.push(creep.name);
+                console.log("New creep added to memory " + creep.name);
+            }
+        });
+    }
+
+    // prettier-ignore
     public update_room_component(room: Room, update_list: string[]): void {
         if (update_list.length >= 1)
-            _.each(update_list, (up) => {
-                if (!Memory["rooms"][room.name].updater[up] || Memory["rooms"][room.name].updater[up] !== Game.time) {
-                    switch (up) {
-                        case "lvl": {
-                            Memory["rooms"][room.name]["lvl"] = this.GET_LVL_OF_ROOM(room);
-                            break;
-                        }
-                        case "controller": {
-                            Memory["rooms"][room.name].structure_ids["controller"] = this._FIND_CONTROLLER_ID(room);
-                            break;
-                        }
-                        case "roads": {
-                            Memory["rooms"][room.name].structure_ids["roads"] = this._FIND_ROADS_IDS(room);
-                            break;
-                        } //? too costly.
-                        case "sources": {
-                            Memory["rooms"][room.name].structure_ids["sources"] = this._FIND_SOURCES_IDS(room);
-                            break;
-                        }
-                        case "construction_sites": {
-                            Memory["rooms"][room.name].structure_ids["construction_sites"] = this._FIND_CONSTRUCTION_SITES_IDS(room);
-                            break;
-                        }
-                        case "extensions": {
-                            Memory["rooms"][room.name].structure_ids["extensions"] = this._FIND_EXTENSIONS_IDS(room);
-                            break;
-                        }
-                        case "minerals": {
-                            Memory["rooms"][room.name].structure_ids["minerals"] = this._FIND_MINERALS_IDS(room);
-                            break;
-                        }
-                        case "creeps_ids": {
-                            Memory["rooms"][room.name].creeps_name = this._FIND_ALL_CREEPS(room);
-                            break;
-                        }
-                        case "to_repair": {
-                            Memory["rooms"][room.name].structure_ids["to_repair"] = this._FIND_ALL_TO_REPAIR_IDS(room);
-                            break;
-                        }
-                        case "flags": {
-                            Memory["rooms"][room.name].flags = this._FIND_FLAGS_NAMES(room);
-                            break;
-                        }
-                        case "extensions_not_full": {
-                            Memory["rooms"][room.name].structure_ids["extensions_not_full"] = this._FIND_NOT_FULL_EXTENSION_IDS(room);
-                            break;
-                        }
-                        case "dropped_resources": {
-                            Memory["rooms"][room.name].structure_ids["dropped_resources"] = this._FIND_DROPPED_RESOURCES_IDS(room);
-                            break;
-                        }
-                        case "containers_not_full": {
-                            Memory["rooms"][room.name].structure_ids["containers_not_full"] = this._FIND_NOT_FULL_CONTAINERS_IDS(room); //TODO doesn't do shit
-                            break;
-                        }
-                        default: {
-                            Utils._C("UPDATER", -1000, "Couldn't find corresponding update for " + up);
-                            break;
-                        }
-                    }
-                    Memory["rooms"][room.name].updater[up] = Game.time;
+            _.each(update_list, (up : string) => {
+                if (!this.structure_id.updater[up] || this.structure_id.updater[up] !== Game.time || this.structure_id.updater[up] === 0) {
+                    match(up)
+                        .with("creeps", () => { this._creeps_variables(room); })
+                        .with("roads", () => { this.structure_id["roads"] = this._find_roads_ids(room); }) //? too costly.
+                        .with("sources", () => { this.structure_id["sources"] = this._find_sources_ids(room); })
+                        .with("construction_sites", () => { this.structure_id["construction_sites"] = this._find_construction_sites_ids(room); })
+                        .with("extensions", () => { this.structure_id["extensions"] = this._find_extensions_ids(room); })
+                        .with("minerals", () => { this.structure_id["minerals"] = this._find_minerals_ids(room); })
+                        .with("to_repair", () => { this.structure_id["to_repair"] = this._find_all_to_repair_ids(room); })
+                        .with("flags", () => { this.structure_id.flags = this._find_flags_names(room); })
+                        .with("extensions_not_full", () => { this.structure_id["extensions_not_full"] = this._find_not_full_extension_ids(room); })
+                        .with("dropped_resources", () => { this.structure_id["dropped_resources"] = this._find_dropped_resources_ids(room); })
+                        .with("containers_not_full", () => { this.structure_id["containers_not_full"] = this._find_not_full_containers_ids(room); })
+                        .with("containers_not_full", () => { this.structure_id["containers_not_full"] = this._find_not_full_containers_ids(room); })
+                        .with(__, () => {Utils._C("UPDATER", -1000, "Couldn't find corresponding update for " + up);})
+                        .exhaustive()
+                    this.structure_id.updater[up] = Game.time;
                 }
+                console.log(up + " updated")
             });
     }
 }
 
-export { Memory_manager, get, from_id, from_ids, push_id, push_ids };
+export { Memory_manager };

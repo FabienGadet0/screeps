@@ -67,7 +67,9 @@
   "dependencies": {
     "screepsmod-auth": "^2.6.2",
     "source-map": "~0.6.1",
+    "ts-pattern": "^3.3.3",
     "uninstall": "0.0.0",
+    "unique-names-generator": "^4.6.0",
     "ws": "^8.2.3"
   }
 }

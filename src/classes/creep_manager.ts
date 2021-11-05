@@ -4,114 +4,134 @@ import * as Utils from "../utils/utils";
 
 // import * as Harvester from "./creeps/harvester";
 import { ICreep, ACTION } from "./creeps/ICreep";
-import { Builder } from "./creeps/builder";
 // import * as Upgrader from "./creeps/upgrader";
 import { profile } from "../Profiler/Profiler";
 import { Creep_factory } from "./creep_factory";
+import { match, __, when, select } from "ts-pattern";
+
+import { Harvester } from "./creeps/harvester";
+import { Builder } from "./creeps/builder";
+import { Upgrader } from "./creeps/upgrader";
+import { Mnemonic, mnemon } from "../utils/mnemonic";
 
 @profile
-class Creep_manager {
+class Creep_manager implements Mnemonic {
     room_name: string;
-    spawn_id: Id<StructureSpawn>;
     creeps: Record<string, any>;
     creep_factory: Creep_factory;
+
+    @mnemon
+    spawn_id: Id<StructureSpawn>;
+
+    @mnemon
     lvl: number;
+
+    @mnemon
     cripple_creeps: string[];
 
-    constructor(room_name: string, spawn_id: Id<StructureSpawn>) {
+    @mnemon
+    room_tasks: Record<string, Id<any>[]>;
+
+    @mnemon
+    creeps_name: string[];
+
+    constructor(room_name: string) {
         this.room_name = room_name;
         this.creeps = {};
-        this.spawn_id = spawn_id;
-        this.creep_factory = new Creep_factory(room_name, spawn_id);
-        this.lvl = 300;
-        this.cripple_creeps = [];
+        this.spawn_id = this.locator().spawn_id;
+        this.lvl = this.locator().lvl;
+        this.creeps_name = this.locator().creeps_name;
+        this.cripple_creeps = this.locator().cripple_creeps;
+
+        this.room_tasks = this.locator().room_tasks;
+        this.creep_factory = new Creep_factory(room_name, this.spawn_id);
 
         _.each(Game.rooms[room_name].find(FIND_MY_CREEPS), (creep: Creep) => {
-            this.creeps[creep.name] = this.creep_factory.generate(creep.memory.role, creep.name);
+            this.creeps[creep.name] = this._generate(creep.memory.role, creep.name);
         });
+    }
+
+    public locator(): { [key: string]: any } {
+        return Memory.rooms_new[this.room_name];
+    }
+
+    // prettier-ignore
+    private _generate(role: string, room_name: string): any {
+        return match(role)
+            .with ("harvester", () => { return new Harvester(room_name) })
+            .with ("builder", () => { return new Builder(room_name) })
+            .with("upgrader", () => { return new Upgrader(room_name) })
+            .with(__, () => {return undefined})
+            .exhaustive()
     }
 
     private _manage_tasks(): void {
         //* harvesters tasks
 
         const spawn = Game.getObjectById(this.spawn_id);
-        const extensions_not_full = Memory.rooms[this.room_name].structure_ids["extensions_not_full"];
-        // const containers_not_full = Memory.rooms[this.room_name].structure_ids["containers_not_full"];
-        const to_build = Memory.rooms[this.room_name].structure_ids["construction_sites"];
-        const to_repair = Memory.rooms[this.room_name].structure_ids["to_repair"];
-
-        // console.log("to transfer + " + Memory.rooms[this.room_name].structure_ids.room_tasks["to_transfer"]);
-        // console.log("empty tasks :" + _.isEmpty(Memory.rooms[this.room_name].room_tasks));
-        if (_.isEmpty(Memory.rooms[this.room_name].room_tasks["to_transfer"])) {
+        const extensions_not_full = Memory.rooms_new[this.room_name].structure_id["extensions_not_full"];
+        // const containers_not_full = Memory.rooms_new[this.room_name].structure_id["containers_not_full"];
+        const to_build = Memory.rooms_new[this.room_name].structure_id["construction_sites"];
+        const to_repair = Memory.rooms_new[this.room_name].structure_id["to_repair"];
+        if (_.isEmpty(this.room_tasks["to_transfer"]) && Game.time >= this.room_tasks.updater["to_transfer"] + Config.REFRESHING_RATE) {
             //* Harvester
 
             if (spawn!.store.getFreeCapacity(RESOURCE_ENERGY) > 0)
-                Memory.rooms[this.room_name].room_tasks["to_transfer"] = [this.spawn_id].concat(extensions_not_full);
-            // Memory.rooms[this.room_name].room_tasks["to_transfer"].push(this.spawn_id);
-            else
-                Memory.rooms[this.room_name].room_tasks["to_transfer"] =
-                    Memory.rooms[this.room_name].room_tasks["to_transfer"].concat(extensions_not_full);
-            // Memory.rooms[this.room_name].room_tasks["to_transfer"].concat(extensions_not_full);
+                this.room_tasks["to_transfer"] = [this.spawn_id].concat(extensions_not_full);
+            else this.room_tasks["to_transfer"] = this.room_tasks["to_transfer"].concat(extensions_not_full);
+            console.log(_.size(this.room_tasks["to_transfer"]) + " transfer tasks added ");
+            this.room_tasks.updater["to_transfer"] = Game.time;
         }
         //*------------------
 
         //* - builder tasks -
-        if (_.isEmpty(Memory.rooms[this.room_name].room_tasks["to_repair"]))
-            Memory.rooms[this.room_name].room_tasks["to_repair"] = to_repair;
-        if (_.isEmpty(Memory.rooms[this.room_name].room_tasks["to_build"])) Memory.rooms[this.room_name].room_tasks["to_build"] = to_build;
+
+        if (
+            _.isEmpty(this.room_tasks["to_repair"]) &&
+            Game.time >= this.room_tasks.updater["to_repair"] + Config.REFRESHING_RATE &&
+            to_repair.length > 0
+        ) {
+            this.room_tasks["to_repair"] = to_repair;
+            this.room_tasks.updater["to_repair"] = Game.time;
+
+            console.log(_.size(this.room_tasks["to_repair"]) + " Repair tasks added ");
+        }
+
+        if (
+            _.isEmpty(this.room_tasks["to_build"]) &&
+            Game.time >= this.room_tasks.updater["to_build"] + Config.REFRESHING_RATE &&
+            to_build.length > 0
+        ) {
+            this.room_tasks["to_build"] = to_build;
+            console.log(_.size(this.room_tasks["to_build"]) + " Build tasks added ");
+            this.room_tasks.updater["to_build"] = Game.time;
+        }
         //*-------------------
     }
 
     public run(): void {
         this.creep_factory.run();
-        this._manage_tasks();
 
         _.each(this.creeps, (creep: ICreep) => {
             creep.run();
         });
 
-        //? Outside of loop because spawn can't renew many creeps at the same time.
         if (this.cripple_creeps.length > 0)
-            //TODO if no one transfer energy to spawn and they need renew , they are fucked.
-            Utils._C(
-                this.spawn_id + "/" + this.room_name,
-                this.tryRenew(this.creeps[this.cripple_creeps[0]], Game.getObjectById(this.spawn_id) as StructureSpawn),
-            );
+            this.tryRenew(this.creeps[this.cripple_creeps[0]], Game.getObjectById(this.spawn_id) as StructureSpawn);
     }
 
     public update(): boolean {
-        this.lvl = Memory.rooms[this.room_name].lvl;
-        // this.creep_factory.set_lvl(this.lvl);
+        this.locator();
+        this._manage_tasks();
+
         this.creep_factory.update();
 
-        let game_creeps = Memory.rooms[this.room_name].creeps_name;
-
-        if (_.size(this.creeps) - _.size(Memory.rooms[this.room_name].creeps_name) !== 0) this._manage_new_and_dead_creeps();
+        this._manage_new_and_dead_creeps();
 
         _.map(this.creeps, (creep: ICreep) => {
             creep.update();
         });
-        // if (creep.is_renewing() && !Memory.rooms[this.room_name].cripple_creeps.includes(creep.creep_name)) {
-        //     // console.log("cripple " + creep.creep_name + " in " + Memory.rooms[this.room_name].cripple_creeps);
-        //     // console.log("bool : " + !Memory.rooms[this.room_name].cripple_creeps.includes(creep.creep_name));
-        //     Memory.rooms[this.room_name].cripple_creeps.push(creep.creep_name); //? add if need renew.
-        // }
-        // if (
-        //     creep.is_renewing() &&
-        //     creep.creep_name in Memory.rooms[this.room_name].cripple_creeps &&
-        //     (creep.ticksToLive || 0) >= Config.MAX_TICKS_TO_LIVE - 50
-        // )
-        //     //? Delete if no longer needs renew
-        //     delete Memory.rooms[this.room_name].cripple_creeps[
-        //         Memory.rooms[this.room_name].cripple_creeps.findIndex((item) => item == creep.creep_name)
-        //     ];
-        // });
-        this.cripple_creeps = Memory.rooms[this.room_name].cripple_creeps;
         return false;
-    }
-
-    public set_lvl(lvl: number) {
-        this.lvl = lvl;
     }
 
     //* creeps in memory -------------------------------------------
@@ -121,16 +141,18 @@ class Creep_manager {
             if (!(name in Game.creeps)) {
                 delete this.creeps[name];
                 console.log(name, " deleted");
+                if (this.cripple_creeps.includes(name)) this.cripple_creeps.remove(name);
+                if (this.creeps_name.includes(name)) this.creeps_name.remove(name);
             }
-            if (name in Memory.rooms[this.room_name].cripple_creeps)
-                //TODO idk if this shit works.
-                Memory.rooms[this.room_name].cripple_creeps = _.filter(Memory.rooms[this.room_name].cripple_creeps, (c: string) => {
-                    return !(c in this.creeps);
-                });
         }
         for (const name in Game.creeps) {
+            if (!this.creeps_name.includes(name)) {
+                console.log("new creep pushed " + name + " to " + this.creeps_name);
+                this.creeps_name.push(name);
+            }
+
             if (!(name in this.creeps)) {
-                this.creeps[name] = this.creep_factory.generate(Game.creeps[name].memory.role, name);
+                this.creeps[name] = this._generate(Game.creeps[name].memory.role, name);
                 console.log(name, " added");
             }
         }

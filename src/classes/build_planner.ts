@@ -1,6 +1,5 @@
 import * as Config from "../config";
 import * as Utils from "../utils/utils";
-import * as Finder from "../utils/finder";
 import { profile } from "../Profiler/Profiler";
 
 @profile
@@ -23,10 +22,10 @@ class Room_build_planner {
 
     private _delete_all_roads(room: Room) {
         //todo Delete this call.
-        let roads = Finder._FIND_ROADS(room);
-        _.each(roads, (construction) => {
-            construction.destroy();
-        });
+        // let roads = Finder._FIND_ROADS(room);
+        // _.each(roads, (construction) => {
+        // construction.destroy();
+        // });
     }
 
     private _delete_all(room: Room) {
@@ -186,7 +185,7 @@ class Room_build_planner {
     public update(): void {}
 
     public run(): void {
-        const spawn = Finder.from_id(this.spawn_id);
+        const spawn = Game.getObjectById(this.spawn_id) as StructureSpawn;
 
         if (Memory["rooms"][this.room_name].build_map["build_roads"]) {
             this._create_roads(spawn);
