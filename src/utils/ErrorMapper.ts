@@ -1,4 +1,5 @@
 import { SourceMapConsumer } from "source-map";
+import { MEMHACK } from "../config";
 
 export class ErrorMapper {
     // Cache consumer
@@ -74,16 +75,17 @@ export class ErrorMapper {
 
         return () => {
             //* Memhack
-            if (tick && tick + 1 === Game.time && memory) {
-                // this line is required to disable the default Memory deserialization
-                delete global.Memory;
-                global.Memory = memory;
-            } else {
-                memory = Memory;
+            if (MEMHACK) {
+                if (tick && tick + 1 === Game.time && memory) {
+                    // this line is required to disable the default Memory deserialization
+                    delete global.Memory;
+                    global.Memory = memory;
+                } else {
+                    memory = Memory;
+                }
+
+                tick = Game.time;
             }
-
-            tick = Game.time;
-
             try {
                 loop();
             } catch (e) {
@@ -99,7 +101,7 @@ export class ErrorMapper {
                     throw e;
                 }
             }
-            RawMemory.set(JSON.stringify(Memory));
+            if (MEMHACK) RawMemory.set(JSON.stringify(Memory));
         };
     }
 }

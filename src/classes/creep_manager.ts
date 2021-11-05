@@ -74,28 +74,39 @@ class Creep_manager implements Mnemonic {
         const to_build = Memory.rooms_new[this.room_name].structure_id["construction_sites"];
         const to_repair = Memory.rooms_new[this.room_name].structure_id["to_repair"];
 
-        // console.log("to transfer + " + Memory.rooms_new[this.room_name].structure_id.room_tasks["to_transfer"]);
-        // console.log("empty tasks :" + _.isEmpty(Memory.rooms_new[this.room_name].room_tasks));
-        if (_.isEmpty(Memory.rooms_new[this.room_name].room_tasks["to_transfer"])) {
+        if (_.isEmpty(this.room_tasks["to_transfer"]) && Game.time >= this.room_tasks.updater["to_transfer"] + Config.REFRESHING_RATE) {
             //* Harvester
 
             if (spawn!.store.getFreeCapacity(RESOURCE_ENERGY) > 0)
                 this.room_tasks["to_transfer"] = [this.spawn_id].concat(extensions_not_full);
-            // Memory.rooms_new[this.room_name].room_tasks["to_transfer"] = [this.spawn_id].concat(extensions_not_full);
-            // Memory.rooms_new[this.room_name].room_tasks["to_transfer"].push(this.spawn_id);
-            else this.room_tasks["to_transfer"] = Memory.rooms_new[this.room_name].room_tasks["to_transfer"].concat(extensions_not_full);
-            // Memory.rooms_new[this.room_name].room_tasks["to_transfer"] =
-            //     Memory.rooms_new[this.room_name].room_tasks["to_transfer"].concat(extensions_not_full);
-
-            // Memory.rooms_new[this.room_name].room_tasks["to_transfer"].concat(extensions_not_full);
+            else this.room_tasks["to_transfer"] = this.room_tasks["to_transfer"].concat(extensions_not_full);
+            console.log(_.size(this.room_tasks["to_transfer"]) + " transfer tasks added ");
+            this.room_tasks.updater["to_transfer"] = Game.time;
         }
         //*------------------
 
         //* - builder tasks -
-        if (_.isEmpty(Memory.rooms_new[this.room_name].room_tasks["to_repair"])) this.room_tasks["to_repair"] = to_repair;
-        // Memory.rooms_new[this.room_name].room_tasks["to_repair"] = to_repair;
-        if (_.isEmpty(Memory.rooms_new[this.room_name].room_tasks["to_build"])) this.room_tasks["to_build"] = to_build;
-        // Memory.rooms_new[this.room_name].room_tasks["to_build"] = to_build;
+
+        if (
+            _.isEmpty(this.room_tasks["to_repair"]) &&
+            Game.time >= this.room_tasks.updater["to_repair"] + Config.REFRESHING_RATE &&
+            to_repair.length > 0
+        ) {
+            this.room_tasks["to_repair"] = to_repair;
+            this.room_tasks.updater["to_repair"] = Game.time;
+
+            console.log(_.size(this.room_tasks["to_repair"]) + " Repair tasks added ");
+        }
+
+        if (
+            _.isEmpty(this.room_tasks["to_build"]) &&
+            Game.time >= this.room_tasks.updater["to_build"] + Config.REFRESHING_RATE &&
+            to_build.length > 0
+        ) {
+            this.room_tasks["to_build"] = to_build;
+            console.log(_.size(this.room_tasks["to_build"]) + " Build tasks added ");
+            this.room_tasks.updater["to_build"] = Game.time;
+        }
         //*-------------------
     }
 
@@ -106,21 +117,14 @@ class Creep_manager implements Mnemonic {
             creep.run();
         });
 
-        //? Outside of loop because spawn can't renew many creeps at the same time.
         if (this.cripple_creeps.length > 0)
-            //TODO if no one transfer energy to spawn and they need renew , they are fucked.
-            Utils._C(
-                this.spawn_id + "/" + this.room_name,
-                this.tryRenew(this.creeps[this.cripple_creeps[0]], Game.getObjectById(this.spawn_id) as StructureSpawn),
-            );
+            this.tryRenew(this.creeps[this.cripple_creeps[0]], Game.getObjectById(this.spawn_id) as StructureSpawn);
     }
 
     public update(): boolean {
         this.locator();
         this._manage_tasks();
         this.creep_factory.update();
-
-        // if (_.size(this.creeps) - _.size(Memory.rooms_new[this.room_name].creeps_name) !== 0) this._manage_new_and_dead_creeps();
 
         _.map(this.creeps, (creep: ICreep) => {
             if (!creep.creep) this._manage_new_and_dead_creeps();
@@ -138,11 +142,6 @@ class Creep_manager implements Mnemonic {
                 console.log(name, " deleted");
                 if (name in this.cripple_creeps) this.cripple_creeps.remove(name);
             }
-            // if (name in Memory.rooms_new[this.room_name].cripple_creeps)
-            //TODO delete creep in cripples if get deleted while needing heal . Doesn't work atm
-            // Memory.rooms_new[this.room_name].cripple_creeps = _.filter(Memory.rooms_new[this.room_name].cripple_creeps, (c: string) => {
-            //     return !(c in this.creeps);
-            // });
         }
         for (const name in Game.creeps) {
             if (!(name in this.creeps)) {

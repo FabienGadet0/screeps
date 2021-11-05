@@ -2,7 +2,7 @@
 
 import * as Config from "../../config";
 import * as Utils from "../../utils/utils";
-import * as Finder from "../../utils/finder";
+import { match, __, when, select } from "ts-pattern";
 
 export enum ACTION {
     IDLE = "IDLE",
@@ -42,6 +42,7 @@ export abstract class ICreep {
 
     constructor(creep_name: string) {
         this.creep = Game.creeps[creep_name];
+
         this.creep_name = creep_name;
         this.creep_id = this.creep.id;
         this.source_ids = this._get_sources();
@@ -81,6 +82,21 @@ export abstract class ICreep {
             WAITING_NEXT_TASK: "",
         };
     }
+
+    // // prettier-ignore
+    // private action_to_func(...target: any): any {
+    //     return match(this.action)
+    //         .with(ACTION.IDLE, () => { this.idle(target[0]) })
+    //         .with(ACTION.RENEW, () => { this.renew(target[0]) })
+    //         .with(ACTION.BUILD, () => { this.creep.build(target[0]) })
+    //         .with(ACTION.REPAIR, () => { this.creep.repair(target[0]) })
+    //         .with(ACTION.RENEW, () => { this.idle(target[0]) })
+    //         .with(ACTION.TRANSFER, () => { this.creep.transfer(target[0], RESOURCE_ENERGY) })
+    //         .with(ACTION.UPGRADE_CONTROLLER, () => { this.creep.upgradeController(target[0]) })
+    //         .with(__,()=> console.log("Action not registered ->> "+ this.action))
+    //         // .exhaustive()
+    // }
+
     //TODO make it better
     private action_to_func(...target: any): any {
         switch (this.action) {
@@ -129,7 +145,7 @@ export abstract class ICreep {
             // Memory.rooms_new[this.creep.room.name].room_tasks[task_name] = tasks.new_list;
 
             console.log(
-                "action got taken " +
+                "New task " +
                     this.action +
                     " ->> " +
                     this.target +

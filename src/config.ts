@@ -5,6 +5,8 @@ export const MAX_DEPTH_FOR_BUILDING = 3;
 export const REPAIR_THRESHOLD = 0.3;
 export const REPAIR_WHEN_CONSTRUCTION_SITE_UNDER = 7;
 export const MAX_TICKS_TO_LIVE = 1400;
+export const REFRESHING_RATE = 5;
+export const MEMHACK = false;
 
 //? Lvls :
 //* 300  -> 1 spawn

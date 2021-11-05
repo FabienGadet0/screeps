@@ -6,6 +6,9 @@ import * as Utils from "../../utils/utils";
 export class Harvester extends ICreep {
     constructor(creep_name: string) {
         super(creep_name);
+        console.log("construct " + creep_name);
+        console.log("construct " + this.creep);
+
         this.main_action = ACTION.TRANSFER;
         this.creep.memory.source_to_target = 0;
     }
