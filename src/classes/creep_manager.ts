@@ -73,6 +73,16 @@ class Creep_manager implements Mnemonic {
         // const containers_not_full = Memory.rooms_new[this.room_name].structure_id["containers_not_full"];
         const to_build = Memory.rooms_new[this.room_name].structure_id["construction_sites"];
         const to_repair = Memory.rooms_new[this.room_name].structure_id["to_repair"];
+        // console.log(
+        //     "to transfer tasks empty: " +
+        //         _.isEmpty(this.room_tasks["to_transfer"]) +
+        //         " and game time " +
+        //         Game.time +
+        //         " >= " +
+        //         this.room_tasks.updater["to_transfer"] +
+        //         " + " +
+        //         Config.REFRESHING_RATE,
+        // );
         if (_.isEmpty(this.room_tasks["to_transfer"]) && Game.time >= this.room_tasks.updater["to_transfer"] + Config.REFRESHING_RATE) {
             //* Harvester
 

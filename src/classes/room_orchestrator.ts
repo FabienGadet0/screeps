@@ -109,6 +109,7 @@ export class Room_orchestrator implements Mnemonic {
                 to_repair: false,
                 room_tasks: false,
                 lvl: false,
+                forced: false,
             },
         };
     }

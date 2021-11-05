@@ -8,19 +8,6 @@ function flatten(arr: any[][]): any[] {
     return arr.reduce((acc, val) => acc.concat(val), []);
 }
 
-// function debug(): void {
-//     Memory.debug_mode = !Memory.debug_mode;
-//     console.log("Debug set to " + Memory.debug_mode);
-// }
-
-// export function take_first(a: any): Record<string, any> {
-//     //* Return the first elem and the whole list without first elem
-//     const b = a[0];
-//     const l = _.size(a);
-
-//     return { elem1: b, new_list: a.slice(1, l - 1) };
-// }
-
 //* countries , languages, names
 export function name_new_creep(role: string, lvl: number): string {
     return uniqueNamesGenerator({
