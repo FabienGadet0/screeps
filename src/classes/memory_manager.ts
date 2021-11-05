@@ -46,13 +46,22 @@ class Memory_manager implements Mnemonic {
     @mnemon
     room_tasks: Record<string, any[]>;
 
+    @mnemon
+    classes_in_room: Record<string, number>;
+
+    @mnemon
+    creeps_name: string[];
+
     constructor(room_name: string) {
         this.room_name = room_name;
         this.controller = this._find_controller_id(Game.rooms[room_name]);
         this.structure_id = this.locator().structure_id;
         this.room_tasks = this.locator().room_tasks;
+        this.classes_in_room = this.locator().classes_in_room;
+        this.creeps_name = this.locator().creeps_name;
 
         this.update_room_component(Game.rooms[room_name], [
+            "creeps",
             "sources",
             "construction_sites",
             "extensions",
@@ -69,11 +78,11 @@ class Memory_manager implements Mnemonic {
 
     public update() {
         this.locator();
-        // this.update_room_component(Game.rooms[this.room_name], ["sources", "flags"]);
+
         if (
             this.room_tasks["to_transfer"] &&
             _.isEmpty(this.room_tasks["to_transfer"]) &&
-            Game.time >= this.structure_id.updater["to_transfer"] + Config.REFRESHING_RATE
+            Game.time >= this.room_tasks.updater["to_transfer"] + Config.REFRESHING_RATE
         ) {
             this.update_room_component(Game.rooms[this.room_name], [
                 "construction_sites",
@@ -86,14 +95,14 @@ class Memory_manager implements Mnemonic {
         if (
             this.room_tasks["to_build"] &&
             _.isEmpty(this.room_tasks["to_build"]) &&
-            Game.time >= this.structure_id.updater["to_build"] + Config.REFRESHING_RATE
+            Game.time >= this.room_tasks.updater["to_build"] + Config.REFRESHING_RATE
         ) {
             this.update_room_component(Game.rooms[this.room_name], ["construction_sites"]);
         }
         if (
             this.room_tasks["to_repair"] &&
             _.isEmpty(this.room_tasks["to_repair"]) &&
-            Game.time >= this.structure_id.updater["to_repair"] + Config.REFRESHING_RATE
+            Game.time >= this.room_tasks.updater["to_repair"] + Config.REFRESHING_RATE
         )
             this.update_room_component(Game.rooms[this.room_name], ["to_repair"]);
         this.locator();
@@ -199,12 +208,24 @@ class Memory_manager implements Mnemonic {
         );
     }
 
+    private _creeps_variables(room: Room) {
+        _.each(room.find(FIND_MY_CREEPS), (creep: Creep) => {
+            if (!this.creeps_name.includes(creep.name)) {
+                if (!this.classes_in_room[creep.memory.role]) this.classes_in_room[creep.memory.role] = 1;
+                else this.classes_in_room[creep.memory.role] += 1;
+                this.creeps_name.push(creep.name);
+                console.log("New creep added to memory " + creep.name);
+            }
+        });
+    }
+
     // prettier-ignore
     public update_room_component(room: Room, update_list: string[]): void {
         if (update_list.length >= 1)
             _.each(update_list, (up : string) => {
                 if (!this.structure_id.updater[up] || this.structure_id.updater[up] !== Game.time || this.structure_id.updater[up] === 0) {
                     match(up)
+                        .with("creeps", () => { this._creeps_variables(room); })
                         .with("roads", () => { this.structure_id["roads"] = this._find_roads_ids(room); }) //? too costly.
                         .with("sources", () => { this.structure_id["sources"] = this._find_sources_ids(room); })
                         .with("construction_sites", () => { this.structure_id["construction_sites"] = this._find_construction_sites_ids(room); })
@@ -214,6 +235,7 @@ class Memory_manager implements Mnemonic {
                         .with("flags", () => { this.structure_id.flags = this._find_flags_names(room); })
                         .with("extensions_not_full", () => { this.structure_id["extensions_not_full"] = this._find_not_full_extension_ids(room); })
                         .with("dropped_resources", () => { this.structure_id["dropped_resources"] = this._find_dropped_resources_ids(room); })
+                        .with("containers_not_full", () => { this.structure_id["containers_not_full"] = this._find_not_full_containers_ids(room); })
                         .with("containers_not_full", () => { this.structure_id["containers_not_full"] = this._find_not_full_containers_ids(room); })
                         .with(__, () => {Utils._C("UPDATER", -1000, "Couldn't find corresponding update for " + up);})
                         .exhaustive()

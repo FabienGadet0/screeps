@@ -73,7 +73,6 @@ class Creep_manager implements Mnemonic {
         // const containers_not_full = Memory.rooms_new[this.room_name].structure_id["containers_not_full"];
         const to_build = Memory.rooms_new[this.room_name].structure_id["construction_sites"];
         const to_repair = Memory.rooms_new[this.room_name].structure_id["to_repair"];
-
         if (_.isEmpty(this.room_tasks["to_transfer"]) && Game.time >= this.room_tasks.updater["to_transfer"] + Config.REFRESHING_RATE) {
             //* Harvester
 
@@ -124,11 +123,13 @@ class Creep_manager implements Mnemonic {
     public update(): boolean {
         this.locator();
         this._manage_tasks();
+
         this.creep_factory.update();
 
+        this._manage_new_and_dead_creeps();
+
         _.map(this.creeps, (creep: ICreep) => {
-            if (!creep.creep) this._manage_new_and_dead_creeps();
-            else creep.update();
+            creep.update();
         });
         return false;
     }
@@ -140,10 +141,16 @@ class Creep_manager implements Mnemonic {
             if (!(name in Game.creeps)) {
                 delete this.creeps[name];
                 console.log(name, " deleted");
-                if (name in this.cripple_creeps) this.cripple_creeps.remove(name);
+                if (this.cripple_creeps.includes(name)) this.cripple_creeps.remove(name);
+                if (this.creeps_name.includes(name)) this.creeps_name.remove(name);
             }
         }
         for (const name in Game.creeps) {
+            if (!this.creeps_name.includes(name)) {
+                console.log("new creep pushed " + name + " to " + this.creeps_name);
+                this.creeps_name.push(name);
+            }
+
             if (!(name in this.creeps)) {
                 this.creeps[name] = this._generate(Game.creeps[name].memory.role, name);
                 console.log(name, " added");

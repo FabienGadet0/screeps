@@ -22,10 +22,9 @@ function flatten(arr: any[][]): any[] {
 // }
 
 //* countries , languages, names
-//TODO see if it works.
 export function name_new_creep(role: string, lvl: number): string {
     return uniqueNamesGenerator({
-        dictionaries: [adjectives, colors, animals],
+        dictionaries: [adjectives, animals],
     });
 }
 

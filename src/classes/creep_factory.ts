@@ -34,7 +34,9 @@ class Creep_factory implements Mnemonic {
         return Memory.rooms_new[this.room_name];
     }
 
+    //TODO also had new role in classes_in_room and shouldn't
     private _get_amount_of_creep_with_role(_role: string): number {
+        if (!this.classes_in_room[_role]) this.classes_in_room[_role] = 0;
         return this.classes_in_room[_role];
     }
 
@@ -49,7 +51,7 @@ class Creep_factory implements Mnemonic {
 
     private _spawn_creep(spawn: StructureSpawn, name: string, _role: string, lvl: number): ScreepsReturnCode | number {
         console.log("spawn " + lvl + " role " + _role + " Name " + name);
-        if (!spawn.spawning)
+        if (!spawn.spawning) {
             return spawn.spawnCreep(Config.role_to_bodyparts[lvl][_role], name, {
                 memory: {
                     _trav: undefined,
@@ -64,6 +66,7 @@ class Creep_factory implements Mnemonic {
                     lvl: lvl,
                 },
             });
+        }
         return -20;
     }
 

@@ -52,14 +52,14 @@ export class Room_orchestrator implements Mnemonic {
     private _init_room(room_name: string) {
         let all_classes: Record<string, number> = {};
         let creeps_name: string[] = [];
-        _.each(Game.rooms[room_name].find(FIND_MY_CREEPS), (creep: Creep) => {
-            if (!all_classes[creep.memory.role]) all_classes[creep.memory.role] = 1;
-            else all_classes[creep.memory.role] += 1;
-            creeps_name.push(creep.name);
-        });
+        // _.each(Game.rooms[room_name].find(FIND_MY_CREEPS), (creep: Creep) => {
+        //     if (!all_classes[creep.memory.role]) all_classes[creep.memory.role] = 1;
+        //     else all_classes[creep.memory.role] += 1;
+        //     creeps_name.push(creep.name);
+        // });
 
         return {
-            classes_in_room: all_classes,
+            classes_in_room: {},
             lvl: 300,
             room_tasks: {
                 updater: { to_transfer: 0, to_build: 0, to_repair: 0 },
@@ -95,6 +95,21 @@ export class Room_orchestrator implements Mnemonic {
             },
             build_plan: {},
             commands: { all_harvest: false, all_transfer_to_spawn: false },
+            update_map: {
+                new_creep: false,
+                roads: false,
+                sources: false,
+                construction_sites: false,
+                extensions: false,
+                minerals: false,
+                extensions_not_full: false,
+                flags: false,
+                dropped_resources: false,
+                containers_not_full: false,
+                to_repair: false,
+                room_tasks: false,
+                lvl: false,
+            },
         };
     }
 

@@ -290,15 +290,16 @@ export abstract class ICreep {
 
     protected manageRenew(spawn: StructureSpawn): void {
         // if ((creep.memory.role === 'harvester' && spawn.store[RESOURCE_ENERGY] >= 200) || ( creep.memory.role !== 'harvester' && spawn.store[RESOURCE_ENERGY] > 20 ) ) { //* Harvester sacrifice to bring energy for others
-        if (!this.is_renewing() && this.needsRenew()) {
+        if (!this.is_renewing() && this.needsRenew() && !this.creep.spawning) {
             this.set(ACTION.RENEW, spawn.id);
             Memory.rooms_new[this.creep.room.name].cripple_creeps.push(this.creep_name);
         }
         //? if full life and was renewing , set to idle to get out of the renewing loop.
-        else if (this.is_renewing() && this.ticksToLive && this.ticksToLive >= Config.MAX_TICKS_TO_LIVE - 50 && !this.needsRenew()) {
+        else if (this.is_renewing() && this.ticksToLive && this.ticksToLive >= Config.MAX_TICKS_TO_LIVE - 80 && !this.needsRenew()) {
             console.log(this.creep + " -> me to cripple uwu " + this.ticksToLive);
             this.set(ACTION.WAITING_NEXT_TASK, undefined);
             Memory.rooms_new[this.creep.room.name].cripple_creeps.remove(this.creep_name);
+            console.log("removing " + this.creep_name + " from " + Memory.rooms_new[this.creep.room.name].cripple_creeps);
         }
     }
 
