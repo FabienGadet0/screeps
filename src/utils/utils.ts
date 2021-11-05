@@ -10,9 +10,13 @@ function flatten(arr: any[][]): any[] {
 
 //* countries , languages, names
 export function name_new_creep(role: string, lvl: number): string {
-    return uniqueNamesGenerator({
-        dictionaries: [adjectives, animals],
-    });
+    return (
+        role +
+        " _ " +
+        uniqueNamesGenerator({
+            dictionaries: [adjectives, animals],
+        })
+    );
 }
 
 // prettier-ignore

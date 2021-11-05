@@ -67,7 +67,7 @@ export class Room_orchestrator implements Mnemonic {
                 to_build: [],
                 to_repair: [],
             },
-            creeps_name: creeps_name,
+            creeps_name: [],
             cripple_creeps: [],
             structure_id: {
                 updater: {

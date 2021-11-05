@@ -3,7 +3,7 @@ import * as Utils from "../utils/utils";
 import { profile } from "../Profiler/Profiler";
 
 @profile
-class Room_build_planner {
+export class Room_build_planner {
     room_name: string;
     spawn_id: Id<StructureSpawn>;
 
@@ -14,7 +14,7 @@ class Room_build_planner {
 
     private _delete_all_construction_sites(room: Room) {
         //TODO it's an id and not an object
-        let constructions = Memory["rooms"][room.name].structure_ids["construction_sites"];
+        let constructions = Memory.rooms_new[room.name].structure_id["construction_sites"];
         _.each(constructions, (construction) => {
             construction.remove();
         });
@@ -38,7 +38,7 @@ class Room_build_planner {
 
         //? Roads to sources
         //TODO it's an id and not an object
-        const sources = Memory["rooms"][spawn.room.name].structure_ids["sources"];
+        const sources = Memory.rooms_new[spawn.room.name].structure_id["sources"];
         _.each(sources, (source: Source) => {
             const path = spawn.pos.findPathTo(source.pos, { ignoreCreeps: true });
             _.each(path, (pos) => {
@@ -55,7 +55,7 @@ class Room_build_planner {
         built = false;
         // //? Road to controller
         //TODO it's an id and not an object
-        const controller = Memory["rooms"][spawn.room.name].structure_ids["controller"];
+        const controller = Memory.rooms_new[spawn.room.name].structure_id["controller"];
         if (controller) {
             const path = spawn.pos.findPathTo(controller.pos, { ignoreCreeps: true });
             _.each(path, (pos) => {
@@ -71,7 +71,7 @@ class Room_build_planner {
         built = false;
         //? Road to minerals
         //TODO it's an id and not an object
-        const minerals = Memory["rooms"][spawn.room.name].structure_ids["minerals"];
+        const minerals = Memory.rooms_new[spawn.room.name].structure_id["minerals"];
         if (minerals) {
             _.each(minerals, (mineral) => {
                 const path = spawn.pos.findPathTo(mineral.pos, { ignoreCreeps: true });
@@ -167,7 +167,7 @@ class Room_build_planner {
     }
 
     private _search_flaggy_flaggy(spawn: StructureSpawn, name: string) {
-        return _.filter(Memory["rooms"][spawn.room.name].flags, (flag: Flag) => flag.name.includes(name));
+        return _.filter(Memory.rooms_new[spawn.room.name].flags, (flag: Flag) => flag.name.includes(name));
     }
 
     private _create_struct(spawn: StructureSpawn, struct: BuildableStructureConstant) {
@@ -175,28 +175,28 @@ class Room_build_planner {
         let pos = spawn.pos;
         //? Set an offset if there is no flag to not spawn structures directly at the spawn.
         let offset = 3;
-        if (flags) {
-            pos = Game.flags[flags[0]].pos;
-            offset = 0;
-        }
+        // if (flags) {
+        //     pos = Game.flags[flags[0]].pos;
+        //     offset = 0;
+        // }
         this._create_closest_to_pos(pos, struct);
     }
 
-    public update(): void {}
+    public update(): void { }
 
     public run(): void {
-        const spawn = Game.getObjectById(this.spawn_id) as StructureSpawn;
+        //     const spawn = Game.getObjectById(this.spawn_id) as StructureSpawn;
 
-        if (Memory["rooms"][this.room_name].build_map["build_roads"]) {
-            this._create_roads(spawn);
-            Memory["rooms"][this.room_name].build_map["build_roads"] = false;
-        }
-        if (Memory["rooms"][this.room_name].build_map["build_extensions"]) {
-            this._create_struct(spawn, STRUCTURE_EXTENSION);
-            Memory["rooms"][this.room_name].build_map["build_extensions"] = false;
-        }
-        if (Memory["rooms"][this.room_name].safe_delete) this._delete_all(spawn.room);
+        //     if (Memory.rooms_new[this.room_name].build_map["build_roads"]) {
+        //         this._create_roads(spawn);
+        //         Memory.rooms_new[this.room_name].build_map["build_roads"] = false;
+        //     }
+        //     if (Memory.rooms_new[this.room_name].build_map["build_extensions"]) {
+        //         this._create_struct(spawn, STRUCTURE_EXTENSION);
+        //         Memory.rooms_new[this.room_name].build_map["build_extensions"] = false;
+        //     }
+        //     if (Memory.rooms_new[this.room_name].safe_delete) this._delete_all(spawn.room);
+        // }
     }
 }
 
-export { Room_build_planner };

@@ -195,7 +195,7 @@ export abstract class ICreep {
     protected logic() {}
 
     private _emergency_handling() {
-        if (Memory.commands.all_harvest) {
+        if (Memory.rooms_new[this.creep.room.name].commands.all_harvest) {
             if (this.creep.harvest(Game.getObjectById(this.source_ids[0]) as Source) === ERR_NOT_IN_RANGE) {
                 this.creep.moveTo(Game.getObjectById(this.source_ids[0]) as Source);
                 return -1;
@@ -203,7 +203,7 @@ export abstract class ICreep {
             if (this.is_renewing()) return OK;
             return -1;
         }
-        if (Memory.commands.all_transfer_to_spawn) {
+        if (Memory.rooms_new[this.creep.room.name].commands.all_transfer_to_spawn) {
             if (this.creep.transfer(Game.spawns[this.spawn_name], RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
                 this.creep.moveTo(Game.spawns[this.spawn_name]);
             }

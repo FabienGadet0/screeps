@@ -125,9 +125,8 @@ class Creep_manager implements Mnemonic {
         _.each(this.creeps, (creep: ICreep) => {
             creep.run();
         });
-
-        if (this.cripple_creeps.length > 0)
-            this.tryRenew(this.creeps[this.cripple_creeps[0]], Game.getObjectById(this.spawn_id) as StructureSpawn);
+        const spawn = Game.getObjectById(this.spawn_id) as StructureSpawn;
+        if (this.cripple_creeps.length > 0 && !spawn.spawning) this.tryRenew(this.creeps[this.cripple_creeps[0]], spawn);
     }
 
     public update(): boolean {
