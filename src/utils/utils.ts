@@ -11,11 +11,11 @@ function flatten(arr: any[][]): any[] {
 //* countries , languages, names
 export function name_new_creep(role: string, lvl: number): string {
     return (
-        role +
-        " _ " +
         uniqueNamesGenerator({
             dictionaries: [adjectives, animals],
-        })
+        }) +
+        " the " +
+        role
     );
 }
 
@@ -73,9 +73,9 @@ function init_variables() {
 //         },
 //         creeps_name: [],
 //         room_tasks: {
-//             to_transfer: [],
-//             to_build: [],
-//             to_repair: [],
+//             transfer: [],
+//             build: [],
+//             repair: [],
 //         },
 //         cripple_creeps: [],
 //         safe_delete: false,

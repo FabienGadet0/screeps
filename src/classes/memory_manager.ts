@@ -66,7 +66,7 @@ class Memory_manager implements Mnemonic {
             "construction_sites",
             "extensions",
             "minerals",
-            "to_repair",
+            "repair",
             "extensions_not_full",
             "containers_not_full",
         ]);
@@ -80,32 +80,29 @@ class Memory_manager implements Mnemonic {
         this.locator();
 
         if (
-            this.room_tasks["to_transfer"] &&
-            _.isEmpty(this.room_tasks["to_transfer"]) &&
-            Game.time >= this.room_tasks.updater["to_transfer"] + Config.REFRESHING_RATE
+            this.room_tasks["transfer"] &&
+            _.isEmpty(this.room_tasks["transfer"]) &&
+            Game.time >= this.room_tasks.updater["extensions_not_full"] + Config.REFRESHING_RATE
         ) {
-            this.update_room_component(Game.rooms[this.room_name], [
-                "construction_sites",
-                "extensions",
-                "extensions_not_full",
-                "containers_not_full",
-                "dropped_resources",
-            ]);
+            this.update_room_component(Game.rooms[this.room_name], ["extensions_not_full", "containers_not_full", "dropped_resources"]);
+            this.room_tasks.updater["extensions_not_full"] = Game.time;
         }
         if (
-            this.room_tasks["to_build"] &&
-            _.isEmpty(this.room_tasks["to_build"]) &&
-            Game.time >= this.room_tasks.updater["to_build"] + Config.REFRESHING_RATE
+            this.room_tasks["build"] &&
+            _.isEmpty(this.room_tasks["build"]) &&
+            Game.time >= this.room_tasks.updater["build"] + Config.REFRESHING_RATE
         ) {
             this.update_room_component(Game.rooms[this.room_name], ["construction_sites"]);
+            this.structure_id.updater["construction_sites"] = Game.time;
         }
         if (
-            this.room_tasks["to_repair"] &&
-            _.isEmpty(this.room_tasks["to_repair"]) &&
-            Game.time >= this.room_tasks.updater["to_repair"] + Config.REFRESHING_RATE
-        )
-            this.update_room_component(Game.rooms[this.room_name], ["to_repair"]);
-        this.locator();
+            this.room_tasks["repair"] &&
+            _.isEmpty(this.room_tasks["repair"]) &&
+            Game.time >= this.room_tasks.updater["repair"] + Config.REFRESHING_RATE
+        ) {
+            this.update_room_component(Game.rooms[this.room_name], ["repair"]);
+            this.room_tasks.updater["repair"] = Game.time;
+        }
     }
 
     public run() {}
@@ -192,7 +189,7 @@ class Memory_manager implements Mnemonic {
     }
 
     //TODO CAN BE OPTIMIZED
-    private _find_all_to_repair_ids(room: Room): Id<any>[] {
+    private _find_all_repair_ids(room: Room): Id<any>[] {
         return _.map(
             room
                 .find(FIND_MY_STRUCTURES, { filter: (i) => i.hits / i.hitsMax < REPAIR_THRESHOLD })
@@ -214,7 +211,6 @@ class Memory_manager implements Mnemonic {
                 if (!this.classes_in_room[creep.memory.role]) this.classes_in_room[creep.memory.role] = 1;
                 else this.classes_in_room[creep.memory.role] += 1;
                 this.creeps_name.push(creep.name);
-                console.log("New creep added to memory " + creep.name);
             }
         });
     }
@@ -223,7 +219,9 @@ class Memory_manager implements Mnemonic {
     public update_room_component(room: Room, update_list: string[]): void {
         if (update_list.length >= 1)
             _.each(update_list, (up : string) => {
-                if (!this.structure_id.updater[up] || this.structure_id.updater[up] !== Game.time || this.structure_id.updater[up] === 0) {
+                if (!this.structure_id.updater[up]
+                    || this.structure_id.updater[up] !== Game.time
+                    || this.structure_id.updater[up] === 0) {
                     match(up)
                         .with("creeps", () => { this._creeps_variables(room); })
                         .with("roads", () => { this.structure_id["roads"] = this._find_roads_ids(room); }) //? too costly.
@@ -231,17 +229,16 @@ class Memory_manager implements Mnemonic {
                         .with("construction_sites", () => { this.structure_id["construction_sites"] = this._find_construction_sites_ids(room); })
                         .with("extensions", () => { this.structure_id["extensions"] = this._find_extensions_ids(room); })
                         .with("minerals", () => { this.structure_id["minerals"] = this._find_minerals_ids(room); })
-                        .with("to_repair", () => { this.structure_id["to_repair"] = this._find_all_to_repair_ids(room); })
+                        .with("repair", () => { this.structure_id["repair"] = this._find_all_repair_ids(room); })
                         .with("flags", () => { this.structure_id.flags = this._find_flags_names(room); })
                         .with("extensions_not_full", () => { this.structure_id["extensions_not_full"] = this._find_not_full_extension_ids(room); })
                         .with("dropped_resources", () => { this.structure_id["dropped_resources"] = this._find_dropped_resources_ids(room); })
-                        .with("containers_not_full", () => { this.structure_id["containers_not_full"] = this._find_not_full_containers_ids(room); })
                         .with("containers_not_full", () => { this.structure_id["containers_not_full"] = this._find_not_full_containers_ids(room); })
                         .with(__, () => {Utils._C("UPDATER", -1000, "Couldn't find corresponding update for " + up);})
                         .exhaustive()
                     this.structure_id.updater[up] = Game.time;
                 }
-                console.log(up + " updated")
+                // console.log(up + " updated")
             });
     }
 }

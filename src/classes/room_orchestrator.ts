@@ -2,7 +2,7 @@ import * as Config from "../config";
 import * as Utils from "../utils/utils";
 import { Memory_manager } from "./memory_manager";
 import { Creep_factory } from "./creep_factory";
-import { Room_build_planner } from "./build_planner";
+import { Room_build_planner } from "./room_build_planner";
 import { Creep_manager } from "./creep_manager";
 
 import * as packRat from "../utils/packrat";
@@ -52,21 +52,16 @@ export class Room_orchestrator implements Mnemonic {
     private _init_room(room_name: string) {
         let all_classes: Record<string, number> = {};
         let creeps_name: string[] = [];
-        // _.each(Game.rooms[room_name].find(FIND_MY_CREEPS), (creep: Creep) => {
-        //     if (!all_classes[creep.memory.role]) all_classes[creep.memory.role] = 1;
-        //     else all_classes[creep.memory.role] += 1;
-        //     creeps_name.push(creep.name);
-        // });
-
         return {
             classes_in_room: {},
             lvl: 300,
             room_tasks: {
-                updater: { to_transfer: 0, to_build: 0, to_repair: 0 },
-                to_transfer: [],
-                to_build: [],
-                to_repair: [],
+                updater: { transfer: 0, build: 0, repair: 0 },
+                transfer: [],
+                build: [],
+                repair: [],
             },
+            checkpoints: {},
             creeps_name: [],
             cripple_creeps: [],
             structure_id: {
@@ -80,7 +75,7 @@ export class Room_orchestrator implements Mnemonic {
                     flags: 0,
                     dropped_resources: 0,
                     containers_not_full: 0,
-                    to_repair: 0,
+                    repair: 0,
                 },
                 roads: [],
                 sources: [],
@@ -91,10 +86,22 @@ export class Room_orchestrator implements Mnemonic {
                 flags: [],
                 dropped_resources: [],
                 containers_not_full: [],
-                to_repair: [],
+                repair: [],
             },
-            build_plan: {},
-            commands: { all_harvest: false, all_transfer_to_spawn: false },
+            build_plan: {
+                road_to_energy: false,
+                road_to_controller: false,
+                road_to_minerals: false,
+                road_to_exits: false,
+                all_roads: false,
+                square_road_around_spawn: false,
+                extensions: false,
+                towers: false,
+                defensive_rampart: false,
+                every_roads: false,
+            },
+
+            commands: { all_harvest: undefined, all_transfer_to_spawn: undefined },
             update_map: {
                 new_creep: false,
                 roads: false,
@@ -106,7 +113,7 @@ export class Room_orchestrator implements Mnemonic {
                 flags: false,
                 dropped_resources: false,
                 containers_not_full: false,
-                to_repair: false,
+                repair: false,
                 room_tasks: false,
                 lvl: false,
                 forced: false,

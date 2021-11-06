@@ -13,8 +13,8 @@ export class Builder extends ICreep {
     protected logic() {
         //*  dont need energy and task available. -> get task -> if no task go idle
         if (!this.target) {
-            if (this._task_available("to_repair")) this._start_task("to_repair", ACTION.REPAIR);
-            else if (this._task_available("to_build")) this._start_task("to_build", ACTION.BUILD);
+            if (this._task_available("repair")) this._start_task("repair", ACTION.REPAIR);
+            else if (this._task_available("build")) this._start_task("build", ACTION.BUILD);
         }
         //* is doing a task and task is full   finish task -> not doing task
         if (this.doing_task && this.target) {
@@ -26,9 +26,9 @@ export class Builder extends ICreep {
     }
 
     private _softlock_guard() {
-        if (this.doing_task && this.action && !this.target) {
-            this._do_nothing();
-            console.log("got softlock " + this.debug_me());
-        }
+        // if (this.doing_task && this.action && !this.target) {
+        //     this._do_nothing();
+        //     console.log("got softlock " + this.debug_me());
+        // }
     }
 }

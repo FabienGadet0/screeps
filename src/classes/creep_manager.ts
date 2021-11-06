@@ -35,6 +35,9 @@ class Creep_manager implements Mnemonic {
     @mnemon
     creeps_name: string[];
 
+    @mnemon
+    structure_id: string[];
+
     constructor(room_name: string) {
         this.room_name = room_name;
         this.creeps = {};
@@ -42,6 +45,7 @@ class Creep_manager implements Mnemonic {
         this.lvl = this.locator().lvl;
         this.creeps_name = this.locator().creeps_name;
         this.cripple_creeps = this.locator().cripple_creeps;
+        this.structure_id = this.locator().structure_id;
 
         this.room_tasks = this.locator().room_tasks;
         this.creep_factory = new Creep_factory(room_name, this.spawn_id);
@@ -68,53 +72,47 @@ class Creep_manager implements Mnemonic {
     private _manage_tasks(): void {
         //* harvesters tasks
 
-        const spawn = Game.getObjectById(this.spawn_id);
-        const extensions_not_full = Memory.rooms_new[this.room_name].structure_id["extensions_not_full"];
-        // const containers_not_full = Memory.rooms_new[this.room_name].structure_id["containers_not_full"];
-        const to_build = Memory.rooms_new[this.room_name].structure_id["construction_sites"];
-        const to_repair = Memory.rooms_new[this.room_name].structure_id["to_repair"];
-        // console.log(
-        //     "to transfer tasks empty: " +
-        //         _.isEmpty(this.room_tasks["to_transfer"]) +
-        //         " and game time " +
-        //         Game.time +
-        //         " >= " +
-        //         this.room_tasks.updater["to_transfer"] +
-        //         " + " +
-        //         Config.REFRESHING_RATE,
-        // );
-        if (_.isEmpty(this.room_tasks["to_transfer"]) && Game.time >= this.room_tasks.updater["to_transfer"] + Config.REFRESHING_RATE) {
+        const spawn = Game.getObjectById(this.spawn_id) as StructureSpawn;
+        const extensions_not_full = this.structure_id["extensions_not_full"];
+        const build = this.structure_id["construction_sites"];
+        const repair = this.structure_id["repair"];
+        // const containers_not_full = this.structure_id["containers_not_full"];
+        if (
+            _.isEmpty(this.room_tasks["transfer"]) &&
+            Game.time >= this.room_tasks.updater["transfer"] + Config.REFRESHING_RATE &&
+            (spawn.store.getFreeCapacity(RESOURCE_ENERGY) > 0 || extensions_not_full.length > 0)
+        ) {
             //* Harvester
 
             if (spawn!.store.getFreeCapacity(RESOURCE_ENERGY) > 0)
-                this.room_tasks["to_transfer"] = [this.spawn_id].concat(extensions_not_full);
-            else this.room_tasks["to_transfer"] = this.room_tasks["to_transfer"].concat(extensions_not_full);
-            console.log(_.size(this.room_tasks["to_transfer"]) + " transfer tasks added ");
-            this.room_tasks.updater["to_transfer"] = Game.time;
-        }
-        //*------------------
+                this.room_tasks["transfer"] = [this.spawn_id].concat(extensions_not_full);
+            else this.room_tasks["transfer"] = this.room_tasks["transfer"].concat(extensions_not_full);
 
+            if (_.size(this.room_tasks["transfer"]) > 0) console.log(_.size(this.room_tasks["transfer"]) + " transfer tasks added ");
+            this.room_tasks.updater["transfer"] = Game.time;
+            //todo should be done in memory_manager
+        }
         //* - builder tasks -
 
         if (
-            _.isEmpty(this.room_tasks["to_repair"]) &&
-            Game.time >= this.room_tasks.updater["to_repair"] + Config.REFRESHING_RATE &&
-            to_repair.length > 0
+            _.isEmpty(this.room_tasks["repair"]) &&
+            Game.time >= this.room_tasks.updater["repair"] + Config.REFRESHING_RATE &&
+            repair.length > 0
         ) {
-            this.room_tasks["to_repair"] = to_repair;
-            this.room_tasks.updater["to_repair"] = Game.time;
+            this.room_tasks["repair"] = repair;
+            this.room_tasks.updater["repair"] = Game.time;
 
-            console.log(_.size(this.room_tasks["to_repair"]) + " Repair tasks added ");
+            console.log(_.size(repair) + " Repair tasks added ");
         }
 
         if (
-            _.isEmpty(this.room_tasks["to_build"]) &&
-            Game.time >= this.room_tasks.updater["to_build"] + Config.REFRESHING_RATE &&
-            to_build.length > 0
+            _.isEmpty(this.room_tasks["build"]) &&
+            Game.time >= this.room_tasks.updater["build"] + Config.REFRESHING_RATE &&
+            build.length > 0
         ) {
-            this.room_tasks["to_build"] = to_build;
-            console.log(_.size(this.room_tasks["to_build"]) + " Build tasks added ");
-            this.room_tasks.updater["to_build"] = Game.time;
+            this.room_tasks["build"] = build;
+            console.log(_.size(this.room_tasks["build"]) + " Build tasks added ");
+            this.room_tasks.updater["build"] = Game.time;
         }
         //*-------------------
     }

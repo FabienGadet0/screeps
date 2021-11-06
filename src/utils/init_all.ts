@@ -1,6 +1,7 @@
 import * as Utils from "./utils";
 import * as Profiler from "../Profiler/Profiler";
 import { Room_orchestrator } from "classes/room_orchestrator";
+import { Terminal } from "./terminal";
 
 declare global {
     namespace NodeJS {
@@ -9,16 +10,13 @@ declare global {
             warn: any;
             err: any;
             error: any;
-            delete_all_construction_sites: any;
-            delete_all_roads: any;
-            delete_all: any;
-            create_roads: any;
-            create_struct: any;
-            _C: any;
-            debug: any;
-            update_room_memory: any;
+
             Profiler: any;
             Memory: any;
+            lvl: any;
+            command: any;
+            build_plan: any;
+            help: any;
         }
     }
     interface Number {
@@ -57,7 +55,13 @@ Array.prototype.remove = function (key: any): void {
     }
 };
 
-global._C = Utils._C;
+const terminal = new Terminal();
+
+global.build_plan = terminal.build_plan;
+global.command = terminal.command;
+global.lvl = terminal.lvl;
+global.help = terminal.help;
+
 // global.update_room_memory = finder.UPDATE_room_memory
 // global.debug = Utils.debug;
 // global.update_room_memory = finder.UPDATE_room_memory

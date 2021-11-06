@@ -157,14 +157,14 @@ function _FIND_ALL_CREEPS(room: Room) {
 }
 
 
-function _FIND_ALL_TO_REPAIR(room: Room): Structure[] {
+function _FIND_ALL_repair(room: Room): Structure[] {
     return room
         .find(FIND_MY_STRUCTURES, { filter: (i) => i.hits / i.hitsMax < REPAIR_THRESHOLD })
         .concat(room.find(FIND_STRUCTURES, { filter: (i) => i.structureType == STRUCTURE_ROAD && i.hits / i.hitsMax < REPAIR_THRESHOLD }))
         .slice(0, 3);
 }
 
-function _FIND_ALL_TO_REPAIR_IDS(room: Room): Id<any>[] {
+function _FIND_ALL_repair_IDS(room: Room): Id<any>[] {
     return _.map(
         room
             .find(FIND_MY_STRUCTURES, { filter: (i) => i.hits / i.hitsMax < REPAIR_THRESHOLD })
@@ -224,8 +224,8 @@ function update_room_component(room: Room, update_list: string[]): boolean {
                     Memory["rooms"][room.name].creeps_name = _FIND_ALL_CREEPS(room);
                     break;
                 }
-                case "to_repair": {
-                    Memory["rooms"][room.name].structure_ids["to_repair"] = _FIND_ALL_TO_REPAIR_IDS(room);
+                case "repair": {
+                    Memory["rooms"][room.name].structure_ids["repair"] = _FIND_ALL_repair_IDS(room);
                     break;
                 }
                 case "extensions_not_full": {
@@ -292,8 +292,8 @@ function update_room_component(room: Room, update_list: string[]): boolean {
 //                         Memory["rooms"][spawn.room.name].flags = _FIND_FLAGS(spawn.room);
 //                         break;
 //                     }
-//                     case "to_repair": {
-//                         Memory["rooms"][spawn.room.name].structures["to_repair"] = _FIND_ALL_TO_REPAIR(spawn.room);
+//                     case "repair": {
+//                         Memory["rooms"][spawn.room.name].structures["repair"] = _FIND_ALL_repair(spawn.room);
 //                         break;
 //                     }
 //                     case "extensions_not_full": {

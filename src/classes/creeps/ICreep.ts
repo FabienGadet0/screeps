@@ -143,17 +143,17 @@ export abstract class ICreep {
 
             this.set(act, Memory.rooms_new[this.creep.room.name].room_tasks[task_name].shift());
             // Memory.rooms_new[this.creep.room.name].room_tasks[task_name] = tasks.new_list;
-
-            console.log(
-                "New task " +
-                    this.action +
-                    " ->> " +
-                    this.target +
-                    " " +
-                    _.size(Memory.rooms_new[this.creep.room.name].room_tasks[task_name]) +
-                    " tasks left for " +
-                    task_name,
-            );
+            this.creep.say("Task " + this.action);
+            // console.log(
+            //     "New task " +
+            //         this.action +
+            //         " ->> " +
+            //         this.target +
+            //         " " +
+            //         _.size(Memory.rooms_new[this.creep.room.name].room_tasks[task_name]) +
+            //         " tasks left for " +
+            //         task_name,
+            // );
 
             this.doing_task = true;
             this.creep.say(this._ACTION_to_icon[act]);
@@ -296,10 +296,9 @@ export abstract class ICreep {
         }
         //? if full life and was renewing , set to idle to get out of the renewing loop.
         else if (this.is_renewing() && this.ticksToLive && this.ticksToLive >= Config.MAX_TICKS_TO_LIVE - 80 && !this.needsRenew()) {
-            console.log(this.creep + " -> me to cripple uwu " + this.ticksToLive);
+            console.log(this.creep + " -> me no cripple uwu " + this.ticksToLive);
             this.set(ACTION.WAITING_NEXT_TASK, undefined);
             Memory.rooms_new[this.creep.room.name].cripple_creeps.remove(this.creep_name);
-            console.log("removing " + this.creep_name + " from " + Memory.rooms_new[this.creep.room.name].cripple_creeps);
         }
     }
 

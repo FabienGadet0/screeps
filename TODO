@@ -32,3 +32,5 @@
         lvl: 800,
     },
 })
+
+//TODO classe_in_room doesn't update well .

@@ -11,8 +11,8 @@ export class Harvester extends ICreep {
     }
 
     private _softlock_guard() {
-        if (this.action === ACTION.WAITING_NEXT_TASK || (this.action === ACTION.IDLE && this._task_available("to_transfer")))
-            this._start_task("to_transfer", ACTION.TRANSFER);
+        if (this.action === ACTION.WAITING_NEXT_TASK || (this.action === ACTION.IDLE && this._task_available("transfer")))
+            this._start_task("transfer", ACTION.TRANSFER);
         // if (!this.action) this.set(ACTION.HARVEST, this.main_source_target);
         // if (this.last_return_code !== ERR_NOT_IN_RANGE && this.last_return_code !== OK)
         //     console.log(this.creep + " last error is " + Utils._C("", this.last_return_code));
@@ -34,7 +34,7 @@ export class Harvester extends ICreep {
         }
 
         //*  dont need energy and task available. -> get task -> if no task go idle
-        if (!this.target && this._task_available("to_transfer")) this._start_task("to_transfer", ACTION.TRANSFER);
+        if (!this.target && this._task_available("transfer")) this._start_task("transfer", ACTION.TRANSFER);
         else if (!this.target) this._do_nothing();
 
         this._softlock_guard();
