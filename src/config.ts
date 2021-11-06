@@ -75,6 +75,71 @@ export function all_roles(lvl: number) {
     return Object.keys(limit_per_role_per_room[Utils.round_lvl(lvl)]);
 }
 
-// export const total_possible_creeps = _.sum(Object.values(limit_per_role_per_room));
+export const room_schema = {
+    classes_in_room: {},
+    lvl: 300,
+    room_tasks: {
+        updater: { transfer: 0, build: 0, repair: 0 },
+        transfer: [],
+        build: [],
+        repair: [],
+    },
+    checkpoints: {},
+    creeps_name: [],
+    cripple_creeps: [],
+    structure_id: {
+        updater: {
+            roads: 0,
+            sources: 0,
+            construction_sites: 0,
+            extensions: 0,
+            minerals: 0,
+            extensions_not_full: 0,
+            flags: 0,
+            dropped_resources: 0,
+            containers_not_full: 0,
+            repair: 0,
+        },
+        roads: [],
+        sources: [],
+        construction_sites: [],
+        extensions: [],
+        minerals: [],
+        extensions_not_full: [],
+        flags: [],
+        dropped_resources: [],
+        containers_not_full: [],
+        repair: [],
+    },
+    build_plan: {
+        road_to_energy: false,
+        road_to_controller: false,
+        road_to_minerals: false,
+        road_to_exits: false,
+        every_roads: false,
+        square_road_around_spawn: false,
+        extensions: false,
+        towers: false,
+        defensive_rampart: false,
+        delete_sites: false,
+        delete_roads: false,
+    },
 
-// export const all_roles = Object.keys(limit_per_role_per_room);
+    commands: { all_harvest: undefined, all_transfer_to_spawn: undefined },
+    update_map: {
+        new_creep: false,
+        roads: false,
+        sources: false,
+        construction_sites: false,
+        extensions: false,
+        minerals: false,
+        extensions_not_full: false,
+        flags: false,
+        dropped_resources: false,
+        containers_not_full: false,
+        repair: false,
+        room_tasks: false,
+        lvl: false,
+        forced: false,
+    },
+};

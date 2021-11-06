@@ -41,13 +41,13 @@ class Creep_manager implements Mnemonic {
     constructor(room_name: string) {
         this.room_name = room_name;
         this.creeps = {};
-        this.spawn_id = this.locator().spawn_id;
-        this.lvl = this.locator().lvl;
-        this.creeps_name = this.locator().creeps_name;
-        this.cripple_creeps = this.locator().cripple_creeps;
-        this.structure_id = this.locator().structure_id;
+        // this.spawn_id = this.locator().spawn_id;
+        // this.lvl = this.locator().lvl;
+        // this.creeps_name = this.locator().creeps_name;
+        // this.cripple_creeps = this.locator().cripple_creeps;
+        // this.structure_id = this.locator().structure_id;
 
-        this.room_tasks = this.locator().room_tasks;
+        // this.room_tasks = this.locator().room_tasks;
         this.creep_factory = new Creep_factory(room_name, this.spawn_id);
 
         _.each(Game.rooms[room_name].find(FIND_MY_CREEPS), (creep: Creep) => {
@@ -69,53 +69,53 @@ class Creep_manager implements Mnemonic {
             .exhaustive()
     }
 
-    private _manage_tasks(): void {
-        //* harvesters tasks
+    // private _manage_tasks(): void {
+    //     //* harvesters tasks
 
-        const spawn = Game.getObjectById(this.spawn_id) as StructureSpawn;
-        const extensions_not_full = this.structure_id["extensions_not_full"];
-        const build = this.structure_id["construction_sites"];
-        const repair = this.structure_id["repair"];
-        // const containers_not_full = this.structure_id["containers_not_full"];
-        if (
-            _.isEmpty(this.room_tasks["transfer"]) &&
-            Game.time >= this.room_tasks.updater["transfer"] + Config.REFRESHING_RATE &&
-            (spawn.store.getFreeCapacity(RESOURCE_ENERGY) > 0 || extensions_not_full.length > 0)
-        ) {
-            //* Harvester
+    //     const spawn = Game.getObjectById(this.spawn_id) as StructureSpawn;
+    //     const extensions_not_full = this.structure_id["extensions_not_full"];
+    //     const build = this.structure_id["construction_sites"];
+    //     const repair = this.structure_id["repair"];
+    //     // const containers_not_full = this.structure_id["containers_not_full"];
+    //     if (
+    //         _.isEmpty(this.room_tasks["transfer"]) &&
+    //         Game.time >= this.room_tasks.updater["transfer"] + Config.REFRESHING_RATE &&
+    //         (spawn.store.getFreeCapacity(RESOURCE_ENERGY) > 0 || extensions_not_full.length > 0)
+    //     ) {
+    //         //* Harvester
 
-            if (spawn!.store.getFreeCapacity(RESOURCE_ENERGY) > 0)
-                this.room_tasks["transfer"] = [this.spawn_id].concat(extensions_not_full);
-            else this.room_tasks["transfer"] = this.room_tasks["transfer"].concat(extensions_not_full);
+    //         if (spawn!.store.getFreeCapacity(RESOURCE_ENERGY) > 0)
+    //             this.room_tasks["transfer"] = [this.spawn_id].concat(extensions_not_full);
+    //         else this.room_tasks["transfer"] = this.room_tasks["transfer"].concat(extensions_not_full);
 
-            if (_.size(this.room_tasks["transfer"]) > 0) console.log(_.size(this.room_tasks["transfer"]) + " transfer tasks added ");
-            this.room_tasks.updater["transfer"] = Game.time;
-            //todo should be done in memory_manager
-        }
-        //* - builder tasks -
+    //         if (_.size(this.room_tasks["transfer"]) > 0) console.log(_.size(this.room_tasks["transfer"]) + " transfer tasks added ");
+    //         this.room_tasks.updater["transfer"] = Game.time;
+    //         //todo should be done in memory_manager
+    //     }
+    //     //* - builder tasks -
 
-        if (
-            _.isEmpty(this.room_tasks["repair"]) &&
-            Game.time >= this.room_tasks.updater["repair"] + Config.REFRESHING_RATE &&
-            repair.length > 0
-        ) {
-            this.room_tasks["repair"] = repair;
-            this.room_tasks.updater["repair"] = Game.time;
+    //     if (
+    //         _.isEmpty(this.room_tasks["repair"]) &&
+    //         Game.time >= this.room_tasks.updater["repair"] + Config.REFRESHING_RATE &&
+    //         repair.length > 0
+    //     ) {
+    //         this.room_tasks["repair"] = repair;
+    //         this.room_tasks.updater["repair"] = Game.time;
 
-            console.log(_.size(repair) + " Repair tasks added ");
-        }
+    //         console.log(_.size(repair) + " Repair tasks added ");
+    //     }
 
-        if (
-            _.isEmpty(this.room_tasks["build"]) &&
-            Game.time >= this.room_tasks.updater["build"] + Config.REFRESHING_RATE &&
-            build.length > 0
-        ) {
-            this.room_tasks["build"] = build;
-            console.log(_.size(this.room_tasks["build"]) + " Build tasks added ");
-            this.room_tasks.updater["build"] = Game.time;
-        }
-        //*-------------------
-    }
+    //     if (
+    //         _.isEmpty(this.room_tasks["build"]) &&
+    //         Game.time >= this.room_tasks.updater["build"] + Config.REFRESHING_RATE &&
+    //         build.length > 0
+    //     ) {
+    //         this.room_tasks["build"] = build;
+    //         console.log(_.size(this.room_tasks["build"]) + " Build tasks added ");
+    //         this.room_tasks.updater["build"] = Game.time;
+    //     }
+    //     //*-------------------
+    // }
 
     public run(): void {
         this.creep_factory.run();
@@ -124,12 +124,14 @@ class Creep_manager implements Mnemonic {
             creep.run();
         });
         const spawn = Game.getObjectById(this.spawn_id) as StructureSpawn;
-        if (this.cripple_creeps.length > 0 && !spawn.spawning) this.tryRenew(this.creeps[this.cripple_creeps[0]], spawn);
+        if (this.cripple_creeps.length > 0 && !spawn.spawning) {
+            this.tryRenew(this.creeps[this.cripple_creeps[0]], spawn);
+        }
     }
 
     public update(): boolean {
         this.locator();
-        this._manage_tasks();
+        // this._manage_tasks();
 
         this.creep_factory.update();
 
@@ -154,7 +156,6 @@ class Creep_manager implements Mnemonic {
         }
         for (const name in Game.creeps) {
             if (!this.creeps_name.includes(name)) {
-                console.log("new creep pushed " + name + " to " + this.creeps_name);
                 this.creeps_name.push(name);
             }
 

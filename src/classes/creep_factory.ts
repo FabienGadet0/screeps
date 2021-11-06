@@ -25,9 +25,9 @@ class Creep_factory implements Mnemonic {
 
     constructor(room_name: string, spawn_id: Id<StructureSpawn>) {
         this.room_name = room_name;
-        this.classes_in_room = this.locator().classes_in_room;
-        this.lvl = this.locator().lvl;
-        this.spawn_id = this.locator().spawn_id;
+        // this.classes_in_room = this.locator().classes_in_room;
+        // this.lvl = this.locator().lvl;
+        // this.spawn_id = this.locator().spawn_id;
     }
 
     public locator(): { [key: string]: any } {

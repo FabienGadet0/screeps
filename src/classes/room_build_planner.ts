@@ -11,48 +11,48 @@ export enum SHAPE {
     CIRCLE,
 }
 
-function _get_shape_offset(shape: SHAPE): number[][] {
+function _get_shape_offset(shape: SHAPE, depth: number = 1): number[][] {
     return match(shape)
         .with(SHAPE.CROSS, () => {
             return [
                 [0, 0],
-                [1, 0],
-                [0, 1],
-                [-1, 0],
-                [0, -1],
+                [depth, 0],
+                [0, depth],
+                [-depth, 0],
+                [0, -depth],
             ];
         })
         .with(SHAPE.SQUARE, () => {
             return [
-                [-1, -1],
-                [0, -1],
-                [+1, -1],
-                [-1, 0],
+                [-depth, -depth],
+                [0, -depth],
+                [+depth, -depth],
+                [-depth, 0],
                 [0, 0],
-                [+1, 0],
-                [-1, +1],
-                [0, +1],
-                [+1, +1],
+                [+depth, 0],
+                [-depth, +depth],
+                [0, +depth],
+                [+depth, +depth],
             ];
         })
         .with(SHAPE.SQUARE_OUTER, () => {
             return [
-                [-1, -1],
-                [0, -1],
-                [+1, -1],
-                [-1, 0],
-                [+1, 0],
-                [-1, +1],
-                [0, +1],
-                [+1, +1],
+                [-depth, -depth],
+                [0, -depth],
+                [+depth, -depth],
+                [-depth, 0],
+                [+depth, 0],
+                [-depth, +depth],
+                [0, +depth],
+                [+depth, +depth],
             ];
         })
         .with(SHAPE.CIRCLE, () => {
             return [
-                [0, -1],
-                [-1, 0],
-                [+1, 0],
-                [0, +1],
+                [0, -depth],
+                [-depth, 0],
+                [+depth, 0],
+                [0, +depth],
             ];
         })
         .with(__, () => {
@@ -62,8 +62,14 @@ function _get_shape_offset(shape: SHAPE): number[][] {
         .exhaustive();
 }
 
-function get_position_with_offset(x: number, y: number, shape: SHAPE): any[][] {
-    const offsets = _get_shape_offset(shape);
+function get_position_with_offset(x: number, y: number, shape: SHAPE, depth: number = 1): any[][] {
+    let offsets: any[] = [];
+    while (depth !== 0) {
+        offsets = _.flatten([offsets, _get_shape_offset(shape, depth)]);
+        depth -= 1;
+    }
+    // const offsets = _get_shape_offset(shape, depth);
+    console.log(offsets + " its offset");
     return _.map(offsets, ([a, b]) => [a + x, b + y]);
 }
 
@@ -123,21 +129,20 @@ export class Room_build_planner implements Mnemonic {
 
     private _delete_all_construction_sites() {
         //TODO it's an id and not an object
-        let constructions = this.structure_id["construction_sites"];
-        _.each(constructions, (construction) => {
-            construction.remove();
+        _.each(this.structure_id["construction_sites"], (construction) => {
+            (Game.getObjectById(construction) as ConstructionSite).remove();
         });
     }
 
     private _delete_all_roads() {
-        //todo Delete this call.
-        let roads: StructureRoad[] = [];
-        if (this.structure_id["roads"].length === 0)
-            roads = Game.rooms[this.room_name].find(FIND_STRUCTURES, { filter: { StructureType: STRUCTURE_ROAD } });
-        else roads = _.each(this.structure_id["roads"], (road) => Game.getObjectById(road) as StructureRoad);
+        const roads = Game.rooms[this.room_name].find(FIND_STRUCTURES, { filter: { structureType: STRUCTURE_ROAD } });
+        console.log(roads);
         _.each(roads, (r) => {
             r.destroy();
         });
+        //TODO shouldn't reset from here.
+        this.structure_id["roads"] = [];
+        Memory.rooms[this.room_name].room_tasks["repair"] = [];
     }
 
     // private _delete_all(room: Room) {
@@ -186,114 +191,51 @@ export class Room_build_planner implements Mnemonic {
     //     if (built) console.log("Building roads to minerals");
     // }
 
-    // private __on_left(pos: RoomPosition, offset: number = 4) {
-    //     return RoomPosition(pos.x - offset, pos.y, pos.roomName);
-    // }
+    private __get_corners(x: number, y: number, depth: number) {
+        return [
+            [x - depth, y - depth],
+            [x + depth, y - depth],
+            [x - depth, y + depth],
+            [x + depth, y + depth],
+        ];
+    }
 
-    // private __on_right(pos: RoomPosition, offset: number = 4) {
-    //     return RoomPosition(pos.x + offset, pos.y, pos.roomName);
-    // }
+    private __coords_between(a: number, b: number, c: number, d: number): number[][] {
+        let all_pos = [];
+        while (a < c || b < d) {
+            if (a < c) a += 1;
+            else if (b < d) b += 1;
+            all_pos.push([a, b]);
+        }
+        return all_pos;
+    }
 
-    // private __on_bottom(pos: RoomPosition, offset: number = 4) {
-    //     return RoomPosition(pos.x, pos.y + offset, pos.roomName);
-    // }
-
-    // private __on_top(pos: RoomPosition, offset: number = 4) {
-    //     return RoomPosition(pos.x, pos.y - offset, pos.roomName);
-    // }
-
-    // private __get_corners(x: number, y: number, 1: number) {
-    //     return [
-    //         [x - 1, y - 1],
-    //         [x + 1, y - 1],
-    //         [x - 1, y + 1],
-    //         [x + 1, y + 1],
-    //     ];
-    // }
-
-    // private __coords_between(a: number, b: number, c: number, d: number): number[][] {
-    //     let all_pos = [];
-    //     while (a < c || b < d) {
-    //         if (a < c) a += 1;
-    //         else if (b < d) b += 1;
-    //         all_pos.push([a, b]);
-    //     }
-    //     return all_pos;
-    // }
-
-    // // 0 -> 1 / 0 -> 2/ 1 -> 3 / 2 -> 3
-    // private __get_all_position_in_square(x: number, y: number, 1: number) {
-    //     let all_pos = [];
-    //     const corners = this.__get_corners(x, y, 1);
-    //     all_pos.push([corners[0]]);
-    //     all_pos.push(this.__coords_between(corners[0][0], corners[0][1], corners[1][0], corners[1][1]));
-    //     all_pos.push(this.__coords_between(corners[0][0], corners[0][1], corners[2][0], corners[2][1]));
-    //     all_pos.push(this.__coords_between(corners[1][0], corners[1][1], corners[3][0], corners[3][1]));
-    //     all_pos.push(this.__coords_between(corners[2][0], corners[2][1], corners[3][0], corners[3][1]));
-    //     all_pos.pop();
-    //     return Utils.flatten(all_pos);
-    // }
-
-    // //* If amount_to_create is undefined then it will create the maximum possible.
-    // private _create_closest_to_pos(
-    //     pos: RoomPosition,
-    //     structure: BuildableStructureConstant,
-    //     number = 1,
-    //     amount_to_create: number = 1000,
-    // ) {
-    //     let breaker = false;
-    //     let created = 0;
-    //     let room = Game.rooms[this.room_name];
-    //     while (!breaker && 1 <= Config.MAX_DEPTH_FOR_BUILDING) {
-    //         const all_pos = this.__get_all_position_in_square(pos.x, pos.y, 1);
-    //         for (let pos of all_pos) {
-    //             const r = Utils._C("Build planner " + this.room_name, room.createConstructionSite(pos[0], pos[1], structure));
-    //             if (r === ERR_INVALID_ARGS) {
-    //                 Utils._C("Build planner " + this.room_name, r, "Construction fail");
-    //                 break;
-    //             }
-    //             if (r === ERR_FULL || r === ERR_RCL_NOT_ENOUGH) {
-    //                 //? set extensions build map to false because we reached the maximum possible for now.
-    //                 breaker = true;
-    //                 break;
-    //             }
-    //             if (created >= amount_to_create) breaker = true;
-    //             created += 1;
-    //         }
-    //         1 += 1;
-    //     }
-    // }
+    // 0 -> 1 / 0 -> 2/ 1 -> 3 / 2 -> 3
+    private _get_all_position_in_square(x: number, y: number, depth: number) {
+        let all_pos = [];
+        const corners = this.__get_corners(x, y, depth);
+        all_pos.push([corners[0]]);
+        all_pos.push(this.__coords_between(corners[0][0], corners[0][1], corners[1][0], corners[1][1]));
+        all_pos.push(this.__coords_between(corners[0][0], corners[0][1], corners[2][0], corners[2][1]));
+        all_pos.push(this.__coords_between(corners[1][0], corners[1][1], corners[3][0], corners[3][1]));
+        all_pos.push(this.__coords_between(corners[2][0], corners[2][1], corners[3][0], corners[3][1]));
+        return Utils.flatten(all_pos);
+    }
 
     //* If amount_to_create is undefined then it will create the maximum possible.
     private create_from_shape(
         original_pos: RoomPosition,
         structure: BuildableStructureConstant,
         shape: SHAPE,
+        size: number = 1,
         amount_to_create: number = 1000,
     ): void {
         let room = Game.rooms[this.room_name];
-        let return_val = 0;
-        let amount_created = 0;
-        const positions = get_position_with_offset(original_pos.x, original_pos.y, shape);
-        _.map(positions, (pos) => Utils._C("[BUILD]", room.createConstructionSite(pos[0], pos[1], structure)));
+        const positions = get_position_with_offset(original_pos.x, original_pos.y, shape, size);
+        _.map(positions, (pos) => {
+            if (room.lookAt(pos[0], pos[1]).length === 1) Utils._C("[BUILD]", room.createConstructionSite(pos[0], pos[1], structure));
+        });
     }
-    // console.log("all pos " + offsets);
-    //     _.each(offsets, (offset: any): void => {
-    //         if (offset) {
-    //             return_val = Utils._C(
-    //                 `[${this.room_name}] Build planner `,
-    //                 room.createConstructionSite(original_pos.x + offset[0], original_pos.y + offset[1], structure),
-    //             );
-    //             if (return_val === ERR_FULL || return_val === ERR_RCL_NOT_ENOUGH || amount_created >= amount_to_create) {
-    //                 console.log("Cant construct more");
-    //                 // return false;
-    //             }
-    //             amount_created += 1;
-    //         } else console.log("Error Build planner");
-    //         // return false;
-    //     });
-    //     return true;
-    // }
 
     private _search_flaggy_flaggy(spawn: StructureSpawn, name: string) {
         return _.filter(Memory.rooms_new[spawn.room.name].flags, (flag: Flag) => flag.name.includes(name));
@@ -353,9 +295,19 @@ export class Room_build_planner implements Mnemonic {
     //     });
     // }
 
-    private square_road_around_spawn() {
+    private square_road_around_spawn(size: number = 2) {
         const spawn = Game.getObjectById(this.spawn_id) as StructureSpawn;
-        this.create_from_shape(spawn.pos, STRUCTURE_ROAD, SHAPE.SQUARE_OUTER);
+        const room = Game.rooms[this.room_name];
+
+        let positions: number[] = [];
+        while (size !== 0) {
+            positions = _.flatten([positions, this._get_all_position_in_square(spawn.pos.x, spawn.pos.y, size)]);
+            size -= 1;
+        }
+        _.map(positions, (pos) => {
+            if (room.lookAt(pos[0], pos[1]).length === 1) Utils._C("[BUILD]", room.createConstructionSite(pos[0], pos[1], STRUCTURE_ROAD));
+        });
+        // this.create_from_shape(spawn.pos, STRUCTURE_ROAD, SHAPE.SQUARE_OUTER, size);
     }
 
     private extensions() {

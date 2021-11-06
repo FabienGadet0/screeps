@@ -16,7 +16,7 @@ interface RoomMemory {
     avoid: any;
     lvl: number;
     flags: string[];
-    structure_ids: Record<string, any>;
+    // structure_ids: Record<string, any>;
     creeps_name: string[];
     room_tasks: Record<string, Id<any>[]>;
     cripple_creeps: string[]; //? Creeps that need renew.
