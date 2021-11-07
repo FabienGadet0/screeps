@@ -6,7 +6,7 @@ export const REPAIR_THRESHOLD = 0.3;
 export const REPAIR_WHEN_CONSTRUCTION_SITE_UNDER = 7;
 export const MAX_TICKS_TO_LIVE = 1400;
 export const REFRESHING_RATE = 5;
-export const MEMHACK = true;
+export const MEMHACK = false;
 
 //? Lvls :
 //* 300  -> 1 spawn
@@ -24,7 +24,7 @@ export const limit_per_role_per_room: Record<number, Record<string, number>> = {
     300: { harvester: 3, builder: 2, upgrader: 4 },
     550: { harvester: 3, builder: 2, upgrader: 4 },
     800: { harvester: 3, builder: 3, upgrader: 3 },
-    1300: { harvester: 2, builder: 2, upgrader: 2 },
+    1300: { harvester: 2, builder: 3, upgrader: 3 },
 };
 
 // prettier-ignore
@@ -143,3 +143,17 @@ export const room_schema = {
         forced: false,
     },
 };
+
+export const blueprint = [
+    ".EEEE.EEEEE",
+    "E.EE.E.E.E.",
+    "EE..EEE.E.E",
+    "EE.EETT.EEE",
+    "E.EEEA.T.EE",
+    ".EETA.APE.E",
+    "E.ET.S.KFE.",
+    "EE..TNM.LLE",
+    "E.EE.EOL.LL",
+    "EE.EE.ELL.L",
+    "E.EEEE.ELL.",
+];

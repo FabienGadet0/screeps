@@ -9,50 +9,69 @@ export enum SHAPE {
     SQUARE,
     SQUARE_OUTER,
     CIRCLE,
+    DIAMOND,
+    ANGLE_CROSS,
 }
 
-function _get_shape_offset(shape: SHAPE, depth: number = 1): number[][] {
+function _get_shape_offset(shape: SHAPE): number[][] {
     return match(shape)
         .with(SHAPE.CROSS, () => {
             return [
                 [0, 0],
-                [depth, 0],
-                [0, depth],
-                [-depth, 0],
-                [0, -depth],
+                [1, 0],
+                [0, 1],
+                [-1, 0],
+                [0, -1],
             ];
         })
         .with(SHAPE.SQUARE, () => {
             return [
-                [-depth, -depth],
-                [0, -depth],
-                [+depth, -depth],
-                [-depth, 0],
+                [-1, -1],
+                [0, -1],
+                [+1, -1],
+                [-1, 0],
                 [0, 0],
-                [+depth, 0],
-                [-depth, +depth],
-                [0, +depth],
-                [+depth, +depth],
+                [+1, 0],
+                [-1, +1],
+                [0, +1],
+                [+1, +1],
             ];
         })
         .with(SHAPE.SQUARE_OUTER, () => {
             return [
-                [-depth, -depth],
-                [0, -depth],
-                [+depth, -depth],
-                [-depth, 0],
-                [+depth, 0],
-                [-depth, +depth],
-                [0, +depth],
-                [+depth, +depth],
+                [-1, -1],
+                [0, -1],
+                [+1, -1],
+                [-1, 0],
+                [+1, 0],
+                [-1, +1],
+                [0, +1],
+                [+1, +1],
             ];
         })
         .with(SHAPE.CIRCLE, () => {
             return [
-                [0, -depth],
-                [-depth, 0],
-                [+depth, 0],
-                [0, +depth],
+                [0, -1],
+                [-1, 0],
+                [+1, 0],
+                [0, +1],
+            ];
+        })
+        .with(SHAPE.DIAMOND, () => {
+            return [
+                [-1, 0],
+                [+1, 0],
+                [0, -1],
+                [0, +1],
+            ];
+        })
+        .with(SHAPE.ANGLE_CROSS, () => {
+            return [
+                [0, 0],
+                [-1, -1],
+                [+1, -1],
+                [-1, +1],
+                [+1, +1],
             ];
         })
         .with(__, () => {
@@ -65,7 +84,7 @@ function _get_shape_offset(shape: SHAPE, depth: number = 1): number[][] {
 function get_position_with_offset(x: number, y: number, shape: SHAPE, depth: number = 1): any[][] {
     let offsets: any[] = [];
     while (depth !== 0) {
-        offsets = _.flatten([offsets, _get_shape_offset(shape, depth)]);
+        offsets = _.flatten([offsets, _get_shape_offset(shape)]);
         depth -= 1;
     }
     // const offsets = _get_shape_offset(shape, depth);
@@ -261,11 +280,13 @@ export class Room_build_planner implements Mnemonic {
         const from_obj = Game.getObjectById(from) as Structure;
         _.each(to, (to_id: Id<Source>) => {
             const to_obj = Game.getObjectById(to_id) as Source;
-            const path = from_obj.pos.findPathTo(to_obj.pos, { ignoreCreeps: true });
+            const path = from_obj.pos.findPathTo(to_obj.pos, {
+                ignoreCreeps: true,
+            });
             const room = Game.rooms[this.room_name];
-            _.map(path, (pos) => room.createConstructionSite(pos.x, pos.y, STRUCTURE_ROAD));
-            // const position_in_room = spawn.room.getPositionAt(pos.x, pos.y);
-            // if (position_in_room && position_in_room.look().length === 1)
+            _.map(path, (pos) => {
+                if (room.lookAt(pos.x, pos.y).length === 1) room.createConstructionSite(pos.x, pos.y, STRUCTURE_ROAD);
+            });
         });
     }
 

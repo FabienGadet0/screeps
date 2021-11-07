@@ -18,7 +18,7 @@
 
 
 //TODO add command that spawn
-.spawnCreep([MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,WORK,WORK,WORK,CARRY,CARRY,CARRY], "sendhelp", {
+.spawnCreep([MOVE,MOVE,MOVE,MOVE,WORK,WORK,CARRY,CARRY], "sendhelp", {
     memory: {
         _trav: undefined,
         _travel: undefined,

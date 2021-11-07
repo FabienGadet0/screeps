@@ -7,6 +7,7 @@ import { Creep_manager } from "./creep_manager";
 
 import * as packRat from "../utils/packrat";
 import { Mnemonic, mnemon } from "../utils/mnemonic";
+import { Visualizer } from "./visualizer";
 
 export class Room_orchestrator implements Mnemonic {
     // export class Room_orchestrator {
@@ -16,6 +17,8 @@ export class Room_orchestrator implements Mnemonic {
     memory_manager: Memory_manager;
     room_build_planner: Room_build_planner;
     creep_manager: Creep_manager;
+    visualizer: Visualizer;
+
     @mnemon
     lvl: number;
 
@@ -33,7 +36,7 @@ export class Room_orchestrator implements Mnemonic {
         this.spawn_name = spawn.name;
         this.memory_manager = new Memory_manager(room_name);
         this.room_build_planner = new Room_build_planner(room_name, this.spawn_id);
-
+        this.visualizer = new Visualizer(room_name);
         this.creep_manager = new Creep_manager(room_name);
         console.log("Room orchestrator of " + room_name + " created");
     }
@@ -54,20 +57,23 @@ export class Room_orchestrator implements Mnemonic {
 
     public update(): void {
         this.memory_manager.update(); //* Always first
-
+        // this.visualizer.test();
         this.locator();
         this.lvl = Utils.round_lvl(300 + _.size(Memory.rooms_new[this.room_name].structure_id["extensions"]) * 50);
 
         this.room_build_planner.update();
+
         this.creep_manager.update();
+        this.visualizer.update();
     }
 
     public run(): void {
         if (this._check_if_room_is_initialized()) {
-            // Game.rooms[this.room_name].visual.circle(10, 20).line(0, 0, 10, 20);
             this.memory_manager.run();
             this.room_build_planner.run();
             this.creep_manager.run();
+            this.visualizer.run();
+            // this.visualizer.show_blueprint(9, 18);
         } else {
             console.log("[" + this.room_name + "]" + "[" + this.spawn_id + "]" + " Roombased variables aren't up!");
         }

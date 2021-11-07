@@ -69,54 +69,6 @@ class Creep_manager implements Mnemonic {
             .exhaustive()
     }
 
-    // private _manage_tasks(): void {
-    //     //* harvesters tasks
-
-    //     const spawn = Game.getObjectById(this.spawn_id) as StructureSpawn;
-    //     const extensions_not_full = this.structure_id["extensions_not_full"];
-    //     const build = this.structure_id["construction_sites"];
-    //     const repair = this.structure_id["repair"];
-    //     // const containers_not_full = this.structure_id["containers_not_full"];
-    //     if (
-    //         _.isEmpty(this.room_tasks["transfer"]) &&
-    //         Game.time >= this.room_tasks.updater["transfer"] + Config.REFRESHING_RATE &&
-    //         (spawn.store.getFreeCapacity(RESOURCE_ENERGY) > 0 || extensions_not_full.length > 0)
-    //     ) {
-    //         //* Harvester
-
-    //         if (spawn!.store.getFreeCapacity(RESOURCE_ENERGY) > 0)
-    //             this.room_tasks["transfer"] = [this.spawn_id].concat(extensions_not_full);
-    //         else this.room_tasks["transfer"] = this.room_tasks["transfer"].concat(extensions_not_full);
-
-    //         if (_.size(this.room_tasks["transfer"]) > 0) console.log(_.size(this.room_tasks["transfer"]) + " transfer tasks added ");
-    //         this.room_tasks.updater["transfer"] = Game.time;
-    //         //todo should be done in memory_manager
-    //     }
-    //     //* - builder tasks -
-
-    //     if (
-    //         _.isEmpty(this.room_tasks["repair"]) &&
-    //         Game.time >= this.room_tasks.updater["repair"] + Config.REFRESHING_RATE &&
-    //         repair.length > 0
-    //     ) {
-    //         this.room_tasks["repair"] = repair;
-    //         this.room_tasks.updater["repair"] = Game.time;
-
-    //         console.log(_.size(repair) + " Repair tasks added ");
-    //     }
-
-    //     if (
-    //         _.isEmpty(this.room_tasks["build"]) &&
-    //         Game.time >= this.room_tasks.updater["build"] + Config.REFRESHING_RATE &&
-    //         build.length > 0
-    //     ) {
-    //         this.room_tasks["build"] = build;
-    //         console.log(_.size(this.room_tasks["build"]) + " Build tasks added ");
-    //         this.room_tasks.updater["build"] = Game.time;
-    //     }
-    //     //*-------------------
-    // }
-
     public run(): void {
         this.creep_factory.run();
 
@@ -136,6 +88,7 @@ class Creep_manager implements Mnemonic {
         this.creep_factory.update();
 
         this._manage_new_and_dead_creeps();
+        console.log(this.creeps);
 
         _.map(this.creeps, (creep: ICreep) => {
             creep.update();

@@ -64,8 +64,8 @@ class Memory_manager implements Mnemonic {
             this.structure_id.updater["extensions_not_full"] = Game.time;
 
             const not_full_spawns = this._get_not_full(this.structure_id["spawns"]);
-            console.log("spawns arent full " + not_full_spawns);
             if (this.structure_id["extensions_not_full"].length > 0 || not_full_spawns) {
+                // console.log("spawns arent full " + not_full_spawns + " ->> " + this.structure_id["extensions_not_full"]);
                 this.room_tasks["transfer"] = _.flatten([not_full_spawns, this.structure_id["extensions_not_full"]]);
                 this.room_tasks.updater["transfer"] = Game.time;
                 console.log(_.size(this.room_tasks["transfer"]) + " transfer tasks added ");
