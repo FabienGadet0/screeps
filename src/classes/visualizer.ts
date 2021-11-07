@@ -26,25 +26,21 @@ export class Visualizer implements Mnemonic {
 
     possible_flags: string[];
 
-    letter_to_structure: Record<string, StructureConstant> = {
-        E: STRUCTURE_EXTENSION,
-        T: STRUCTURE_TOWER,
-        S: STRUCTURE_SPAWN,
-        K: STRUCTURE_LINK,
-        A: STRUCTURE_TERMINAL,
-        L: STRUCTURE_LAB,
-        R: STRUCTURE_RAMPART,
-        O: STRUCTURE_OBSERVER,
-        N: STRUCTURE_NUKER,
-        C: STRUCTURE_CONTAINER,
-        ".": STRUCTURE_ROAD,
-    };
+    info_flags: RoomPosition;
 
     constructor(room_name: string) {
         this.room_name = room_name;
         this._visual = Game.rooms[room_name].visual;
         this.possible_flags = ["BUNKER"];
+        this._set_info_pos();
+
         // this.room_tasks = this.locator().room_tasks;
+    }
+
+    private _set_info_pos() {
+        if (this.flags && this.flags.includes("info"))
+            this.info_flags = new RoomPosition(Game.flags["info"].pos.x, Game.flags["info"].pos.y + 1, Game.flags["info"].pos.roomName);
+        else this.info_flags = new RoomPosition(5, 5, this.room_name);
     }
 
     locator() {
@@ -52,7 +48,7 @@ export class Visualizer implements Mnemonic {
     }
 
     public update() {
-        this.locator();
+        this._set_info_pos();
     }
 
     public run() {
@@ -60,16 +56,17 @@ export class Visualizer implements Mnemonic {
         this.draw_room_info();
         this.draw_creeps_info();
         if (this.flags.includes("BUNKER")) this.show_blueprint(Game.flags["BUNKER"].pos);
+        this.locator();
     }
 
     private draw_room_info() {
         let to_print = [];
         to_print.push(" ");
-        to_print.push(` RCL             ${Game.rooms[this.room_name].controller?.level}  `);
-        to_print.push(` LVL              ${this.lvl}  `);
-        to_print.push(` Room Name  ${this.room_name}   `);
+        to_print.push(` RCL              ${Game.rooms[this.room_name].controller?.level}   `);
+        to_print.push(` LVL              ${this.lvl}   `);
+        to_print.push(` Room Name  ${this.room_name}    `);
         to_print.push(" ");
-        this._visual.infoBox(_.flatten(to_print), 5, 2, { color: "white" });
+        this._visual.infoBox(_.flatten(to_print), this.info_flags.x, this.info_flags.y, { color: "white" });
     }
 
     public draw_tasks() {
@@ -82,7 +79,7 @@ export class Visualizer implements Mnemonic {
             }
         });
         to_print.push(" ");
-        this._visual.infoBox(_.flatten(to_print), 5, 5, { color: "white" });
+        this._visual.infoBox(_.flatten(to_print), this.info_flags.x, this.info_flags.y + 3, { color: "white" });
     }
     private draw_creeps_info() {
         let to_print = [];
@@ -93,7 +90,7 @@ export class Visualizer implements Mnemonic {
                 : to_print.push([` ${this.classes_in_room[role_name]}    ${role_name}         `]);
         });
         to_print.push(" ");
-        this._visual.infoBox(_.flatten(to_print), 5, 8, { color: "white" });
+        this._visual.infoBox(_.flatten(to_print), this.info_flags.x, this.info_flags.y + 6, { color: "white" });
     }
 
     public show_blueprint(original_pos: RoomPosition): void {
@@ -101,7 +98,7 @@ export class Visualizer implements Mnemonic {
         let y = original_pos.y;
         _.each(Config.blueprint, (structure: string) => {
             _.each(structure, (line: string) => {
-                this._visual.structure(x, y, this.letter_to_structure[line]);
+                this._visual.structure(x, y, Config.letter_to_structure[line]);
                 x += 1;
             });
             x = original_pos.x;

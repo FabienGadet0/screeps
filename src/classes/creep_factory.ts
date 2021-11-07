@@ -42,11 +42,6 @@ class Creep_factory implements Mnemonic {
 
     private _can_spawn_new_creep(_spawn: StructureSpawn, _role: string): Boolean {
         const already_spawned = this._get_amount_of_creep_with_role(_role);
-        // console.log(
-        //     `already spawn with ${_role} = ${already_spawned}, amount possible : ${
-        //         Config.limit_per_role_per_room[Utils.round_lvl(this.lvl)][_role]
-        //     }`,
-        // );
         return (
             _spawn.spawnCreep(Config.role_to_bodyparts[Utils.round_lvl(this.lvl)][_role], "testspace", { dryRun: true }) === 0 &&
             already_spawned < Config.limit_per_role_per_room[Utils.round_lvl(this.lvl)][_role] &&
@@ -57,6 +52,7 @@ class Creep_factory implements Mnemonic {
     private _spawn_creep(spawn: StructureSpawn, name: string, _role: string, lvl: number): ScreepsReturnCode | number {
         console.log("spawn " + lvl + " role " + _role + " Name " + name);
         if (!spawn.spawning) {
+            // this.classes_in_room[_role] += 1;
             return spawn.spawnCreep(Config.role_to_bodyparts[lvl][_role], name, {
                 memory: {
                     _trav: undefined,
@@ -75,9 +71,7 @@ class Creep_factory implements Mnemonic {
         return -20;
     }
 
-    public update(): void {
-        this.locator();
-    }
+    public update(): void {}
 
     public run(): void {
         let total = 0;
@@ -96,6 +90,7 @@ class Creep_factory implements Mnemonic {
                 }
             });
         }
+        this.locator();
     }
 }
 

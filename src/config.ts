@@ -6,7 +6,9 @@ export const REPAIR_THRESHOLD = 0.3;
 export const REPAIR_WHEN_CONSTRUCTION_SITE_UNDER = 7;
 export const MAX_TICKS_TO_LIVE = 1400;
 export const REFRESHING_RATE = 5;
-export const MEMHACK = false;
+export const MEMHACK = true;
+export const BUILD_TOGETHER = false;
+export const TICK_BEFORE_REFRESH = 10;
 
 //? Lvls :
 //* 300  -> 1 spawn
@@ -21,10 +23,10 @@ export const class_to_source: Record<string, number> = {
 };
 
 export const limit_per_role_per_room: Record<number, Record<string, number>> = {
-    300: { harvester: 3, builder: 2, upgrader: 4 },
+    300: { harvester: 2, builder: 3, upgrader: 4 },
     550: { harvester: 3, builder: 2, upgrader: 4 },
     800: { harvester: 3, builder: 3, upgrader: 3 },
-    1300: { harvester: 2, builder: 3, upgrader: 3 },
+    1300: { upgrader: 3, harvester: 2, builder: 3 },
 };
 
 // prettier-ignore
@@ -43,29 +45,14 @@ export let role_to_bodyparts: Record<number, Record<string, BodyPartConstant[]>>
     800: {
         harvester: [MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,WORK,WORK,WORK,CARRY,CARRY,CARRY],
         builder: [MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,WORK,WORK,WORK,CARRY,CARRY,CARRY],
-        upgrader: [MOVE,MOVE,MOVE,MOVE,WORK,WORK,WORK,CARRY,CARRY,CARRY,CARRY,CARRY],//? Fat mod
+        upgrader: [MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,WORK,WORK,WORK,CARRY,CARRY,CARRY],//? Fat mod
     },
     1300: {
         harvester: [MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,WORK,WORK,WORK,WORK,WORK,CARRY,CARRY,CARRY,CARRY,CARRY],
         builder: [MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,WORK,WORK,WORK,WORK,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY],
-        upgrader: [MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,WORK,WORK,WORK,WORK,WORK,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY],//? Fat mod
+        upgrader: [MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,WORK,WORK,WORK,WORK,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY],//? Fat mod
     },
 };
-
-// const roles = {
-//     miningCollector: "🚚",
-//     miningWorker: "⛏️",
-//     worker: "👷",
-//     upgrader: "⬆️",
-//     hauler: "🚛",
-//     scout: "👁️",
-//     scoutVision: "🕵️",
-//     reserver: "🏴",
-//     claimer: "🏁",
-//     cleaningCrew: "🧹",
-//     feeder: "📦",
-//     defender: "🛡️",
-// };
 
 export function total_possible_creeps(lvl: number) {
     return _.sum(Object.values(limit_per_role_per_room[Utils.round_lvl(lvl)]));
@@ -79,7 +66,6 @@ export const room_schema = {
     classes_in_room: {},
     lvl: 300,
     room_tasks: {
-        updater: { transfer: 0, build: 0, repair: 0 },
         transfer: [],
         build: [],
         repair: [],
@@ -88,18 +74,6 @@ export const room_schema = {
     creeps_name: [],
     cripple_creeps: [],
     structure_id: {
-        updater: {
-            roads: 0,
-            sources: 0,
-            construction_sites: 0,
-            extensions: 0,
-            minerals: 0,
-            extensions_not_full: 0,
-            flags: 0,
-            dropped_resources: 0,
-            containers_not_full: 0,
-            repair: 0,
-        },
         roads: [],
         sources: [],
         construction_sites: [],
@@ -142,9 +116,37 @@ export const room_schema = {
         lvl: false,
         forced: false,
     },
+    updater: {
+        roads: 0,
+        sources: 0,
+        construction_sites: 0,
+        extensions: 0,
+        minerals: 0,
+        extensions_not_full: 0,
+        flags: 0,
+        dropped_resources: 0,
+        containers_not_full: 0,
+        repair: 0,
+        transfer: 0,
+        build: 0,
+    },
 };
 
-export const blueprint = [
+export const letter_to_structure: Record<string, StructureConstant> = {
+    E: STRUCTURE_EXTENSION,
+    T: STRUCTURE_TOWER,
+    S: STRUCTURE_SPAWN,
+    K: STRUCTURE_LINK,
+    A: STRUCTURE_TERMINAL,
+    L: STRUCTURE_LAB,
+    R: STRUCTURE_RAMPART,
+    O: STRUCTURE_OBSERVER,
+    N: STRUCTURE_NUKER,
+    C: STRUCTURE_CONTAINER,
+    ".": STRUCTURE_ROAD,
+};
+
+export const blueprint: string[] = [
     ".EEEE.EEEEE",
     "E.EE.E.E.E.",
     "EE..EEE.E.E",
@@ -157,3 +159,66 @@ export const blueprint = [
     "EE.EE.ELL.L",
     "E.EEEE.ELL.",
 ];
+
+export const bunkerStructureLevels = [
+    "66644245777",
+    "66442225777",
+    "64622252577",
+    "44332582567",
+    "43332127666",
+    "33337288666",
+    "43583455766",
+    "55338866667",
+    "88557787668",
+    "88877887778",
+    "88888888888",
+];
+
+export const bunkerOutlineLevels = [
+    "  7666 66777 ",
+    "            7",
+    "7            ",
+    "6           7",
+    "6           7",
+    "6           7",
+    "            7",
+    "6            ",
+    "6           7",
+    "8           8",
+    "8           8",
+    "8            ",
+    " 8 8888 888  ",
+];
+
+export const bunkerOutlines = bunkerOutlineLevels.map((s) => s.replace(/[1-8]/g, "."));
+export const bunkerRampartLevels = [
+    "  8888888888 ",
+    " 888888888888",
+    "8888888888888",
+    "88888    8888",
+    "8888  58  888",
+    "888   4 7 888",
+    "888 44 8  888",
+    "888 8 4   888",
+    "888  886 8888",
+    "8888    88888",
+    "8888888888888",
+    "888888888888 ",
+    " 8888888888  ",
+];
+export const bunkerRamparts = bunkerRampartLevels.map((s) => s.replace(/[1-8]/g, "R"));
+
+// const roles = {
+//     miningCollector: "🚚",
+//     miningWorker: "⛏️",
+//     worker: "👷",
+//     upgrader: "⬆️",
+//     hauler: "🚛",
+//     scout: "👁️",
+//     scoutVision: "🕵️",
+//     reserver: "🏴",
+//     claimer: "🏁",
+//     cleaningCrew: "🧹",
+//     feeder: "📦",
+//     defender: "🛡️",
+// };

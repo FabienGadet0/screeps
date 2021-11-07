@@ -7,7 +7,7 @@ export class Harvester extends ICreep {
     constructor(creep_name: string) {
         super(creep_name);
         this.main_action = ACTION.TRANSFER;
-        this.creep.memory.source_to_target = 0;
+        this.creep.memory.source_to_target = 1;
     }
 
     private _softlock_guard() {

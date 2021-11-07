@@ -86,8 +86,4 @@ function init_variables() {
 //     };
 // }
 
-function check_if_roombased_variables_are_up(room_name: string): boolean {
-    return Memory.rooms_new[room_name].build_map !== undefined;
-}
-
-export { init_variables, check_if_roombased_variables_are_up, flatten, _C };
+export { init_variables, flatten, _C };

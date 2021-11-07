@@ -10,12 +10,11 @@ import { Mnemonic, mnemon } from "../utils/mnemonic";
 import { Visualizer } from "./visualizer";
 
 export class Room_orchestrator implements Mnemonic {
-    // export class Room_orchestrator {
     spawn_name: string;
 
     room_name: string;
     memory_manager: Memory_manager;
-    room_build_planner: Bunker_planner;
+    bunker_planner: Bunker_planner;
     creep_manager: Creep_manager;
     visualizer: Visualizer;
 
@@ -35,7 +34,7 @@ export class Room_orchestrator implements Mnemonic {
         this.spawn_id = spawn.id;
         this.spawn_name = spawn.name;
         this.memory_manager = new Memory_manager(room_name);
-        this.room_build_planner = new Bunker_planner(room_name, this.spawn_id);
+        this.bunker_planner = new Bunker_planner(room_name, this.spawn_id);
         this.visualizer = new Visualizer(room_name);
         this.creep_manager = new Creep_manager(room_name);
         console.log("Room orchestrator of " + room_name + " created");
@@ -56,9 +55,9 @@ export class Room_orchestrator implements Mnemonic {
     }
 
     public update(): void {
-        this.memory_manager.update(); //* Always first
         this.locator();
-        this.room_build_planner.update();
+        this.memory_manager.update(); //* Always first
+        this.bunker_planner.update();
 
         this.creep_manager.update();
         this.visualizer.update();
@@ -67,7 +66,7 @@ export class Room_orchestrator implements Mnemonic {
     public run(): void {
         if (this._check_if_room_is_initialized()) {
             this.memory_manager.run();
-            this.room_build_planner.run();
+            this.bunker_planner.run();
             this.creep_manager.run();
             this.visualizer.run();
         } else {

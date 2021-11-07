@@ -4,21 +4,13 @@
 //TODO: get lvl of the room and kill low lvl creeps to get them replaced .
 
 
-//TODO Build planner .
-
 //TODO do a task class and implements every tasks types.
 
 
-//TODO apply offset like that [0,0],
-  [1,0],
-  [0,1],
-  [-1,0],
-  [0,-1]
-]
 
 
 //TODO add command that spawn
-.spawnCreep([MOVE,MOVE,MOVE,MOVE,WORK,WORK,CARRY,CARRY], "sendhelp", {
+.spawnCreep([MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,WORK,WORK,WORK,WORK,CARRY,CARRY,CARRY,CARRY,CARRY], "sendhelp", {
     memory: {
         _trav: undefined,
         _travel: undefined,
@@ -33,4 +25,4 @@
     },
 })
 
-//TODO classe_in_room doesn't update well .
+//TODO classe_in_room doesn't update well . problem is spawn try to create many in a row

@@ -3,6 +3,7 @@ import * as Utils from "../utils/utils";
 import { profile } from "../Profiler/Profiler";
 import { Mnemonic, mnemon } from "../utils/mnemonic";
 import { match, __ } from "ts-pattern";
+import { stringify } from "querystring";
 
 export enum SHAPE {
     CROSS = 0,
@@ -104,10 +105,16 @@ export class Bunker_planner implements Mnemonic {
     spawn_id: Id<StructureSpawn>;
 
     @mnemon
+    lvl: number;
+
+    @mnemon
     controller: Id<StructureController>;
 
     @mnemon
     build_plan: Record<string, any>;
+
+    @mnemon
+    flags: string[];
 
     @mnemon
     structure_id: Record<string, any>;
@@ -153,6 +160,36 @@ export class Bunker_planner implements Mnemonic {
         });
     }
 
+    private _get_structures_for_lvl(
+        lvl: number,
+        bunker_structure_lvl: string[],
+        bunker_blueprint: string[],
+        top_left_corner_pos: RoomPosition,
+    ) {
+        let y = 0;
+        let x = 0;
+        const room = Game.rooms[this.room_name];
+        _.each(bunker_structure_lvl, (line: string) => {
+            _.each(line, (c: string) => {
+                if (parseInt(c) <= lvl) {
+                    const struct = Config.letter_to_structure[bunker_blueprint[y][x]];
+                    room.createConstructionSite(
+                        new RoomPosition(top_left_corner_pos.x + x, top_left_corner_pos.y + y, this.room_name),
+                        struct,
+                    );
+                }
+                x += 1;
+            });
+            x = 0;
+            y += 1;
+        });
+    }
+
+    private _create_structures_with_actual_lvl() {
+        const rcl = Game.rooms[this.room_name].controller!.level;
+        this._get_structures_for_lvl(rcl, Config.bunkerStructureLevels, Config.blueprint, Game.flags["bunker_top_left"].pos);
+    }
+
     private _delete_all_roads() {
         const roads = Game.rooms[this.room_name].find(FIND_STRUCTURES, { filter: { structureType: STRUCTURE_ROAD } });
         _.each(roads, (r) => {
@@ -162,52 +199,6 @@ export class Bunker_planner implements Mnemonic {
         this.structure_id["roads"] = [];
         Memory.rooms[this.room_name].room_tasks["repair"] = [];
     }
-
-    // private _delete_all(room: Room) {
-    //     this._delete_all_construction_sites(room);
-    //     this._delete_all_roads(room);
-    // }
-
-    // private _create_roads(spawn: StructureSpawn) {
-    //     let built = false;
-
-    //     if (built) console.log("Building roads to energy");
-
-    //     built = false;
-    //     // //? Road to controller
-    //     //TODO it's an id and not an object
-    //     const controller = Memory.rooms_new[spawn.room.name].structure_id["controller"];
-    //     if (controller) {
-    //         const path = spawn.pos.findPathTo(controller.pos, { ignoreCreeps: true });
-    //         _.each(path, (pos) => {
-    //             const position_in_room = spawn.room.getPositionAt(pos.x, pos.y);
-    //             if (position_in_room && position_in_room.look().length === 1) {
-    //                 //? check if position is free
-    //                 Utils._C(spawn.id, spawn.room.createConstructionSite(pos.x, pos.y, STRUCTURE_ROAD));
-    //                 built = true;
-    //             }
-    //         });
-    //     }
-
-    //     built = false;
-    //     //? Road to minerals
-    //     //TODO it's an id and not an object
-    //     const minerals = Memory.rooms_new[spawn.room.name].structure_id["minerals"];
-    //     if (minerals) {
-    //         _.each(minerals, (mineral) => {
-    //             const path = spawn.pos.findPathTo(mineral.pos, { ignoreCreeps: true });
-    //             _.each(path, (pos) => {
-    //                 const position_in_room = spawn.room.getPositionAt(pos.x, pos.y);
-    //                 if (position_in_room && position_in_room.look().length === 1) {
-    //                     //? check if position is free
-    //                     Utils._C(spawn.id, spawn.room.createConstructionSite(pos.x, pos.y, STRUCTURE_ROAD));
-    //                     built = true;
-    //                 }
-    //             });
-    //         });
-    //     }
-    //     if (built) console.log("Building roads to minerals");
-    // }
 
     private __get_corners(x: number, y: number, depth: number) {
         return [
@@ -259,20 +250,11 @@ export class Bunker_planner implements Mnemonic {
         return _.filter(Memory.rooms_new[spawn.room.name].flags, (flag: Flag) => flag.name.includes(name));
     }
 
-    // private _create_struct(spawn: StructureSpawn, struct: BuildableStructureConstant) {
-    //     const flags = this._search_flaggy_flaggy(spawn, struct);
-    //     let pos = spawn.pos;
-    //     //? Set an offset if there is no flag to not spawn structures directly at the spawn.
-    //     let offset = 3;
-    //     // if (flags) {
-    //     //     pos = Game.flags[flags[0]].pos;
-    //     //     offset = 0;
-    //     // }
-    //     this._create_closest_to_pos(pos, struct);
-    // }
-
     public update(): void {
         this.locator();
+        // if (this.flags && this.flags.includes("bunker_top_left")) {
+        //     this._create_structures_with_actual_lvl();
+        // }
     }
 
     private _road(from: any, to: Id<Structure>[]) {
@@ -289,32 +271,6 @@ export class Bunker_planner implements Mnemonic {
         });
     }
 
-    // private road_to_controller() {
-    //     const spawn = Game.getObjectById(this.spawn_id) as StructureSpawn;
-    //     const controller = Game.rooms[this.room_name].controller as StructureController;
-    //     const path = spawn.pos.findPathTo(controller.pos, { ignoreCreeps: true });
-    //     _.each(path, (pos) => {
-    //         const position_in_room = spawn.room.getPositionAt(pos.x, pos.y);
-    //         if (position_in_room && position_in_room.look().length === 1)
-    //             Utils._C(spawn.id, spawn.room.createConstructionSite(pos.x, pos.y, STRUCTURE_ROAD));
-    //     });
-    // }
-
-    // private _road_to_sources() {
-    //     const sources_id = this.structure_id["sources"];
-    //     const spawn = Game.getObjectById(this.spawn_id) as StructureSpawn;
-    //     _.each(sources_id, (source_id: Id<Source>) => {
-    //         const source = Game.getObjectById(source_id) as Source;
-    //         const path = spawn.pos.findPathTo(source.pos, { ignoreCreeps: true });
-
-    //         _.each(path, (pos) => {
-    //             const position_in_room = spawn.room.getPositionAt(pos.x, pos.y);
-    //             if (position_in_room && position_in_room.look().length === 1)
-    //                 Utils._C(spawn.id, spawn.room.createConstructionSite(pos.x, pos.y, STRUCTURE_ROAD));
-    //         });
-    //     });
-    // }
-
     private square_road_around_spawn(size: number = 2) {
         const spawn = Game.getObjectById(this.spawn_id) as StructureSpawn;
         const room = Game.rooms[this.room_name];
@@ -327,12 +283,9 @@ export class Bunker_planner implements Mnemonic {
         _.map(positions, (pos) => {
             if (room.lookAt(pos[0], pos[1]).length === 1) Utils._C("[BUILD]", room.createConstructionSite(pos[0], pos[1], STRUCTURE_ROAD));
         });
-        // this.create_from_shape(spawn.pos, STRUCTURE_ROAD, SHAPE.SQUARE_OUTER, size);
     }
 
-    private extensions() {
-        console.log("someone else");
-    }
+    private extensions() {}
 
     private towers() {}
 
@@ -354,12 +307,4 @@ export class Bunker_planner implements Mnemonic {
         });
         // });
     }
-
-    // if (Memory.rooms_new[this.room_name].build_map["build_roads"]) {
 }
-//     if (Memory.rooms_new[this.room_name].build_map["build_extensions"]) {
-//         this._create_struct(spawn, STRUCTURE_EXTENSION);
-//         Memory.rooms_new[this.room_name].build_map["build_extensions"] = false;
-//     }
-//     if (Memory.rooms_new[this.room_name].safe_delete) this._delete_all(spawn.room);
-// }

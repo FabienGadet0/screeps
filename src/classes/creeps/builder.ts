@@ -7,7 +7,7 @@ export class Builder extends ICreep {
         super(creep_name);
         this.main_action = ACTION.BUILD;
         this.set(ACTION.WAITING_NEXT_TASK, undefined);
-        this.creep.memory.source_to_target = 1;
+        this.creep.memory.source_to_target = 0;
     }
 
     protected logic() {

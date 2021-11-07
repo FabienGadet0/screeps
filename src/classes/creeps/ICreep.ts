@@ -140,8 +140,10 @@ export abstract class ICreep {
         const act = action ? action : this.main_action;
         if (!_.isEmpty(Memory.rooms_new[this.creep.room.name].room_tasks[task_name])) {
             // const tasks = Utils.take_first(Memory.rooms_new[this.creep.room.name].room_tasks[task_name]);
-
-            this.set(act, Memory.rooms_new[this.creep.room.name].room_tasks[task_name].shift());
+            let task = undefined;
+            if (Config.BUILD_TOGETHER && task_name === "build") task = Memory.rooms_new[this.creep.room.name].room_tasks[task_name][0];
+            else task = Memory.rooms_new[this.creep.room.name].room_tasks[task_name].shift();
+            this.set(act, task);
             // Memory.rooms_new[this.creep.room.name].room_tasks[task_name] = tasks.new_list;
             this.creep.say("Task " + this.action);
             // console.log(
