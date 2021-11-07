@@ -2,7 +2,6 @@ import * as Config from "../config";
 import * as Utils from "../utils/utils";
 import { Memory_manager } from "./memory_manager";
 import { Creep_factory } from "./creep_factory";
-import { Room_build_planner } from "./room_build_planner";
 import { Creep_manager } from "./creep_manager";
 
 import * as packRat from "../utils/packrat";
@@ -20,11 +19,31 @@ export class Visualizer implements Mnemonic {
     lvl: number;
 
     @mnemon
+    flags: string[];
+
+    @mnemon
     classes_in_room: Record<string, any>;
+
+    possible_flags: string[];
+
+    letter_to_structure: Record<string, StructureConstant> = {
+        E: STRUCTURE_EXTENSION,
+        T: STRUCTURE_TOWER,
+        S: STRUCTURE_SPAWN,
+        K: STRUCTURE_LINK,
+        A: STRUCTURE_TERMINAL,
+        L: STRUCTURE_LAB,
+        R: STRUCTURE_RAMPART,
+        O: STRUCTURE_OBSERVER,
+        N: STRUCTURE_NUKER,
+        C: STRUCTURE_CONTAINER,
+        ".": STRUCTURE_ROAD,
+    };
 
     constructor(room_name: string) {
         this.room_name = room_name;
         this._visual = Game.rooms[room_name].visual;
+        this.possible_flags = ["BUNKER"];
         // this.room_tasks = this.locator().room_tasks;
     }
 
@@ -40,6 +59,7 @@ export class Visualizer implements Mnemonic {
         this.draw_tasks();
         this.draw_room_info();
         this.draw_creeps_info();
+        if (this.flags.includes("BUNKER")) this.show_blueprint(Game.flags["BUNKER"].pos);
     }
 
     private draw_room_info() {
@@ -49,7 +69,6 @@ export class Visualizer implements Mnemonic {
         to_print.push(` LVL              ${this.lvl}  `);
         to_print.push(` Room Name  ${this.room_name}   `);
         to_print.push(" ");
-        // to_print.push(" ");
         this._visual.infoBox(_.flatten(to_print), 5, 2, { color: "white" });
     }
 
@@ -62,7 +81,6 @@ export class Visualizer implements Mnemonic {
                 size > 10 ? to_print.push([` ${size}  ${task_name}           `]) : to_print.push([` ${size}    ${task_name}          `]);
             }
         });
-        // to_print.push(" ");
         to_print.push(" ");
         this._visual.infoBox(_.flatten(to_print), 5, 5, { color: "white" });
     }
@@ -78,31 +96,16 @@ export class Visualizer implements Mnemonic {
         this._visual.infoBox(_.flatten(to_print), 5, 8, { color: "white" });
     }
 
-    public show_blueprint(x: number, y: number) {
-        const letter_to_structure = {
-            E: STRUCTURE_EXTENSION,
-            T: STRUCTURE_TOWER,
-            S: STRUCTURE_SPAWN,
-            K: STRUCTURE_LINK,
-            A: STRUCTURE_TERMINAL,
-            L: STRUCTURE_LAB,
-            R: STRUCTURE_RAMPART,
-            O: STRUCTURE_OBSERVER,
-            N: STRUCTURE_NUKER,
-            C: STRUCTURE_CONTAINER,
-            ".": STRUCTURE_ROAD,
-        };
-        let pos = [x, y];
-        let i = 0;
+    public show_blueprint(original_pos: RoomPosition): void {
+        let x = original_pos.x;
+        let y = original_pos.y;
         _.each(Config.blueprint, (structure: string) => {
             _.each(structure, (line: string) => {
-                this._visual.structure(pos[0], pos[1], letter_to_structure[line]);
-                pos[0] += 1;
-                i += 1;
+                this._visual.structure(x, y, this.letter_to_structure[line]);
+                x += 1;
             });
-            pos[0] = x;
-            pos[1] += 1;
-            i = 0;
+            x = original_pos.x;
+            y += 1;
         });
     }
 }

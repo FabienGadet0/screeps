@@ -27,10 +27,18 @@ class Memory_manager implements Mnemonic {
     @mnemon
     spawn_id: Id<StructureSpawn>;
 
+    @mnemon
+    lvl: number;
+
+    @mnemon
+    energy_available: number;
+
+    @mnemon
+    flags: string[];
+
     constructor(room_name: string) {
         this.room_name = room_name;
         this.controller = this._find_controller_id(Game.rooms[room_name]);
-
         this.locator();
         this.update_room_component(Game.rooms[room_name], [
             "creeps",
@@ -59,6 +67,11 @@ class Memory_manager implements Mnemonic {
     public update() {
         this.locator();
         const room = Game.rooms[this.room_name];
+
+        this.lvl = Game.rooms[this.room_name].energyCapacityAvailable;
+        this.energy_available = Game.rooms[this.room_name].energyAvailable;
+        this.update_room_component(room, ["flags"]);
+
         if (_.isEmpty(this.room_tasks["transfer"]) && Game.time >= this.room_tasks.updater["transfer"] + Config.REFRESHING_RATE) {
             this.update_room_component(room, ["extensions_not_full", "containers_not_full", "dropped_resources", "spawns"]);
             this.structure_id.updater["extensions_not_full"] = Game.time;
@@ -68,7 +81,7 @@ class Memory_manager implements Mnemonic {
                 // console.log("spawns arent full " + not_full_spawns + " ->> " + this.structure_id["extensions_not_full"]);
                 this.room_tasks["transfer"] = _.flatten([not_full_spawns, this.structure_id["extensions_not_full"]]);
                 this.room_tasks.updater["transfer"] = Game.time;
-                console.log(_.size(this.room_tasks["transfer"]) + " transfer tasks added ");
+                // console.log(_.size(this.room_tasks["transfer"]) + " transfer tasks added ");
             }
         }
 
@@ -78,15 +91,15 @@ class Memory_manager implements Mnemonic {
             if (this.structure_id["construction_sites"].length > 0) {
                 this.room_tasks["build"] = this.structure_id["construction_sites"];
                 this.room_tasks.updater["build"] = Game.time;
-                console.log(_.size(this.room_tasks["build"]) + " build tasks added ");
+                // console.log(_.size(this.room_tasks["build"]) + " build tasks added ");
             }
         }
         if (_.isEmpty(this.room_tasks["repair"]) && Game.time >= this.room_tasks.updater["repair"] + Config.REFRESHING_RATE) {
             this.room_tasks["repair"] = this._find_all_repair_ids(room);
             this.room_tasks.updater["repair"] = Game.time;
-            if (this.room_tasks["repair"].length > 0) {
-                console.log(_.size(this.room_tasks["repair"]) + " repair tasks added ");
-            }
+            // if (this.room_tasks["repair"].length > 0) {
+            // console.log(_.size(this.room_tasks["repair"]) + " repair tasks added ");
+            // }
         }
     }
 
@@ -175,10 +188,6 @@ class Memory_manager implements Mnemonic {
         });
     }
 
-    private get_lvl_of_room(room: Room) {
-        return 300 + _.size(Memory.rooms_new[room.name].structure_id["extensions"]) * 50;
-    }
-
     //TODO CAN BE OPTIMIZED
     private _find_all_repair_ids(room: Room): Id<any>[] {
         return _.map(
@@ -222,7 +231,7 @@ class Memory_manager implements Mnemonic {
                         .with("extensions", () => { this.structure_id["extensions"] = this._find_extensions_ids(room); })
                         .with("minerals", () => { this.structure_id["minerals"] = this._find_minerals_ids(room); })
                         .with("repair", () => { this.structure_id["repair"] = this._find_all_repair_ids(room); })
-                        .with("flags", () => { this.structure_id.flags = this._find_flags_names(room); })
+                        .with("flags", () => { this.flags = this._find_flags_names(room); })
                         .with("extensions_not_full", () => { this.structure_id["extensions_not_full"] = this._find_not_full_extension_ids(room); })
                         .with("dropped_resources", () => { this.structure_id["dropped_resources"] = this._find_dropped_resources_ids(room); })
                         .with("containers_not_full", () => { this.structure_id["containers_not_full"] = this._find_not_full_containers_ids(room); })

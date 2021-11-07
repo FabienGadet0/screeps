@@ -294,8 +294,10 @@ export abstract class ICreep {
             this.set(ACTION.RENEW, spawn.id);
             Memory.rooms_new[this.creep.room.name].cripple_creeps.push(this.creep_name);
         }
+
+        if (this.is_renewing() && this.creep.pos.isNearTo(spawn)) this.creep.transfer(spawn, RESOURCE_ENERGY);
         //? if full life and was renewing , set to idle to get out of the renewing loop.
-        else if (this.is_renewing() && this.ticksToLive && this.ticksToLive >= Config.MAX_TICKS_TO_LIVE - 80 && !this.needsRenew()) {
+        if (this.is_renewing() && this.ticksToLive && this.ticksToLive >= Config.MAX_TICKS_TO_LIVE - 80) {
             console.log(this.creep + " -> me no cripple uwu " + this.ticksToLive);
             this.set(ACTION.WAITING_NEXT_TASK, undefined);
             Memory.rooms_new[this.creep.room.name].cripple_creeps.remove(this.creep_name);

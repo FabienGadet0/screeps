@@ -97,7 +97,7 @@ function get_position_with_offset(x: number, y: number, shape: SHAPE, depth: num
 // }
 
 @profile
-export class Room_build_planner implements Mnemonic {
+export class Bunker_planner implements Mnemonic {
     room_name: string;
 
     @mnemon
@@ -155,7 +155,6 @@ export class Room_build_planner implements Mnemonic {
 
     private _delete_all_roads() {
         const roads = Game.rooms[this.room_name].find(FIND_STRUCTURES, { filter: { structureType: STRUCTURE_ROAD } });
-        console.log(roads);
         _.each(roads, (r) => {
             r.destroy();
         });

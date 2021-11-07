@@ -13,6 +13,7 @@ import { Harvester } from "./creeps/harvester";
 import { Builder } from "./creeps/builder";
 import { Upgrader } from "./creeps/upgrader";
 import { Mnemonic, mnemon } from "../utils/mnemonic";
+import { close } from "fs";
 
 @profile
 class Creep_manager implements Mnemonic {
@@ -44,7 +45,7 @@ class Creep_manager implements Mnemonic {
         // this.spawn_id = this.locator().spawn_id;
         // this.lvl = this.locator().lvl;
         // this.creeps_name = this.locator().creeps_name;
-        // this.cripple_creeps = this.locator().cripple_creeps;
+        Memory.rooms_new[this.room_name].cripple_creeps = this.locator().cripple_creeps;
         // this.structure_id = this.locator().structure_id;
 
         // this.room_tasks = this.locator().room_tasks;
@@ -76,8 +77,12 @@ class Creep_manager implements Mnemonic {
             creep.run();
         });
         const spawn = Game.getObjectById(this.spawn_id) as StructureSpawn;
-        if (this.cripple_creeps.length > 0 && !spawn.spawning) {
-            this.tryRenew(this.creeps[this.cripple_creeps[0]], spawn);
+
+        if (Memory.rooms_new[this.room_name].cripple_creeps.length > 0 && !spawn.spawning) {
+            const close_creep = _.map(Memory.rooms_new[this.room_name].cripple_creeps, (c: string) => {
+                if (this.creeps[c].creep && this.creeps[c].creep.pos.isNearTo(spawn)) return this.creeps[c];
+            });
+            if (close_creep) this.tryRenew(close_creep[0], spawn);
         }
     }
 
@@ -88,7 +93,6 @@ class Creep_manager implements Mnemonic {
         this.creep_factory.update();
 
         this._manage_new_and_dead_creeps();
-        console.log(this.creeps);
 
         _.map(this.creeps, (creep: ICreep) => {
             creep.update();
@@ -103,7 +107,8 @@ class Creep_manager implements Mnemonic {
             if (!(name in Game.creeps)) {
                 delete this.creeps[name];
                 console.log(name, " deleted");
-                if (this.cripple_creeps.includes(name)) this.cripple_creeps.remove(name);
+                if (Memory.rooms_new[this.room_name].cripple_creeps.includes(name))
+                    Memory.rooms_new[this.room_name].cripple_creeps.remove(name);
                 if (this.creeps_name.includes(name)) this.creeps_name.remove(name);
             }
         }
@@ -126,7 +131,7 @@ class Creep_manager implements Mnemonic {
         if (!spawn.pos.isNearTo(creep.creep.pos)) console.log("renew " + creep.creep + " waiting for you bitch");
         else {
             let r = Utils._C(spawn.name, spawn.renewCreep(creep.creep));
-            if (r === OK) console.log("renew creep " + creep.creep);
+            // if (r === OK) console.log("renew creep " + creep.creep);
         }
         return r;
     }

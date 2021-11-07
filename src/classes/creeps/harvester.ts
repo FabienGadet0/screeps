@@ -35,7 +35,7 @@ export class Harvester extends ICreep {
 
         //*  dont need energy and task available. -> get task -> if no task go idle
         if (!this.target && this._task_available("transfer")) this._start_task("transfer", ACTION.TRANSFER);
-        else if (!this.target) this._do_nothing();
+        else if (!this.target && !this._task_available("transfer")) this._do_nothing();
 
         this._softlock_guard();
         //TODO pickup if there is energy on the ground
