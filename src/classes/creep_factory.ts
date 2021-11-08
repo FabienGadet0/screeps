@@ -29,21 +29,19 @@ class Creep_factory implements Mnemonic {
     @mnemon
     spawn_id: Id<StructureSpawn>;
 
+    @mnemon
     spawning_queue: skeleton[];
 
-    constructor(room_name: string, spawn_id: Id<StructureSpawn>) {
+    constructor(room_name: string) {
         this.room_name = room_name;
         this.spawning_queue = [];
-        // this.classes_in_room = this.locator().classes_in_room;
-        // this.lvl = this.locator().lvl;
-        // this.spawn_id = this.locator().spawn_id;
     }
 
     public locator(): { [key: string]: any } {
         return Memory.rooms_new[this.room_name];
     }
 
-    //TODO also had new role in classes_in_room and shouldn't
+    //TODO also add new role in classes_in_room and shouldn't
     private _get_amount_of_creep_with_role(_role: string): number {
         if (!this.classes_in_room[_role]) this.classes_in_room[_role] = 0;
         return this.classes_in_room[_role];
@@ -59,7 +57,7 @@ class Creep_factory implements Mnemonic {
     }
 
     private _spawn_creep(spawn: StructureSpawn, name: string, _role: string, lvl: number): ScreepsReturnCode | number {
-        console.log("spawn " + lvl + " role " + _role + " Name " + name);
+        // console.log("spawn " + lvl + " role " + _role + " Name " + name);
         if (!spawn.spawning) {
             this.classes_in_room[_role] += 1;
             return spawn.spawnCreep(Config.role_to_bodyparts[lvl][_role], name, {
@@ -84,11 +82,9 @@ class Creep_factory implements Mnemonic {
         this.locator();
 
         const count_creeps = _.size(Memory.rooms_new[this.room_name].creeps_name);
-        // console.log(
-        //     `total possible creep for lvl ${this.lvl} -> ${Config.total_possible_creeps(this.lvl)} with currently ${count_creeps}}`,
-        // );
         if (count_creeps < Config.total_possible_creeps(this.lvl)) {
             const spawn = Game.getObjectById(this.spawn_id) as StructureSpawn;
+
             _.each(Config.all_roles(this.lvl), (role: string) => {
                 if (this._can_spawn_new_creep(spawn, role)) {
                     this.spawning_queue.push({
@@ -100,6 +96,7 @@ class Creep_factory implements Mnemonic {
                 //TODO sort spawn queue
             });
         }
+        // console.log(this.spawning_queue);
     }
 
     public run(): void {

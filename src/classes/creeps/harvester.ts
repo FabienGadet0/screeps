@@ -29,7 +29,6 @@ export class Harvester extends ICreep {
         //* is doing a task and task is full -> finish task -> not doing task
         if (this.doing_task && this.target) {
             const target_obj = Game.getObjectById(this.target);
-            // console.log("logic -> " + (target_obj.store.getFreeCapacity(RESOURCE_ENERGY) === 0));
             if (target_obj.store.getFreeCapacity(RESOURCE_ENERGY) === 0) this._task_finished();
         }
 

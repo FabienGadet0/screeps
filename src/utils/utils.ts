@@ -8,6 +8,10 @@ function flatten(arr: any[][]): any[] {
     return arr.reduce((acc, val) => acc.concat(val), []);
 }
 
+export function get_flag(name: string) {
+    return Game.flags[name.toUpperCase()];
+}
+
 //* countries , languages, names
 export function name_new_creep(role: string, lvl: number): string {
     return (
@@ -59,31 +63,4 @@ function _C(id: any, code: ScreepsReturnCode | CreepMoveReturnCode | number, add
     return code;
 }
 
-function init_variables() {
-    Memory.debug_mode = false;
-    Memory.debug_speak = false;
-}
-
-// export function _init_room_memory(): RoomMemory {
-//     return {
-//         updater: {},
-//         build_map: {
-//             build_roads: false,
-//             build_extensions: false,
-//         },
-//         creeps_name: [],
-//         room_tasks: {
-//             transfer: [],
-//             build: [],
-//             repair: [],
-//         },
-//         cripple_creeps: [],
-//         safe_delete: false,
-//         flags: [],
-//         structure_ids: {},
-//         avoid: undefined,
-//         lvl: 300,
-//     };
-// }
-
-export { init_variables, flatten, _C };
+export { flatten, _C };

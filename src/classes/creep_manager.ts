@@ -1,10 +1,6 @@
-import * as Finder from "../utils/finder";
-import * as Config from "../config";
 import * as Utils from "../utils/utils";
 
-// import * as Harvester from "./creeps/harvester";
 import { ICreep, ACTION } from "./creeps/ICreep";
-// import * as Upgrader from "./creeps/upgrader";
 import { profile } from "../Profiler/Profiler";
 import { Creep_factory } from "./creep_factory";
 import { match, __, when, select } from "ts-pattern";
@@ -13,7 +9,6 @@ import { Harvester } from "./creeps/harvester";
 import { Builder } from "./creeps/builder";
 import { Upgrader } from "./creeps/upgrader";
 import { Mnemonic, mnemon } from "../utils/mnemonic";
-import { close } from "fs";
 
 @profile
 class Creep_manager implements Mnemonic {
@@ -42,8 +37,7 @@ class Creep_manager implements Mnemonic {
     constructor(room_name: string) {
         this.room_name = room_name;
         this.creeps = {};
-        // Memory.rooms_new[this.room_name].cripple_creeps = this.locator().cripple_creeps;
-        this.creep_factory = new Creep_factory(room_name, this.spawn_id);
+        this.creep_factory = new Creep_factory(room_name);
 
         _.each(Game.rooms[room_name].find(FIND_MY_CREEPS), (creep: Creep) => {
             this.creeps[creep.name] = this._generate(creep.memory.role, creep.name);
@@ -74,19 +68,34 @@ class Creep_manager implements Mnemonic {
 
         if (Memory.rooms_new[this.room_name].cripple_creeps.length > 0 && !spawn.spawning) {
             const close_creep = _.map(Memory.rooms_new[this.room_name].cripple_creeps, (c: string) => {
-                // console.log("creep -> " + c + " / " + this.creeps[c] + " / " + this.creeps[c].creep);
                 if (this.creeps[c] && this.creeps[c].creep && this.creeps[c].creep.pos.isNearTo(spawn)) return this.creeps[c];
             });
             if (close_creep) {
                 this.tryRenew(close_creep[0], spawn);
             }
         }
-        // this.locator();
+    }
+
+    private _fix_low_level_creeps() {
+        const room = Game.rooms[this.room_name];
+        //? Check if all creeps are at the same level as the room otherwise kill it , the factory will then respawn one at the right level.
+        if (room.energyCapacityAvailable === room.energyAvailable) {
+            //? if room is full of energy
+            const under_level_creeps: ICreep[] = _.filter(this.creeps, (c: ICreep) => {
+                return c.lvl < this.lvl;
+            });
+
+            if (under_level_creeps) {
+                under_level_creeps[0].creep.say("Sayonara im too low level ");
+                under_level_creeps[0].creep.suicide();
+            }
+        }
     }
 
     public update(): boolean {
-        // this._manage_tasks();
         this.locator();
+
+        this._fix_low_level_creeps();
 
         this.creep_factory.update();
 
@@ -127,8 +136,6 @@ class Creep_manager implements Mnemonic {
     protected tryRenew(creep: ICreep, spawn: StructureSpawn): void {
         let r = 0;
         if (creep) {
-            console.log("in manager " + creep);
-
             if (creep && creep.creep && !spawn.pos.isNearTo(creep.creep.pos)) console.log("renew " + creep + " waiting for you bitch");
             else {
                 let r = Utils._C(spawn.name, spawn.renewCreep(creep.creep));

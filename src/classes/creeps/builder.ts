@@ -26,6 +26,7 @@ export class Builder extends ICreep {
     }
 
     private _softlock_guard() {
+        if (!this.doing_task && !this.target && !this._task_available("repair") && !this._task_available("build")) this._do_nothing();
         // if (this.doing_task && this.action && !this.target) {
         //     this._do_nothing();
         //     console.log("got softlock " + this.debug_me());

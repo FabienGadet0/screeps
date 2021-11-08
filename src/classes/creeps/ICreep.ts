@@ -145,7 +145,7 @@ export abstract class ICreep {
             else task = Memory.rooms_new[this.creep.room.name].room_tasks[task_name].shift();
             this.set(act, task);
             // Memory.rooms_new[this.creep.room.name].room_tasks[task_name] = tasks.new_list;
-            this.creep.say("Task " + this.action);
+            // this.creep.say("Task " + this.action);
             // console.log(
             //     "New task " +
             //         this.action +
@@ -246,6 +246,7 @@ export abstract class ICreep {
                 if (this.last_return_code === ERR_NOT_IN_RANGE) this.moveTo(target_obj);
                 else Utils._C(this.creep, this.last_return_code);
             } //else console.log("doing task with a problem " + this.debug_me());
+            if (this.action === ACTION.IDLE) this.idle("");
         }
     }
 
@@ -264,12 +265,9 @@ export abstract class ICreep {
         return OK;
     }
 
-    protected idle(target: any): any {
-        // const flag = Memory.rooms_new[this.creep.room.name].flags.includes("IDLES");
-        // if (flag && this.creep.pos.isNearTo(flag.pos1))
-        //TODO Game.flags will get all flags from all rooms , so it wont work if not in the same room , maybe check if in the same room with a method of pos.
-
-        // this.creep.moveTo(flag.pos);
+    protected idle(_: any): any {
+        const flag = Utils.get_flag("IDLES");
+        if (flag && !this.creep.pos.isNearTo(flag.pos)) this.creep.moveTo(flag.pos);
         return OK;
     }
 

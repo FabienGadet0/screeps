@@ -40,7 +40,7 @@ export let role_to_bodyparts: Record<number, Record<string, BodyPartConstant[]>>
     550: {
         harvester: [MOVE,MOVE,MOVE,MOVE,WORK,WORK,CARRY,CARRY],
     builder: [MOVE,MOVE,MOVE,MOVE,WORK,WORK,CARRY,CARRY],
-        upgrader: [MOVE,MOVE,MOVE,MOVE,WORK,WORK,WORK,CARRY,CARRY,CARRY,CARRY,CARRY],//? Fat mod
+        upgrader: [MOVE,MOVE,MOVE,WORK,WORK,WORK,CARRY,CARRY],//? Fat mod
     },
     800: {
         harvester: [MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,WORK,WORK,WORK,CARRY,CARRY,CARRY],
@@ -129,6 +129,7 @@ export const room_schema = {
         repair: 0,
         transfer: 0,
         build: 0,
+        build_bunker: 0,
     },
 };
 
