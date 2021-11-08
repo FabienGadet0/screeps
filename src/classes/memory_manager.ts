@@ -79,6 +79,7 @@ class Memory_manager implements Mnemonic {
         this.lvl = Game.rooms[this.room_name].energyCapacityAvailable;
         this.energy_available = Game.rooms[this.room_name].energyAvailable;
         this.update_room_component(room, ["flags"], 10);
+        this.update_room_component(room, ["creeps"], 30);
         // console.log("transfer task empty: " + _.isEmpty(this.room_tasks["transfer"]));
 
         //* TASKS ------------------------------------------------------------------
@@ -90,11 +91,10 @@ class Memory_manager implements Mnemonic {
             const not_full_spawns = this._get_not_full(this.structure_id["spawns"]);
             if (this.structure_id["extensions_not_full"].length > 0 || not_full_spawns) {
                 // console.log("spawns that arent full " + not_full_spawns + " ->> ext + " + this.structure_id["extensions_not_full"]);
-                this.room_tasks["transfer"] = _.flatten([
-                    not_full_spawns,
-                    this.structure_id["extensions_not_full"] || "",
-                    this.structure_id["towers"] || "",
-                ]);
+                this.room_tasks["transfer"] = _.filter(
+                    _.flatten([not_full_spawns, this.structure_id["extensions_not_full"], this.structure_id["towers"]]),
+                    (v) => !!v,
+                );
                 // console.log(_.size(this.room_tasks["transfer"]) + " transfer tasks added ");
             }
         }

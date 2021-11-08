@@ -10,6 +10,12 @@ import { profile } from "../Profiler/Profiler";
 import { match, __, when, select } from "ts-pattern";
 import { Mnemonic, mnemon } from "../utils/mnemonic";
 
+interface skeleton {
+    name: string;
+    role: string;
+    lvl: number;
+}
+
 @profile
 class Creep_factory implements Mnemonic {
     room_name: string;
@@ -23,8 +29,11 @@ class Creep_factory implements Mnemonic {
     @mnemon
     spawn_id: Id<StructureSpawn>;
 
+    spawning_queue: skeleton[];
+
     constructor(room_name: string, spawn_id: Id<StructureSpawn>) {
         this.room_name = room_name;
+        this.spawning_queue = [];
         // this.classes_in_room = this.locator().classes_in_room;
         // this.lvl = this.locator().lvl;
         // this.spawn_id = this.locator().spawn_id;
@@ -52,7 +61,7 @@ class Creep_factory implements Mnemonic {
     private _spawn_creep(spawn: StructureSpawn, name: string, _role: string, lvl: number): ScreepsReturnCode | number {
         console.log("spawn " + lvl + " role " + _role + " Name " + name);
         if (!spawn.spawning) {
-            // this.classes_in_room[_role] += 1;
+            this.classes_in_room[_role] += 1;
             return spawn.spawnCreep(Config.role_to_bodyparts[lvl][_role], name, {
                 memory: {
                     _trav: undefined,
@@ -71,10 +80,9 @@ class Creep_factory implements Mnemonic {
         return -20;
     }
 
-    public update(): void {}
+    public update(): void {
+        this.locator();
 
-    public run(): void {
-        let total = 0;
         const count_creeps = _.size(Memory.rooms_new[this.room_name].creeps_name);
         // console.log(
         //     `total possible creep for lvl ${this.lvl} -> ${Config.total_possible_creeps(this.lvl)} with currently ${count_creeps}}`,
@@ -83,14 +91,23 @@ class Creep_factory implements Mnemonic {
             const spawn = Game.getObjectById(this.spawn_id) as StructureSpawn;
             _.each(Config.all_roles(this.lvl), (role: string) => {
                 if (this._can_spawn_new_creep(spawn, role)) {
-                    const name = Utils.name_new_creep(role, this.lvl);
-                    const r = this._spawn_creep(spawn, name, role, this.lvl);
-
-                    if (r !== OK) Utils._C(spawn.name, r);
+                    this.spawning_queue.push({
+                        name: Utils.name_new_creep(role, this.lvl),
+                        role: role,
+                        lvl: this.lvl,
+                    });
                 }
+                //TODO sort spawn queue
             });
         }
-        this.locator();
+    }
+
+    public run(): void {
+        if (this.spawning_queue && this.spawning_queue.length > 0) {
+            const spawn = Game.getObjectById(this.spawn_id) as StructureSpawn;
+            const skelet = this.spawning_queue.shift();
+            if (skelet) Utils._C(`${spawn.name} spawning `, this._spawn_creep(spawn, skelet.name, skelet.role, skelet.lvl));
+        }
     }
 }
 

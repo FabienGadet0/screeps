@@ -23,7 +23,7 @@ export const class_to_source: Record<string, number> = {
 };
 
 export const limit_per_role_per_room: Record<number, Record<string, number>> = {
-    300: { harvester: 2, builder: 3, upgrader: 4 },
+    300: { harvester: 2, builder: 5, upgrader: 5 },
     550: { harvester: 3, builder: 2, upgrader: 4 },
     800: { harvester: 3, builder: 3, upgrader: 3 },
     1300: { upgrader: 3, harvester: 2, builder: 3 },

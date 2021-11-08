@@ -42,13 +42,7 @@ class Creep_manager implements Mnemonic {
     constructor(room_name: string) {
         this.room_name = room_name;
         this.creeps = {};
-        // this.spawn_id = this.locator().spawn_id;
-        // this.lvl = this.locator().lvl;
-        // this.creeps_name = this.locator().creeps_name;
-        Memory.rooms_new[this.room_name].cripple_creeps = this.locator().cripple_creeps;
-        // this.structure_id = this.locator().structure_id;
-
-        // this.room_tasks = this.locator().room_tasks;
+        // Memory.rooms_new[this.room_name].cripple_creeps = this.locator().cripple_creeps;
         this.creep_factory = new Creep_factory(room_name, this.spawn_id);
 
         _.each(Game.rooms[room_name].find(FIND_MY_CREEPS), (creep: Creep) => {
@@ -130,15 +124,18 @@ class Creep_manager implements Mnemonic {
 
     //*  -------------------------------------------------------------
 
-    protected tryRenew(creep: ICreep, spawn: StructureSpawn): number {
+    protected tryRenew(creep: ICreep, spawn: StructureSpawn): void {
         let r = 0;
+        if (creep) {
+            console.log("in manager " + creep);
 
-        if (creep && creep.creep && !spawn.pos.isNearTo(creep.creep.pos)) console.log("renew " + creep.creep + " waiting for you bitch");
-        else {
-            let r = Utils._C(spawn.name, spawn.renewCreep(creep.creep));
-            // if (r === OK) console.log("renew creep " + creep.creep);
+            if (creep && creep.creep && !spawn.pos.isNearTo(creep.creep.pos)) console.log("renew " + creep + " waiting for you bitch");
+            else {
+                let r = Utils._C(spawn.name, spawn.renewCreep(creep.creep));
+                // if (r === OK) console.log("renew creep " + creep.creep);
+            }
+            // return r;
         }
-        return r;
     }
 }
 
