@@ -49,6 +49,7 @@ class Memory_manager implements Mnemonic {
             "sources",
             "construction_sites",
             "extensions",
+            "tower",
             "minerals",
             "repair",
             "tower",
@@ -85,14 +86,15 @@ class Memory_manager implements Mnemonic {
         //* TASKS ------------------------------------------------------------------
 
         if (_.isEmpty(this.room_tasks["transfer"])) {
-            this.update_room_component(room, ["extensions_not_full", "containers_not_full", "dropped_resources", "spawns"], 5);
+            this.update_room_component(room, ["extensions_not_full", "containers_not_full", "dropped_resources", "towers", "spawns"], 5);
             // this.updater["extensions_not_full"] = Game.time;
 
             const not_full_spawns = this._get_not_full(this.structure_id["spawns"]);
+            const not_full_towers = this._get_not_full(this.structure_id["towers"]);
             if (this.structure_id["extensions_not_full"].length > 0 || not_full_spawns) {
                 // console.log("spawns that arent full " + not_full_spawns + " ->> ext + " + this.structure_id["extensions_not_full"]);
                 this.room_tasks["transfer"] = _.filter(
-                    _.flatten([not_full_spawns, this.structure_id["extensions_not_full"], this.structure_id["towers"]]),
+                    _.flatten([not_full_spawns, this.structure_id["extensions_not_full"], not_full_towers]),
                     (v) => !!v,
                 );
                 // console.log(_.size(this.room_tasks["transfer"]) + " transfer tasks added ");

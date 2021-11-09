@@ -48,16 +48,6 @@ class Creep_manager implements Mnemonic {
         return Memory.rooms_new[this.room_name];
     }
 
-    // // prettier-ignore
-    // private _generate(role: string, room_name: string): any {
-    //     return match(role)
-    //         .with ("harvester", () => { return new Harvester(room_name) })
-    //         .with ("builder", () => { return new Builder(room_name) })
-    //         .with("upgrader", () => { return new Upgrader(room_name) })
-    //         .with(__, () => {return undefined})
-    //         .exhaustive()
-    // }
-
     private _generate(role: string, room_name: string): any {
         switch (role) {
             case "harvester":
@@ -103,13 +93,19 @@ class Creep_manager implements Mnemonic {
         }
     }
 
+    private _clean_creep() {
+        for (const name in this.creeps) {
+            if (!name) delete this.creeps[name];
+        }
+        // _.each(this.creeps, (c: ICreep) => { if (!c) delete c });
+    }
+
     public update(): boolean {
         this.locator();
-
+        this._clean_creep();
         this._fix_low_level_creeps();
 
         this.creep_factory.update();
-        console.log("test");
 
         this._manage_new_and_dead_creeps();
 

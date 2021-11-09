@@ -6,7 +6,7 @@ export const REPAIR_THRESHOLD = 0.3;
 export const REPAIR_WHEN_CONSTRUCTION_SITE_UNDER = 7;
 export const MAX_TICKS_TO_LIVE = 1400;
 export const REFRESHING_RATE = 5;
-export const MEMHACK = true;
+export const MEMHACK = false;
 export const BUILD_TOGETHER = false;
 export const TICK_BEFORE_REFRESH = 10;
 
@@ -24,8 +24,8 @@ export const class_to_source: Record<string, number> = {
 
 export const limit_per_role_per_room: Record<number, Record<string, number>> = {
     300: { harvester: 2, builder: 5, upgrader: 5 },
-    550: { harvester: 3, builder: 2, upgrader: 4 },
-    800: { harvester: 3, builder: 3, upgrader: 3 },
+    550: { harvester: 3, builder: 2, upgrader: 6 },
+    800: { harvester: 3, builder: 3, upgrader: 4 },
     1300: { upgrader: 3, harvester: 2, builder: 3 },
 };
 
