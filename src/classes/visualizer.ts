@@ -48,15 +48,19 @@ export class Visualizer implements Mnemonic {
     }
 
     public update() {
+        this.locator();
         this._set_info_pos();
     }
 
     public run() {
-        this.draw_tasks();
-        this.draw_room_info();
-        this.draw_creeps_info();
-        if (this.flags.includes("BUNKER")) this.show_blueprint(Game.flags["BUNKER"].pos);
-        this.locator();
+        try {
+            this.draw_tasks();
+            this.draw_room_info();
+            this.draw_creeps_info();
+            if (this.flags.includes("BUNKER")) this.show_blueprint(Game.flags["BUNKER"].pos);
+        } catch (error) {
+            console.log("error in visualizer");
+        }
     }
 
     private draw_room_info() {

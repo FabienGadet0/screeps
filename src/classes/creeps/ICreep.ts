@@ -179,6 +179,7 @@ export abstract class ICreep {
 
     public update() {
         this.creep = Game.creeps[this.creep_name];
+
         this.ticksToLive = this.creep.ticksToLive;
 
         this.manageRenew(Game.spawns[this.spawn_name] as StructureSpawn);
@@ -241,6 +242,7 @@ export abstract class ICreep {
 
             if ((this.is_renewing() && this.target) || (!this.is_renewing() && this.target && this.action && !this.needs_energy)) {
                 const target_obj = Game.getObjectById(this.target);
+                if (!this.target) this.target = undefined;
                 this.last_return_code = this.action_to_func(target_obj);
 
                 if (this.last_return_code === ERR_NOT_IN_RANGE) this.moveTo(target_obj);

@@ -75,17 +75,17 @@ export class ErrorMapper {
 
         return () => {
             //* Memhack
-            if (MEMHACK) {
-                if (tick && tick + 1 === Game.time && memory) {
-                    // this line is required to disable the default Memory deserialization
-                    delete global.Memory;
-                    global.Memory = memory;
-                } else {
-                    memory = Memory;
-                }
-
-                tick = Game.time;
+            // if (MEMHACK) {
+            if (tick && tick + 1 === Game.time && memory) {
+                // this line is required to disable the default Memory deserialization
+                delete global.Memory;
+                global.Memory = memory;
+            } else {
+                memory = Memory;
             }
+
+            tick = Game.time;
+            // }
             try {
                 loop();
             } catch (e) {
@@ -101,7 +101,7 @@ export class ErrorMapper {
                     throw e;
                 }
             }
-            if (MEMHACK) RawMemory.set(JSON.stringify(Memory));
+            // if (MEMHACK) RawMemory.set(JSON.stringify(Memory));
         };
     }
 }

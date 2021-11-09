@@ -48,21 +48,31 @@ class Creep_manager implements Mnemonic {
         return Memory.rooms_new[this.room_name];
     }
 
-    // prettier-ignore
-    private _generate(role: string, room_name: string): any {
-        return match(role)
-            .with ("harvester", () => { return new Harvester(room_name) })
-            .with ("builder", () => { return new Builder(room_name) })
-            .with("upgrader", () => { return new Upgrader(room_name) })
-            .with(__, () => {return undefined})
-            .exhaustive()
-    }
+    // // prettier-ignore
+    // private _generate(role: string, room_name: string): any {
+    //     return match(role)
+    //         .with ("harvester", () => { return new Harvester(room_name) })
+    //         .with ("builder", () => { return new Builder(room_name) })
+    //         .with("upgrader", () => { return new Upgrader(room_name) })
+    //         .with(__, () => {return undefined})
+    //         .exhaustive()
+    // }
 
+    private _generate(role: string, room_name: string): any {
+        switch (role) {
+            case "harvester":
+                return new Harvester(room_name);
+            case "builder":
+                return new Builder(room_name);
+            case "upgrader":
+                return new Upgrader(room_name);
+        }
+    }
     public run(): void {
         this.creep_factory.run();
 
         _.each(this.creeps, (creep: ICreep) => {
-            creep.run();
+            if (creep) creep.run();
         });
         const spawn = Game.getObjectById(this.spawn_id) as StructureSpawn;
 
@@ -81,6 +91,7 @@ class Creep_manager implements Mnemonic {
         //? Check if all creeps are at the same level as the room otherwise kill it , the factory will then respawn one at the right level.
         if (room.energyCapacityAvailable === room.energyAvailable) {
             //? if room is full of energy
+
             const under_level_creeps: ICreep[] = _.filter(this.creeps, (c: ICreep) => {
                 return c.lvl < this.lvl;
             });
@@ -98,11 +109,12 @@ class Creep_manager implements Mnemonic {
         this._fix_low_level_creeps();
 
         this.creep_factory.update();
+        console.log("test");
 
         this._manage_new_and_dead_creeps();
 
         _.map(this.creeps, (creep: ICreep) => {
-            creep.update();
+            if (creep) creep.update();
         });
         return false;
     }
