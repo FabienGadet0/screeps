@@ -2,7 +2,7 @@ import { config } from "chai";
 import { all } from "lodash";
 import * as Config from "../config";
 import * as Utils from "../utils/utils";
-import * as Finder from "../utils/finder";
+import * as Finder from "../../deprecated/finder";
 import { profile } from "../Profiler/Profiler";
 
 // import { ICreep, ACTION } from "./creeps/ICreep";
@@ -31,6 +31,9 @@ class Creep_factory implements Mnemonic {
 
     @mnemon
     spawning_queue: skeleton[];
+
+    @mnemon
+    creeps_name: string[];
 
     constructor(room_name: string) {
         this.room_name = room_name;
@@ -81,9 +84,9 @@ class Creep_factory implements Mnemonic {
     public update(): void {
         this.locator();
 
-        const count_creeps = _.size(Memory.rooms_new[this.room_name].creeps_name);
+        const count_creeps = _.size(this.creeps_name);
         if (count_creeps < Config.total_possible_creeps(this.lvl)) {
-            const spawn = Game.getObjectById(this.spawn_id) as StructureSpawn;
+            const spawn = Utils.get_by_id(this.spawn_id) as StructureSpawn;
 
             _.each(Config.all_roles(this.lvl), (role: string) => {
                 if (this._can_spawn_new_creep(spawn, role)) {
@@ -101,7 +104,7 @@ class Creep_factory implements Mnemonic {
 
     public run(): void {
         if (this.spawning_queue && this.spawning_queue.length > 0) {
-            const spawn = Game.getObjectById(this.spawn_id) as StructureSpawn;
+            const spawn = Utils.get_by_id(this.spawn_id) as StructureSpawn;
             const skelet = this.spawning_queue.shift();
             if (skelet) Utils._C(`${spawn.name} spawning `, this._spawn_creep(spawn, skelet.name, skelet.role, skelet.lvl));
         }

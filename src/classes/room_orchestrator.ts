@@ -4,6 +4,7 @@ import { Memory_manager } from "./memory_manager";
 import { Creep_factory } from "./creep_factory";
 import { Bunker_planner } from "./room_bunker_planner";
 import { Creep_manager } from "./creep_manager";
+import { Building_manager } from "./building_manager";
 
 import * as packRat from "../utils/packrat";
 import { Mnemonic, mnemon } from "../utils/mnemonic";
@@ -16,15 +17,10 @@ export class Room_orchestrator implements Mnemonic {
     memory_manager: Memory_manager;
     bunker_planner: Bunker_planner;
     creep_manager: Creep_manager;
+    building_manager: Building_manager;
     visualizer: Visualizer;
-
-    @mnemon
-    lvl: number;
-
-    @mnemon
     spawn_id: Id<StructureSpawn>;
 
-    @mnemon
     controller: Id<StructureController>;
 
     constructor(room_name: string, spawn: StructureSpawn) {
@@ -32,11 +28,14 @@ export class Room_orchestrator implements Mnemonic {
 
         this.room_name = room_name;
         this.spawn_id = spawn.id;
+        this.controller = Game.rooms[room_name].controller!.id;
         this.spawn_name = spawn.name;
+
         this.memory_manager = new Memory_manager(room_name);
         this.bunker_planner = new Bunker_planner(room_name, this.spawn_id);
         this.visualizer = new Visualizer(room_name);
         this.creep_manager = new Creep_manager(room_name);
+        this.building_manager = new Building_manager(room_name);
         console.log("Room orchestrator of " + room_name + " created");
     }
 
@@ -55,10 +54,13 @@ export class Room_orchestrator implements Mnemonic {
     }
 
     public update(): void {
-        this.locator();
+        // console.log(`repair task ${Memory.rooms_new[this.room_name].room_tasks["repair"]}`);
+
+        // this.locator();
         this.memory_manager.update(); //* Always first
         this.bunker_planner.update();
 
+        this.building_manager.update();
         this.creep_manager.update();
         this.visualizer.update();
     }
@@ -67,6 +69,7 @@ export class Room_orchestrator implements Mnemonic {
         if (this._check_if_room_is_initialized()) {
             this.memory_manager.run();
             this.bunker_planner.run();
+            this.building_manager.run();
             this.creep_manager.run();
             this.visualizer.run();
         } else {

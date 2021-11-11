@@ -2,8 +2,7 @@ import * as Utils from "./utils/utils";
 
 export const PERCENTAGE_TICKS_BEFORE_NEEDS_REFILL = 0.4;
 export const MAX_DEPTH_FOR_BUILDING = 3;
-export const REPAIR_THRESHOLD = 0.3;
-export const REPAIR_WHEN_CONSTRUCTION_SITE_UNDER = 7;
+export const REPAIR_THRESHOLD = 0.9;
 export const MAX_TICKS_TO_LIVE = 1400;
 export const REFRESHING_RATE = 5;
 export const MEMHACK = false;
@@ -17,15 +16,15 @@ export const TICK_BEFORE_REFRESH = 10;
 //* 1300 -> 20 extensions 1 spawn
 
 export const class_to_source: Record<string, number> = {
-    harvester: 0,
-    builder: 0,
-    upgrader: 1,
+    harvester: 1,
+    builder: 1,
+    upgrader: 0,
 };
 
 export const limit_per_role_per_room: Record<number, Record<string, number>> = {
-    300: { harvester: 2, builder: 5, upgrader: 5 },
-    550: { harvester: 3, builder: 2, upgrader: 6 },
-    800: { harvester: 3, builder: 3, upgrader: 4 },
+    300: { harvester: 2, builder: 4, upgrader: 5 },
+    550: { harvester: 3, builder: 3, upgrader: 6 },
+    800: { harvester: 3, builder: 3, upgrader: 5 },
     1300: { upgrader: 3, harvester: 2, builder: 3 },
 };
 
@@ -69,10 +68,13 @@ export const room_schema = {
         transfer: [],
         build: [],
         repair: [],
+        attack: [],
+        heal: [],
     },
     checkpoints: {},
     creeps_name: [],
     cripple_creeps: [],
+    hostile_creeps: [],
     structure_id: {
         roads: [],
         sources: [],
@@ -207,6 +209,7 @@ export const bunkerRampartLevels = [
     "888888888888 ",
     " 8888888888  ",
 ];
+
 export const bunkerRamparts = bunkerRampartLevels.map((s) => s.replace(/[1-8]/g, "R"));
 
 // const roles = {

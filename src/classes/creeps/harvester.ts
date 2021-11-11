@@ -1,13 +1,14 @@
 import { ICreep, ACTION } from "./ICreep";
 import { profile } from "../../Profiler/Profiler";
 import * as Utils from "../../utils/utils";
+import * as Config from "../../config";
 
 @profile
 export class Harvester extends ICreep {
     constructor(creep_name: string) {
         super(creep_name);
         this.main_action = ACTION.TRANSFER;
-        this.creep.memory.source_to_target = 1;
+        // this.creep.memory.source_to_target = Config.class_to_source[this.creep.memory.role];
     }
 
     private _softlock_guard() {
@@ -31,6 +32,7 @@ export class Harvester extends ICreep {
             const target_obj = Game.getObjectById(this.target);
             if (target_obj.store.getFreeCapacity(RESOURCE_ENERGY) === 0) this._task_finished();
         }
+        // console.log(`task available from harvester ${this._task_available("transfer")}`);
 
         //*  dont need energy and task available. -> get task -> if no task go idle
         if (!this.target && this._task_available("transfer")) this._start_task("transfer", ACTION.TRANSFER);

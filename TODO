@@ -1,7 +1,6 @@
 //TODO: softlock for lvl 2 creep that never get created because extensions arent getting full.
 
 
-//TODO: get lvl of the room and kill low lvl creeps to get them replaced .
 
 
 //TODO do a task class and implements every tasks types.
@@ -10,7 +9,7 @@
 
 
 //TODO add command that spawn
-.spawnCreep([MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,WORK,WORK,WORK,WORK,CARRY,CARRY,CARRY,CARRY,CARRY], "sendhelp", {
+.spawnCreep([MOVE,MOVE,WORK,CARRY], "sendhelp", {
     memory: {
         _trav: undefined,
         _travel: undefined,

@@ -1,5 +1,5 @@
-import { REPAIR_THRESHOLD } from "../config";
-import { _C } from "./utils";
+import { REPAIR_THRESHOLD } from "../../config";
+import { _C } from "../../utils/utils";
 
 function from_id(id: Id<any>) {
     return Game.getObjectById(id);
@@ -233,7 +233,7 @@ function update_room_component(room: Room, update_list: string[]): boolean {
                     break;
                 }
                 case "containers_not_full": {
-                    Memory["rooms"][room.name].structure_ids["containers_not_full"] = _FIND_NOT_FULL_CONTAINERS_IDS(room); //TODO doesn't do shit
+                    Memory["rooms"][room.name].structure_ids["containers_not_full"] = _FIND_NOT_FULL_CONTAINERS_IDS(room);
                     break;
                 }
                 default: {

@@ -1,4 +1,4 @@
-import { REPAIR_THRESHOLD, TICK_BEFORE_REFRESH } from "../config";
+import { REPAIR_THRESHOLD, TICK_BEFORE_REFRESH, room_schema } from "../config";
 import * as Utils from "../utils/utils";
 import * as Config from "../config";
 import { profile } from "../Profiler/Profiler";
@@ -15,8 +15,8 @@ class Memory_manager implements Mnemonic {
     @mnemon
     structure_id: Record<string, any[]>;
 
-    @mnemon
-    room_tasks: Record<string, any[]>;
+    // @mnemon
+    // room_tasks: Record<string, any[]>;
 
     @mnemon
     classes_in_room: Record<string, number>;
@@ -35,6 +35,8 @@ class Memory_manager implements Mnemonic {
 
     @mnemon
     flags: string[];
+
+    // hostile_creeps: Id<Creep>[];
 
     @mnemon
     updater: Record<string, number>[];
@@ -79,41 +81,54 @@ class Memory_manager implements Mnemonic {
 
         this.lvl = Game.rooms[this.room_name].energyCapacityAvailable;
         this.energy_available = Game.rooms[this.room_name].energyAvailable;
+        this.update_room_component(room, ["hostile_creeps"], 5);
         this.update_room_component(room, ["flags"], 10);
         this.update_room_component(room, ["creeps"], 30);
-        // console.log("transfer task empty: " + _.isEmpty(this.room_tasks["transfer"]));
 
         //* TASKS ------------------------------------------------------------------
+        // if (_.isEmpty(Memory.rooms_new[this.room_name].room_tasks["transfer"])) {
+        // console.log(`no mnemon ${Memory.rooms_new[this.room_name].room_tasks["transfer"]}`);
+        // console.log(`mnemon ${Memory.rooms_new[this.room_name].room_tasks["transfer"]}`);
+        // console.log(`after locator no mnemon ${Memory.rooms_new[this.room_name].room_tasks["transfer"]}`);
+        // console.log(`after locator mnemon ${Memory.rooms_new[this.room_name].room_tasks["transfer"]}`);
 
-        if (_.isEmpty(this.room_tasks["transfer"])) {
+        if (_.isEmpty(Memory.rooms_new[this.room_name].room_tasks["transfer"])) {
             this.update_room_component(room, ["extensions_not_full", "containers_not_full", "dropped_resources", "towers", "spawns"], 5);
-            // this.updater["extensions_not_full"] = Game.time;
 
             const not_full_spawns = this._get_not_full(this.structure_id["spawns"]);
             const not_full_towers = this._get_not_full(this.structure_id["towers"]);
-            if (this.structure_id["extensions_not_full"].length > 0 || not_full_spawns) {
+            if (this.structure_id["extensions_not_full"].length > 0 || not_full_spawns || not_full_towers) {
+                // console.log("something isn't full");
+
                 // console.log("spawns that arent full " + not_full_spawns + " ->> ext + " + this.structure_id["extensions_not_full"]);
-                this.room_tasks["transfer"] = _.filter(
+                Memory.rooms_new[this.room_name].room_tasks["transfer"] = _.filter(
                     _.flatten([not_full_spawns, this.structure_id["extensions_not_full"], not_full_towers]),
                     (v) => !!v,
                 );
-                // console.log(_.size(this.room_tasks["transfer"]) + " transfer tasks added ");
+                // console.log(_.size(Memory.rooms_new[this.room_name].room_tasks["transfer"]) + " transfer tasks added ");
             }
         }
 
-        if (_.isEmpty(this.room_tasks["build"])) {
+        if (_.isEmpty(Memory.rooms_new[this.room_name].room_tasks["build"])) {
             this.update_room_component(room, ["construction_sites"], 5);
-            if (this.structure_id["construction_sites"].length > 0) this.room_tasks["build"] = this.structure_id["construction_sites"];
-            // console.log(_.size(this.room_tasks["build"]) + " build tasks added ");
+            if (this.structure_id["construction_sites"].length > 0)
+                Memory.rooms_new[this.room_name].room_tasks["build"] = this.structure_id["construction_sites"];
+            // console.log(_.size(Memory.rooms_new[this.room_name].room_tasks["build"]) + " build tasks added ");
         }
 
-        if (_.isEmpty(this.room_tasks["repair"]) && Game.time >= this.updater["repair"] + Config.REFRESHING_RATE) {
-            this.room_tasks["repair"] = this._find_all_repair_ids(room);
+        if (
+            _.isEmpty(Memory.rooms_new[this.room_name].room_tasks["repair"]) &&
+            Game.time >= this.updater["repair"] + Config.REFRESHING_RATE
+        ) {
+            Memory.rooms_new[this.room_name].room_tasks["repair"] = this._find_all_repair_ids(room);
             this.updater["repair"] = Game.time;
-            // if (this.room_tasks["repair"].length > 0) {
-            // console.log(_.size(this.room_tasks["repair"]) + " repair tasks added ");
+            // if (Memory.rooms_new[this.room_name].room_tasks["repair"].length > 0) {
+            // console.log(_.size(Memory.rooms_new[this.room_name].room_tasks["repair"]) + " repair tasks added ");
             // }
         }
+        // if (!_.isEmpty(Memory.rooms_new[this.room_name]["hostile_creeps"])) {
+        Memory.rooms_new[this.room_name].room_tasks["attack"] = Memory.rooms_new[this.room_name]["hostile_creeps"]; //Memory.rooms_new[this.room_name]["hostile_creeps"];
+        // }
     }
 
     public run() {}
@@ -224,6 +239,19 @@ class Memory_manager implements Mnemonic {
         );
     }
 
+    private _find_hostile_creeps(room: Room): Id<Creep>[] {
+        // private _find_hostile_creeps(room: Room): Id<Creep>[] {
+        // return _.map(
+        return _.map(room.find(FIND_HOSTILE_CREEPS), (c) => {
+            return c.id;
+        });
+
+        // (creep: Creep) => {
+        //     console.log(`creep ${creep} ${creep.id}`);
+        //     return creep.id;
+        // },
+    }
+
     private _creeps_variables(room: Room) {
         _.each(room.find(FIND_MY_CREEPS), (creep: Creep) => {
             if (!this.creeps_name.includes(creep.name)) {
@@ -243,6 +271,7 @@ class Memory_manager implements Mnemonic {
                     || this.updater[up] === 0){
                     match(up)
                         .with("creeps", () => { this._creeps_variables(room); })
+                        .with("hostile_creeps", () => { Memory.rooms_new[this.room_name]["hostile_creeps"] = this._find_hostile_creeps(room); })
                         .with("roads", () => { this.structure_id["roads"] = this._find_roads_ids(room); }) //? too costly.
                         .with("sources", () => { this.structure_id["sources"] = this._find_sources_ids(room); })
                         .with("spawns", () => { this.structure_id["spawns"] = this._find_spawns_ids(room); })
@@ -258,8 +287,8 @@ class Memory_manager implements Mnemonic {
                         .with(__, () => {Utils._C("UPDATER", -1000, "Couldn't find corresponding update for " + up);})
                         .exhaustive()
                     this.updater[up] = Game.time;
+                    console.log(up + " updated");
                 }
-                console.log(up + " updated")
             });
     }
 }

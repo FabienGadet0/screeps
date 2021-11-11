@@ -12,7 +12,7 @@ import "./utils/init_all";
 import "./prototypes/room_visuals";
 // import {Visual} from "./utils/visual"
 
-if (Config.MEMHACK) initMemHack();
+// if (Config.MEMHACK) initMemHack();
 
 function _manage_memory() {
     if (!Memory.uuid || Memory.uuid > 100) Memory.uuid = 0;

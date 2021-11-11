@@ -30,6 +30,7 @@ export abstract class ICreep {
     main_action: ACTION;
     doing_task: boolean;
     needs_energy: boolean;
+    kys: boolean;
 
     _ACTION_to_icon: Record<ACTION, string>;
     _ACTION_to_func: Record<ACTION, any>;
@@ -55,8 +56,9 @@ export abstract class ICreep {
         this.set(ACTION.WAITING_NEXT_TASK, undefined);
         this.main_action = ACTION.WAITING_NEXT_TASK;
         this.needs_energy = false;
-        this.creep.memory.source_to_target = 0;
-
+        this.kys = false;
+        // this.creep.memory.source_to_target = 0;
+        this.creep.memory.source_to_target = Config.class_to_source[this.creep.memory.role] || 0;
         this._ACTION_to_func = {
             IDLE: this.idle,
             // MOVETO: this.moveTo,
@@ -139,23 +141,10 @@ export abstract class ICreep {
     protected _start_task(task_name: string, action?: ACTION): void {
         const act = action ? action : this.main_action;
         if (!_.isEmpty(Memory.rooms_new[this.creep.room.name].room_tasks[task_name])) {
-            // const tasks = Utils.take_first(Memory.rooms_new[this.creep.room.name].room_tasks[task_name]);
             let task = undefined;
             if (Config.BUILD_TOGETHER && task_name === "build") task = Memory.rooms_new[this.creep.room.name].room_tasks[task_name][0];
             else task = Memory.rooms_new[this.creep.room.name].room_tasks[task_name].shift();
             this.set(act, task);
-            // Memory.rooms_new[this.creep.room.name].room_tasks[task_name] = tasks.new_list;
-            // this.creep.say("Task " + this.action);
-            // console.log(
-            //     "New task " +
-            //         this.action +
-            //         " ->> " +
-            //         this.target +
-            //         " " +
-            //         _.size(Memory.rooms_new[this.creep.room.name].room_tasks[task_name]) +
-            //         " tasks left for " +
-            //         task_name,
-            // );
 
             this.doing_task = true;
             this.creep.say(this._ACTION_to_icon[act]);
@@ -179,20 +168,26 @@ export abstract class ICreep {
 
     public update() {
         this.creep = Game.creeps[this.creep_name];
+        if (this.kys) this.creep.suicide();
+        else {
+            if (
+                this.creep.hits !== this.creep.hitsMax &&
+                !Memory.rooms_new[this.creep.room.name].room_tasks["heal"].includes(this.creep_id)
+            )
+                Memory.rooms_new[this.creep.room.name].room_tasks["heal"].push(this.creep_id);
 
-        this.ticksToLive = this.creep.ticksToLive;
+            this.manageRenew(Game.spawns[this.spawn_name] as StructureSpawn);
 
-        this.manageRenew(Game.spawns[this.spawn_name] as StructureSpawn);
+            if (this.action !== ACTION.RENEW) {
+                //? Renew is managed by the creep_manager
+                this.set(this.creep.memory.action, this.creep.memory.target);
+            }
 
-        if (this.action !== ACTION.RENEW) {
-            //? Renew is managed by the creep_manager
-            this.set(this.creep.memory.action, this.creep.memory.target);
+            if (this.is_full()) this.needs_energy = false;
+            if (this.is_empty()) this.needs_energy = true;
+
+            this.creep.memory.needs_energy = this.needs_energy;
         }
-
-        if (this.is_full()) this.needs_energy = false;
-        if (this.is_empty()) this.needs_energy = true;
-
-        this.creep.memory.needs_energy = this.needs_energy;
     }
 
     protected logic() {}
@@ -222,13 +217,13 @@ export abstract class ICreep {
 
             if (this.needs_energy && !this.is_renewing()) {
                 try {
-                    let source_target = Game.getObjectById(this.source_ids[this.creep.memory.source_to_target]) as Source;
+                    let source_target = Utils.get_by_id(this.source_ids[this.creep.memory.source_to_target]) as Source;
 
                     r = this.creep.harvest(source_target);
                     if (r === ERR_NOT_IN_RANGE) this.moveTo(source_target.pos);
                     //? If source is empty try another one , assuming there are only two in the map.
                     else if (r === ERR_NOT_ENOUGH_RESOURCES && this.source_ids.length > 0)
-                        source_target = Game.getObjectById(this.source_ids[this.creep.memory.source_to_target === 0 ? 1 : 0]) as Source;
+                        source_target = Utils.get_by_id(this.source_ids[this.creep.memory.source_to_target === 0 ? 1 : 0]) as Source;
                     else Utils._C(this.creep, this.last_return_code);
                 } catch (error) {}
             }
@@ -241,12 +236,14 @@ export abstract class ICreep {
             }
 
             if ((this.is_renewing() && this.target) || (!this.is_renewing() && this.target && this.action && !this.needs_energy)) {
-                const target_obj = Game.getObjectById(this.target);
-                if (!this.target) this.target = undefined;
-                this.last_return_code = this.action_to_func(target_obj);
+                try {
+                    const target_obj = Game.getObjectById(this.target);
+                    if (!this.target) this.target = undefined;
+                    this.last_return_code = this.action_to_func(target_obj);
 
-                if (this.last_return_code === ERR_NOT_IN_RANGE) this.moveTo(target_obj);
-                else Utils._C(this.creep, this.last_return_code);
+                    if (this.last_return_code === ERR_NOT_IN_RANGE) this.moveTo(target_obj);
+                    else Utils._C(this.creep, this.last_return_code);
+                } catch (error) {}
             } //else console.log("doing task with a problem " + this.debug_me());
             if (this.action === ACTION.IDLE) this.idle("");
         }

@@ -3,7 +3,7 @@ import * as Utils from "../utils/utils";
 import { profile } from "../Profiler/Profiler";
 import { Mnemonic, mnemon } from "../utils/mnemonic";
 import { match, __ } from "ts-pattern";
-import { FuncTimer } from "../utils/functimer";
+// import { FuncTimer } from "./deprecated/functimer";
 
 @profile
 export class Bunker_planner implements Mnemonic {
@@ -104,9 +104,7 @@ export class Bunker_planner implements Mnemonic {
         Memory.rooms[this.room_name].room_tasks["repair"] = [];
     }
 
-    public update(): void {
-        this.locator();
-    }
+    public update(): void {}
 
     private _road(from: any, to: Id<Structure>[]) {
         const from_obj = Game.getObjectById(from) as Structure;
@@ -136,5 +134,6 @@ export class Bunker_planner implements Mnemonic {
             this._create_structures_with_actual_lvl();
             this.updater["build_bunker"] = Game.time;
         }
+        this.locator();
     }
 }

@@ -1,6 +1,5 @@
 import * as Config from "../../config";
 import * as Utils from "../../utils/utils";
-import * as Finder from "../../utils/finder";
 import { ICreep, ACTION } from "./ICreep";
 import { profile } from "../../Profiler/Profiler";
 
@@ -13,7 +12,7 @@ export class Upgrader extends ICreep {
         this.controler_id = Game.spawns[this.spawn_name].room.controller!.id;
         this.main_action = ACTION.UPGRADE_CONTROLLER;
         this.set(ACTION.UPGRADE_CONTROLLER, this.controler_id);
-        this.creep.memory.source_to_target = 0;
+        // this.creep.memory.source_to_target = 0;
     }
 
     protected _softlock_guard() {

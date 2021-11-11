@@ -12,6 +12,15 @@ export function get_flag(name: string) {
     return Game.flags[name.toUpperCase()];
 }
 
+export function get_by_id(id: Id<any>): Structure | Creep | Source | Structure<StructureConstant> | undefined {
+    try {
+        return Game.getObjectById(id);
+    } catch (error) {
+        console.log("Couldn't retrieve object " + id);
+        return undefined;
+    }
+}
+
 //* countries , languages, names
 export function name_new_creep(role: string, lvl: number): string {
     return (

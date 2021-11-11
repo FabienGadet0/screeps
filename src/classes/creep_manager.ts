@@ -41,6 +41,7 @@ class Creep_manager implements Mnemonic {
 
         _.each(Game.rooms[room_name].find(FIND_MY_CREEPS), (creep: Creep) => {
             this.creeps[creep.name] = this._generate(creep.memory.role, creep.name);
+            console.log(`new creep ${creep.name} ${creep.memory.role}`);
         });
     }
 
@@ -56,8 +57,11 @@ class Creep_manager implements Mnemonic {
                 return new Builder(room_name);
             case "upgrader":
                 return new Upgrader(room_name);
+            default:
+                console.log(`wrong role ${role}`);
         }
     }
+
     public run(): void {
         this.creep_factory.run();
 
@@ -79,17 +83,14 @@ class Creep_manager implements Mnemonic {
     private _fix_low_level_creeps() {
         const room = Game.rooms[this.room_name];
         //? Check if all creeps are at the same level as the room otherwise kill it , the factory will then respawn one at the right level.
-        if (room.energyCapacityAvailable === room.energyAvailable) {
+        if (room.energyCapacityAvailable === room.energyAvailable && this.creeps_name.length > 0) {
             //? if room is full of energy
 
             const under_level_creeps: ICreep[] = _.filter(this.creeps, (c: ICreep) => {
                 return c.lvl < this.lvl;
             });
 
-            if (under_level_creeps) {
-                under_level_creeps[0].creep.say("Sayonara im too low level ");
-                under_level_creeps[0].creep.suicide();
-            }
+            if (under_level_creeps) under_level_creeps[0].kys = true;
         }
     }
 
@@ -97,7 +98,6 @@ class Creep_manager implements Mnemonic {
         for (const name in this.creeps) {
             if (!name) delete this.creeps[name];
         }
-        // _.each(this.creeps, (c: ICreep) => { if (!c) delete c });
     }
 
     public update(): boolean {
@@ -145,7 +145,7 @@ class Creep_manager implements Mnemonic {
         let r = 0;
         if (creep) {
             if (creep && creep.creep && !spawn.pos.isNearTo(creep.creep.pos)) console.log("renew " + creep + " waiting for you bitch");
-            else {
+            else if (creep && creep.creep) {
                 let r = Utils._C(spawn.name, spawn.renewCreep(creep.creep));
                 // if (r === OK) console.log("renew creep " + creep.creep);
             }

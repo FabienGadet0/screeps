@@ -76,15 +76,15 @@ export class ErrorMapper {
         return () => {
             //* Memhack
             // if (MEMHACK) {
-            if (tick && tick + 1 === Game.time && memory) {
-                // this line is required to disable the default Memory deserialization
-                delete global.Memory;
-                global.Memory = memory;
-            } else {
-                memory = Memory;
-            }
+            //     if (tick && tick + 1 === Game.time && memory) {
+            //         // this line is required to disable the default Memory deserialization
+            //         delete global.Memory;
+            //         global.Memory = memory;
+            //     } else {
+            //         memory = Memory;
+            //     }
 
-            tick = Game.time;
+            //     tick = Game.time;
             // }
             try {
                 loop();

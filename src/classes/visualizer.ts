@@ -12,7 +12,7 @@ export class Visualizer implements Mnemonic {
     room_name: string;
     _visual: RoomVisual;
 
-    @mnemon
+    // @mnemon
     room_tasks: Record<string, any>;
 
     @mnemon
@@ -59,27 +59,29 @@ export class Visualizer implements Mnemonic {
             this.draw_creeps_info();
             if (this.flags.includes("BUNKER")) this.show_blueprint(Game.flags["BUNKER"].pos);
         } catch (error) {
-            console.log("error in visualizer");
+            console.log("error in visualizer :" + error);
         }
     }
 
     private draw_room_info() {
         let to_print = [];
         to_print.push(" ");
-        to_print.push(` RCL              ${Game.rooms[this.room_name].controller?.level}   `);
-        to_print.push(` LVL              ${this.lvl}   `);
-        to_print.push(` Room Name  ${this.room_name}    `);
+        to_print.push(` RCL              ${Game.rooms[this.room_name].controller?.level}    `);
+        to_print.push(` LVL              ${this.lvl}    `);
+        to_print.push(` Room Name  ${this.room_name}     `);
         to_print.push(" ");
         this._visual.infoBox(_.flatten(to_print), this.info_flags.x, this.info_flags.y, { color: "white" });
     }
 
     public draw_tasks() {
         let to_print = [];
+        // console.log(`build task from viz ${Memory.rooms_new[this.room_name].room_tasks["build"]}`);
+
         to_print.push(" ");
-        _.each(Object.keys(this.room_tasks), (task_name: string) => {
+        _.each(Object.keys(Memory.rooms_new[this.room_name].room_tasks), (task_name: string) => {
             if (task_name !== "updater") {
-                const size = _.size(this.room_tasks[task_name]);
-                size > 10 ? to_print.push([` ${size}  ${task_name}           `]) : to_print.push([` ${size}    ${task_name}          `]);
+                const size = _.size(Memory.rooms_new[this.room_name].room_tasks[task_name]);
+                size >= 10 ? to_print.push([` ${size}  ${task_name}           `]) : to_print.push([` ${size}  ${task_name}          `]);
             }
         });
         to_print.push(" ");
@@ -89,12 +91,12 @@ export class Visualizer implements Mnemonic {
         let to_print = [];
         to_print.push(" ");
         _.each(Object.keys(this.classes_in_room), (role_name: string) => {
-            this.classes_in_room[role_name] > 10
-                ? to_print.push([` ${this.classes_in_room[role_name]}   ${role_name}          `])
-                : to_print.push([` ${this.classes_in_room[role_name]}    ${role_name}         `]);
+            this.classes_in_room[role_name] >= 10
+                ? to_print.push([` ${this.classes_in_room[role_name]}  ${role_name}           `])
+                : to_print.push([` ${this.classes_in_room[role_name]}   ${role_name}          `]);
         });
         to_print.push(" ");
-        this._visual.infoBox(_.flatten(to_print), this.info_flags.x, this.info_flags.y + 6, { color: "white" });
+        this._visual.infoBox(_.flatten(to_print), this.info_flags.x, this.info_flags.y + 7, { color: "white" });
     }
 
     public show_blueprint(original_pos: RoomPosition): void {
