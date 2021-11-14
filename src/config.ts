@@ -1,14 +1,15 @@
 import * as Utils from "./utils/utils";
 
-export const PERCENTAGE_TICKS_BEFORE_NEEDS_REFILL = 0.4;
+export const PERCENTAGE_TICKS_BEFORE_NEEDS_REFILL = 0.55;
 export const MAX_DEPTH_FOR_BUILDING = 3;
-export const REPAIR_THRESHOLD = 0.9;
+export const REPAIR_THRESHOLD = 0.6;
 export const MAX_TICKS_TO_LIVE = 1400;
 export const REFRESHING_RATE = 5;
 export const MEMHACK = false;
 export const BUILD_TOGETHER = false;
 export const TICK_BEFORE_REFRESH = 10;
 export const EMERGENCY_CRIPPLE = 3;
+
 //? Lvls :
 //* 300  -> 1 spawn
 //* 550  -> 5 extensions 1 spawn
@@ -80,13 +81,13 @@ export const roles_settings: Record<number, Record<string, role_setting>> = {
         builder: {
             source: 1,
             spawn_priority: SPAWN_IMPORTANCE.MID,
-            limit: 3,
+            limit: 2,
             body_part: [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, WORK, WORK, WORK, CARRY, CARRY, CARRY],
         },
         upgrader: {
             source: 0,
             spawn_priority: SPAWN_IMPORTANCE.MID,
-            limit: 4,
+            limit: 3,
             body_part: [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, WORK, WORK, WORK, CARRY, CARRY, CARRY],
         },
     },
@@ -177,64 +178,21 @@ export const roles_settings: Record<number, Record<string, role_setting>> = {
     },
 };
 
-// export const class_to_source: Record<string,number> = {
-//     harvester: 1,
-//     builder: 1,
-//     upgrader: 0,
-// };
-
-// export const limit_per_role_per_room: Record<number,Record<string,number>> = {
-//     300: { harvester: 2,builder: 4,upgrader: 5 },
-//     550: { harvester: 3,builder: 3,upgrader: 6 },
-//     800: { harvester: 3,builder: 3,upgrader: 5 },
-//     1300: { upgrader: 3,harvester: 2,builder: 3 },
-// };
-
-// prettier-ignore
-// //? Lvl = controller lvl if all extensions have been built ,example -> lvl2 is 650 energy in total.
-// export let role_to_bodyparts: Record<number,Record<string,BodyPartConstant[]>> = {
-//     300: {
-//         harvester: [MOVE,MOVE,WORK,CARRY],
-//         builder: [MOVE,MOVE,WORK,CARRY],
-//         upgrader: [MOVE,MOVE,WORK,CARRY],
-//     },
-//     550: {
-//         harvester: [MOVE,MOVE,MOVE,MOVE,WORK,WORK,CARRY,CARRY],
-//     builder: [MOVE,MOVE,MOVE,MOVE,WORK,WORK,CARRY,CARRY],
-//         upgrader: [MOVE,MOVE,MOVE,WORK,WORK,WORK,CARRY,CARRY],//? Fat mod
-//     },
-//     800: {
-//         harvester: [MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,WORK,WORK,WORK,CARRY,CARRY,CARRY],
-//         builder: [MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,WORK,WORK,WORK,CARRY,CARRY,CARRY],
-//         upgrader: [MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,WORK,WORK,WORK,CARRY,CARRY,CARRY],//? Fat mod
-//     },
-//     1300: {
-//         harvester: [MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,WORK,WORK,WORK,WORK,WORK,CARRY,CARRY,CARRY,CARRY,CARRY],
-//         builder: [MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,WORK,WORK,WORK,WORK,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY],
-//         upgrader: [MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,WORK,WORK,WORK,WORK,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY],//? Fat mod
-//     },
-// };
-
-export function total_possible_creeps(lvl: number) {
-    return _.sum(roles_settings[Utils.round_lvl(lvl)], (role: any) => { return role.limit } );
+export function maximum_creep_for_role(role: string, lvl: number) {
+    return roles_settings[Utils.round_lvl(lvl)][role].limit;
 }
 
-// export function all_roles(lvl: number) {
-//     return Object.keys(
-//         _.sortBy(roles_settings[Utils.round_lvl(lvl)], (role: role_setting) => {
-//             return role.spawn_priority;
-//         }),
-//     );
-// }
+export function total_possible_creeps(lvl: number) {
+    return _.sum(roles_settings[Utils.round_lvl(lvl)], (role: any) => {
+        return role.limit;
+    });
+}
+
 export function all_roles(lvl: number) {
     return Object.entries(roles_settings[Utils.round_lvl(lvl)])
         .sort(([, a], [, b]) => a.spawn_priority - b.spawn_priority)
         .map(([role]) => role);
 }
-
-// export function all_roles(lvl: number) {
-//     return Object.keys(roles_settings[Utils.round_lvl(lvl)]);
-// }
 
 export const room_schema = {
     classes_in_room: {},
@@ -258,9 +216,12 @@ export const room_schema = {
         extensions: [],
         minerals: [],
         extensions_not_full: [],
+        ruins_with_energy: [],
+        links: [],
         flags: [],
         dropped_resources: [],
         containers_not_full: [],
+        repair_rampart: [],
         repair: [],
     },
     build_plan: {
@@ -307,7 +268,9 @@ export const room_schema = {
         transfer: 0,
         build: 0,
         build_bunker: 0,
+        repair_rampart: 0,
         ruins_with_energy: 0,
+        links: 0,
         towers: 0,
     },
 };
@@ -376,11 +339,11 @@ export const bunkerRampartLevels = [
     " 888888888888",
     "8888888888888",
     "88888    8888",
-    "8888  58  888",
-    "888   4 7 888",
-    "888 44 8  888",
-    "888 8 4   888",
-    "888  886 8888",
+    "8888  78  888",
+    "888   7 7 888",
+    "888 77 8  888",
+    "888 8 7   888",
+    "888  887 8888",
     "8888    88888",
     "8888888888888",
     "888888888888 ",

@@ -55,7 +55,9 @@ class Memory_manager implements Mnemonic {
             "minerals",
             "repair",
             "tower",
-            "ruins",
+            "links",
+            "repair_rampart",
+            "ruins_with_energy",
             "extensions_not_full",
             "containers_not_full",
         ]);
@@ -82,10 +84,9 @@ class Memory_manager implements Mnemonic {
 
         this.lvl = Game.rooms[this.room_name].energyCapacityAvailable;
         this.energy_available = Game.rooms[this.room_name].energyAvailable;
-        this.update_room_component(room, ["hostile_creeps"], 5);
-        this.update_room_component(room, ["flags"], 10);
+        this.update_room_component(room, ["hostile_creeps", "flags"], 5);
         this.update_room_component(room, ["creeps"], 30);
-        this.update_room_component(room, ["ruins_with_energy"], 100);
+        this.update_room_component(room, ["ruins_with_energy", "links"], 100);
 
         //* TASKS ------------------------------------------------------------------
 
@@ -97,10 +98,7 @@ class Memory_manager implements Mnemonic {
             if (this.structure_id["extensions_not_full"].length > 0 || not_full_spawns || not_full_towers) {
                 let to_add = [not_full_spawns, this.structure_id["extensions_not_full"]];
                 if (this.structure_id["extensions_not_full"].length === 0) to_add.push(not_full_towers);
-                Memory.rooms_new[this.room_name].room_tasks["transfer"] = _.filter(
-                    _.flatten(to_add), //TODO ADD and see when to add it not_full_towers
-                    (v) => !!v,
-                );
+                Memory.rooms_new[this.room_name].room_tasks["transfer"] = _.filter(_.flatten(to_add), (v) => !!v);
             }
         }
 
@@ -108,22 +106,23 @@ class Memory_manager implements Mnemonic {
             this.update_room_component(room, ["construction_sites"], 5);
             if (this.structure_id["construction_sites"].length > 0)
                 Memory.rooms_new[this.room_name].room_tasks["build"] = this.structure_id["construction_sites"];
-            // console.log(_.size(Memory.rooms_new[this.room_name].room_tasks["build"]) + " build tasks added ");
         }
 
         if (
             _.isEmpty(Memory.rooms_new[this.room_name].room_tasks["repair"]) &&
             Game.time >= this.updater["repair"] + Config.REFRESHING_RATE
         ) {
-            Memory.rooms_new[this.room_name].room_tasks["repair"] = this._find_all_repair_ids(room);
-            this.updater["repair"] = Game.time;
-            // if (Memory.rooms_new[this.room_name].room_tasks["repair"].length > 0) {
-            // console.log(_.size(Memory.rooms_new[this.room_name].room_tasks["repair"]) + " repair tasks added ");
-            // }
+            const repairs = this._find_all_repair_ids(room);
+            if (repairs.length > 0) {
+                Memory.rooms_new[this.room_name].room_tasks["repair"] = repairs;
+                this.updater["repair"] = Game.time;
+            } else if (Memory.rooms_new[this.room_name].room_tasks["build"].length === 0) {
+                Memory.rooms_new[this.room_name].room_tasks["repair"] = this.find_repair_rampart(room);
+                this.updater["repair"] = Game.time;
+            }
         }
-        // if (!_.isEmpty(Memory.rooms_new[this.room_name]["hostile_creeps"])) {
-        Memory.rooms_new[this.room_name].room_tasks["attack"] = Memory.rooms_new[this.room_name]["hostile_creeps"]; //Memory.rooms_new[this.room_name]["hostile_creeps"];
-        // }
+
+        Memory.rooms_new[this.room_name].room_tasks["attack"] = Memory.rooms_new[this.room_name]["hostile_creeps"];
     }
 
     public run() {}
@@ -180,6 +179,13 @@ class Memory_manager implements Mnemonic {
         );
     }
 
+    private _find_links(room: Room): Id<any>[] {
+        return room
+            .find(FIND_MY_STRUCTURES)
+            .filter((structure) => structure.structureType === STRUCTURE_LINK)
+            .map((t) => t.id);
+    }
+
     private _find_not_full_containers_ids(room: Room): Id<any>[] {
         return _.map(
             room.find(FIND_MY_STRUCTURES, {
@@ -194,14 +200,14 @@ class Memory_manager implements Mnemonic {
         );
     }
 
-    private _find_dropped_resources_ids(room: Room): Id<Resource>[] {
-        return _.map(room.find(FIND_DROPPED_RESOURCES), (resource) => {
+    private _find_towers_ids(room: Room): Id<any>[] {
+        return _.map(room.find(FIND_MY_STRUCTURES, { filter: { structureType: STRUCTURE_TOWER } }), (resource) => {
             return resource.id;
         });
     }
 
-    private _find_towers_ids(room: Room): Id<any>[] {
-        return _.map(room.find(FIND_MY_STRUCTURES, { filter: { structureType: STRUCTURE_TOWER } }), (resource) => {
+    private _find_dropped_resources_ids(room: Room): Id<Resource>[] {
+        return _.map(room.find(FIND_DROPPED_RESOURCES), (resource) => {
             return resource.id;
         });
     }
@@ -211,6 +217,7 @@ class Memory_manager implements Mnemonic {
             return flag.name;
         });
     }
+
     private _find_all_creeps(room: Room) {
         return _.map(room.find(FIND_MY_CREEPS), (creep: Creep) => {
             return creep.name;
@@ -221,12 +228,23 @@ class Memory_manager implements Mnemonic {
     private _find_all_repair_ids(room: Room): Id<any>[] {
         return _.map(
             room
-                .find(FIND_MY_STRUCTURES, { filter: (i) => i.hits / i.hitsMax < REPAIR_THRESHOLD })
+                .find(FIND_MY_STRUCTURES, { filter: (i) => i.hits / i.hitsMax < REPAIR_THRESHOLD && i.structureType !== STRUCTURE_RAMPART })
                 .concat(
                     room.find(FIND_STRUCTURES, {
                         filter: (i) => i.structureType == STRUCTURE_ROAD && i.hits / i.hitsMax < REPAIR_THRESHOLD,
                     }),
                 )
+                .slice(0, 5),
+            (struct) => {
+                return struct.id;
+            },
+        );
+    }
+
+    private find_repair_rampart(room: Room): Id<any>[] {
+        return _.map(
+            room
+                .find(FIND_MY_STRUCTURES, { filter: (i) => i.hits / i.hitsMax < REPAIR_THRESHOLD && i.structureType === STRUCTURE_RAMPART })
                 .slice(0, 5),
             (struct) => {
                 return struct.id;
@@ -275,7 +293,8 @@ class Memory_manager implements Mnemonic {
                         .with("creeps", () => { this._creeps_variables(room); })
                         .with("hostile_creeps", () => { Memory.rooms_new[this.room_name]["hostile_creeps"] = this._find_hostile_creeps(room); })
                         .with("roads", () => { this.structure_id["roads"] = this._find_roads_ids(room); }) //? too costly.
-                        .with("ruins", () => { this.structure_id["ruins_with_energy"] = this._find_ruins_with_resources(room); }) //? too costly.
+                        .with("ruins_with_energy", () => { this.structure_id["ruins_with_energy"] = this._find_ruins_with_resources(room); })
+                        .with("links", () => { this.structure_id["links"] = this._find_links(room); })
                         .with("sources", () => { this.structure_id["sources"] = this._find_sources_ids(room); })
                         .with("spawns", () => { this.structure_id["spawns"] = this._find_spawns_ids(room); })
                         .with("construction_sites", () => { this.structure_id["construction_sites"] = this._find_construction_sites_ids(room); })
@@ -283,6 +302,7 @@ class Memory_manager implements Mnemonic {
                         .with("towers", () => { this.structure_id["towers"] = this._find_towers_ids(room); })
                         .with("minerals", () => { this.structure_id["minerals"] = this._find_minerals_ids(room); })
                         .with("repair", () => { this.structure_id["repair"] = this._find_all_repair_ids(room); })
+                        .with("repair_rampart", () => { this.structure_id["repair_rampart"] = this.find_repair_rampart(room); })
                         .with("flags", () => { this.flags = this._find_flags_names(room); })
                         .with("extensions_not_full", () => { this.structure_id["extensions_not_full"] = this._find_not_full_extension_ids(room); })
                         .with("dropped_resources", () => { this.structure_id["dropped_resources"] = this._find_dropped_resources_ids(room); })

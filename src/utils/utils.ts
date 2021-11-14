@@ -68,7 +68,7 @@ function number_to_screeps_return_code(code: ScreepsReturnCode | CreepMoveReturn
 // prettier-ignore
 function _C(id: any, code: ScreepsReturnCode | CreepMoveReturnCode | number, additional_msg: string = ""):  ScreepsReturnCode | CreepMoveReturnCode | number{
     const code_str = number_to_screeps_return_code(code);
-    if (code !== OK && Memory.debug_mode) console.log("[ERR][" + id + "] " + code + " -> " + code_str + " " + additional_msg);
+    if (code !== OK && Memory.debug_mode) console.log("_C [" + id + "] " + code + " -> " + code_str + " " + additional_msg);
     return code;
 }
 

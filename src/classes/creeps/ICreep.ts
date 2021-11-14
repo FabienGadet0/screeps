@@ -3,6 +3,7 @@
 import * as Config from "../../config";
 import * as Utils from "../../utils/utils";
 import { match, __, when, select } from "ts-pattern";
+import { profile } from "Profiler";
 
 export enum ACTION {
     IDLE = "IDLE",
@@ -16,6 +17,7 @@ export enum ACTION {
     WAITING_NEXT_TASK = "WAITING_NEXT_TASK",
 }
 
+@profile
 export abstract class ICreep {
     creep_name: string;
     creep_id: Id<Creep>;

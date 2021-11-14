@@ -110,7 +110,7 @@ export abstract class IBuilding {
     }
 
     public has_energy(): boolean {
-        return this.obj.store[RESOURCE_ENERGY] > 0;
+        return this.obj.store[RESOURCE_ENERGY] > 10;
     }
 
     public is_full(): boolean {

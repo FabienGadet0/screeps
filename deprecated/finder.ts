@@ -165,6 +165,7 @@ function _FIND_ALL_repair(room: Room): Structure[] {
 }
 
 function _FIND_ALL_repair_IDS(room: Room): Id<any>[] {
+
     return _.map(
         room
             .find(FIND_MY_STRUCTURES, { filter: (i) => i.hits / i.hitsMax < REPAIR_THRESHOLD })

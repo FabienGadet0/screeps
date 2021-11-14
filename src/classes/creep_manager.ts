@@ -78,24 +78,22 @@ class Creep_manager implements Mnemonic {
         _.each(this.creeps, (creep: ICreep) => {
             creep.run();
         });
+
         const spawn = Game.getObjectById(this.spawn_id) as StructureSpawn;
 
         if (Memory.rooms_new[this.room_name].cripple_creeps.length > 0 && !spawn.spawning) {
             const close_creep = _.map(Memory.rooms_new[this.room_name].cripple_creeps, (c: string) => {
                 if (this.creeps[c] && this.creeps[c].creep && this.creeps[c].creep.pos.isNearTo(spawn)) return this.creeps[c];
             });
-            if (close_creep) {
-                // console.log(`close_creep[0] -> ${close_creep[0].creep}`);
-
-                this.tryRenew(close_creep[0], spawn);
-            }
+            if (close_creep) this.tryRenew(close_creep[0], spawn);
         }
     }
 
     private _fix_low_level_creeps() {
         const room = Game.rooms[this.room_name];
+
         //? Check if all creeps are at the same level as the room otherwise kill it , the factory will then respawn one at the right level.
-        if (room.energyCapacityAvailable === room.energyAvailable && this.creeps_name.length > 0) {
+        if (room.energyCapacityAvailable === room.energyAvailable && _.size(this.creeps_name) > Config.total_possible_creeps(this.lvl)) {
             //TODO and if creep_queue is empty.
             //? if room is full of energy
 
@@ -103,24 +101,24 @@ class Creep_manager implements Mnemonic {
                 return c.lvl < this.lvl;
             });
 
-            if (under_level_creeps[0] && under_level_creeps[0].kys) under_level_creeps[0].kys = true;
+            if (under_level_creeps[0]) {
+                under_level_creeps[0].kys = true;
+                console.log(`${under_level_creeps[0].creep} -> kys`);
+            }
         }
     }
 
     private _clean_creep() {
-        // if (Game.rooms[this.room_name].energyAvailable === Game.rooms[this.room_name].energyCapacityAvailable) {
-        //     Object.entries(this.classes_in_room).map(([key,value]))
-        // }
-        // for (const name in this.creeps) {
-        //     if (!name) delete this.creeps[name];
-        // }
+        if (_.size(this.creeps_name) > Config.total_possible_creeps(this.lvl)) {
+            Object.entries(this.classes_in_room).map(([key, value]) => {
+                const creeps = _.filter(this.creeps, (creep: ICreep) => creep.creep.memory.role === key);
+                if (_.size(creeps) > Config.maximum_creep_for_role(key, this.lvl)) {
+                    creeps[0].creep.say("sayonara");
+                    creeps[0].creep.suicide();
+                }
+            });
+        }
     }
-
-    // private _creep_queue() {
-    //     _.each(this.classes_in_room, (role: string, amount : number) => {
-    //         const limit = Config.limit_per_role_per_room[Utils.round_lvl(this.lvl)][role];
-    //     });
-    // }
 
     public update(): boolean {
         this.locator();
