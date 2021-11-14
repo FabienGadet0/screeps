@@ -8,61 +8,237 @@ export const REFRESHING_RATE = 5;
 export const MEMHACK = false;
 export const BUILD_TOGETHER = false;
 export const TICK_BEFORE_REFRESH = 10;
-
+export const EMERGENCY_CRIPPLE = 3;
 //? Lvls :
 //* 300  -> 1 spawn
 //* 550  -> 5 extensions 1 spawn
 //* 800  -> 10 extensions 1 spawn
 //* 1300 -> 20 extensions 1 spawn
 
-export const class_to_source: Record<string, number> = {
-    harvester: 1,
-    builder: 1,
-    upgrader: 0,
-};
+export enum SPAWN_IMPORTANCE {
+    LOW = 0,
+    MID,
+    HIGH,
+    VERY_HIGH,
+}
 
-export const limit_per_role_per_room: Record<number, Record<string, number>> = {
-    300: { harvester: 2, builder: 4, upgrader: 5 },
-    550: { harvester: 3, builder: 3, upgrader: 6 },
-    800: { harvester: 3, builder: 3, upgrader: 5 },
-    1300: { upgrader: 3, harvester: 2, builder: 3 },
-};
+interface role_setting {
+    source: number;
+    spawn_priority: SPAWN_IMPORTANCE;
+    limit: number;
+    body_part: BodyPartConstant[];
+}
 
-// prettier-ignore
-//? Lvl = controller lvl if all extensions have been built , example -> lvl2 is 650 energy in total.
-export let role_to_bodyparts: Record<number, Record<string, BodyPartConstant[]>> = {
+export const roles_settings: Record<number, Record<string, role_setting>> = {
     300: {
-        harvester: [MOVE,MOVE,WORK,CARRY],
-        builder: [MOVE,MOVE,WORK,CARRY],
-        upgrader: [MOVE,MOVE,WORK,CARRY],
+        harvester: {
+            source: 1,
+            spawn_priority: SPAWN_IMPORTANCE.VERY_HIGH,
+            limit: 2,
+            body_part: [MOVE, MOVE, WORK, CARRY],
+        },
+        builder: {
+            source: 1,
+            spawn_priority: SPAWN_IMPORTANCE.LOW,
+            limit: 2,
+            body_part: [MOVE, MOVE, WORK, CARRY],
+        },
+        upgrader: {
+            source: 0,
+            spawn_priority: SPAWN_IMPORTANCE.HIGH,
+            limit: 2,
+            body_part: [MOVE, MOVE, WORK, CARRY],
+        },
     },
     550: {
-        harvester: [MOVE,MOVE,MOVE,MOVE,WORK,WORK,CARRY,CARRY],
-    builder: [MOVE,MOVE,MOVE,MOVE,WORK,WORK,CARRY,CARRY],
-        upgrader: [MOVE,MOVE,MOVE,WORK,WORK,WORK,CARRY,CARRY],//? Fat mod
+        harvester: {
+            source: 1,
+            spawn_priority: SPAWN_IMPORTANCE.VERY_HIGH,
+            limit: 3,
+            body_part: [MOVE, MOVE, MOVE, MOVE, WORK, WORK, CARRY, CARRY],
+        },
+        builder: {
+            source: 1,
+            spawn_priority: SPAWN_IMPORTANCE.MID,
+            limit: 3,
+            body_part: [MOVE, MOVE, MOVE, MOVE, WORK, WORK, CARRY, CARRY],
+        },
+        upgrader: {
+            source: 0,
+            spawn_priority: SPAWN_IMPORTANCE.MID,
+            limit: 6,
+            body_part: [MOVE, MOVE, MOVE, WORK, WORK, WORK, CARRY, CARRY],
+        },
     },
     800: {
-        harvester: [MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,WORK,WORK,WORK,CARRY,CARRY,CARRY],
-        builder: [MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,WORK,WORK,WORK,CARRY,CARRY,CARRY],
-        upgrader: [MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,WORK,WORK,WORK,CARRY,CARRY,CARRY],//? Fat mod
+        harvester: {
+            source: 1,
+            spawn_priority: SPAWN_IMPORTANCE.VERY_HIGH,
+            limit: 2,
+            body_part: [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, WORK, WORK, WORK, CARRY, CARRY, CARRY],
+        },
+        builder: {
+            source: 1,
+            spawn_priority: SPAWN_IMPORTANCE.MID,
+            limit: 3,
+            body_part: [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, WORK, WORK, WORK, CARRY, CARRY, CARRY],
+        },
+        upgrader: {
+            source: 0,
+            spawn_priority: SPAWN_IMPORTANCE.MID,
+            limit: 4,
+            body_part: [MOVE, MOVE, MOVE, MOVE, MOVE, MOVE, WORK, WORK, WORK, CARRY, CARRY, CARRY],
+        },
     },
     1300: {
-        harvester: [MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,WORK,WORK,WORK,WORK,WORK,CARRY,CARRY,CARRY,CARRY,CARRY],
-        builder: [MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,WORK,WORK,WORK,WORK,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY],
-        upgrader: [MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,WORK,WORK,WORK,WORK,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY],//? Fat mod
+        harvester: {
+            source: 1,
+            spawn_priority: SPAWN_IMPORTANCE.VERY_HIGH,
+            limit: 2,
+            body_part: [
+                MOVE,
+                MOVE,
+                MOVE,
+                MOVE,
+                MOVE,
+                MOVE,
+                MOVE,
+                MOVE,
+                MOVE,
+                MOVE,
+                WORK,
+                WORK,
+                WORK,
+                WORK,
+                WORK,
+                CARRY,
+                CARRY,
+                CARRY,
+                CARRY,
+                CARRY,
+            ],
+        },
+        builder: {
+            source: 1,
+            spawn_priority: SPAWN_IMPORTANCE.HIGH,
+            limit: 2,
+            body_part: [
+                MOVE,
+                MOVE,
+                MOVE,
+                MOVE,
+                MOVE,
+                MOVE,
+                MOVE,
+                MOVE,
+                MOVE,
+                MOVE,
+                WORK,
+                WORK,
+                WORK,
+                WORK,
+                WORK,
+                CARRY,
+                CARRY,
+                CARRY,
+                CARRY,
+                CARRY,
+            ],
+        },
+        upgrader: {
+            source: 0,
+            spawn_priority: SPAWN_IMPORTANCE.MID,
+            limit: 2,
+            body_part: [
+                MOVE,
+                MOVE,
+                MOVE,
+                MOVE,
+                MOVE,
+                MOVE,
+                MOVE,
+                MOVE,
+                MOVE,
+                MOVE,
+                MOVE,
+                WORK,
+                WORK,
+                WORK,
+                WORK,
+                CARRY,
+                CARRY,
+                CARRY,
+                CARRY,
+                CARRY,
+                CARRY,
+                CARRY,
+            ],
+        },
     },
 };
 
+// export const class_to_source: Record<string,number> = {
+//     harvester: 1,
+//     builder: 1,
+//     upgrader: 0,
+// };
+
+// export const limit_per_role_per_room: Record<number,Record<string,number>> = {
+//     300: { harvester: 2,builder: 4,upgrader: 5 },
+//     550: { harvester: 3,builder: 3,upgrader: 6 },
+//     800: { harvester: 3,builder: 3,upgrader: 5 },
+//     1300: { upgrader: 3,harvester: 2,builder: 3 },
+// };
+
+// prettier-ignore
+// //? Lvl = controller lvl if all extensions have been built ,example -> lvl2 is 650 energy in total.
+// export let role_to_bodyparts: Record<number,Record<string,BodyPartConstant[]>> = {
+//     300: {
+//         harvester: [MOVE,MOVE,WORK,CARRY],
+//         builder: [MOVE,MOVE,WORK,CARRY],
+//         upgrader: [MOVE,MOVE,WORK,CARRY],
+//     },
+//     550: {
+//         harvester: [MOVE,MOVE,MOVE,MOVE,WORK,WORK,CARRY,CARRY],
+//     builder: [MOVE,MOVE,MOVE,MOVE,WORK,WORK,CARRY,CARRY],
+//         upgrader: [MOVE,MOVE,MOVE,WORK,WORK,WORK,CARRY,CARRY],//? Fat mod
+//     },
+//     800: {
+//         harvester: [MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,WORK,WORK,WORK,CARRY,CARRY,CARRY],
+//         builder: [MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,WORK,WORK,WORK,CARRY,CARRY,CARRY],
+//         upgrader: [MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,WORK,WORK,WORK,CARRY,CARRY,CARRY],//? Fat mod
+//     },
+//     1300: {
+//         harvester: [MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,WORK,WORK,WORK,WORK,WORK,CARRY,CARRY,CARRY,CARRY,CARRY],
+//         builder: [MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,WORK,WORK,WORK,WORK,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY],
+//         upgrader: [MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,MOVE,WORK,WORK,WORK,WORK,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY,CARRY],//? Fat mod
+//     },
+// };
+
 export function total_possible_creeps(lvl: number) {
-    return _.sum(Object.values(limit_per_role_per_room[Utils.round_lvl(lvl)]));
+    return _.sum(roles_settings[Utils.round_lvl(lvl)], (role: any) => { return role.limit } );
 }
 
+// export function all_roles(lvl: number) {
+//     return Object.keys(
+//         _.sortBy(roles_settings[Utils.round_lvl(lvl)], (role: role_setting) => {
+//             return role.spawn_priority;
+//         }),
+//     );
+// }
 export function all_roles(lvl: number) {
-    return Object.keys(limit_per_role_per_room[Utils.round_lvl(lvl)]);
+    return Object.entries(roles_settings[Utils.round_lvl(lvl)])
+        .sort(([, a], [, b]) => a.spawn_priority - b.spawn_priority)
+        .map(([role]) => role);
 }
+
+// export function all_roles(lvl: number) {
+//     return Object.keys(roles_settings[Utils.round_lvl(lvl)]);
+// }
 
 export const room_schema = {
     classes_in_room: {},
+    spawning_queue: {},
     lvl: 300,
     room_tasks: {
         transfer: [],
@@ -100,7 +276,6 @@ export const room_schema = {
         delete_sites: false,
         delete_roads: false,
     },
-
     commands: { all_harvest: undefined, all_transfer_to_spawn: undefined },
     update_map: {
         new_creep: false,
@@ -132,6 +307,8 @@ export const room_schema = {
         transfer: 0,
         build: 0,
         build_bunker: 0,
+        ruins_with_energy: 0,
+        towers: 0,
     },
 };
 
@@ -208,6 +385,22 @@ export const bunkerRampartLevels = [
     "8888888888888",
     "888888888888 ",
     " 8888888888  ",
+];
+
+export const bunkerRampartBlueprint = [
+    "  RRRRRRRRRR ",
+    " RRRRRRRRRRRR",
+    "RRRRRRRRRRRRR",
+    "RRRRR    RRRR",
+    "RRRR  RR  RRR",
+    "RRR   R R RRR",
+    "RRR RR R  RRR",
+    "RRR R R   RRR",
+    "RRR  RRR RRRR",
+    "RRRR    RRRRR",
+    "RRRRRRRRRRRRR",
+    "RRRRRRRRRRRR ",
+    " RRRRRRRRRR  ",
 ];
 
 export const bunkerRamparts = bunkerRampartLevels.map((s) => s.replace(/[1-8]/g, "R"));

@@ -1,4 +1,5 @@
 import { ICreep, ACTION } from "./ICreep";
+
 import { profile } from "../../Profiler/Profiler";
 
 @profile

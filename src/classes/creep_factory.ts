@@ -17,7 +17,7 @@ interface skeleton {
 }
 
 @profile
-class Creep_factory implements Mnemonic {
+export class Creep_factory implements Mnemonic {
     room_name: string;
 
     @mnemon
@@ -29,15 +29,15 @@ class Creep_factory implements Mnemonic {
     @mnemon
     spawn_id: Id<StructureSpawn>;
 
-    @mnemon
-    spawning_queue: skeleton[];
+    // @mnemon
+    // spawning_queue: skeleton[];
 
     @mnemon
     creeps_name: string[];
 
     constructor(room_name: string) {
         this.room_name = room_name;
-        this.spawning_queue = [];
+        // this.spawning_queue = [];
     }
 
     public locator(): { [key: string]: any } {
@@ -52,9 +52,10 @@ class Creep_factory implements Mnemonic {
 
     private _can_spawn_new_creep(_spawn: StructureSpawn, _role: string): Boolean {
         const already_spawned = this._get_amount_of_creep_with_role(_role);
+
         return (
-            _spawn.spawnCreep(Config.role_to_bodyparts[Utils.round_lvl(this.lvl)][_role], "testspace", { dryRun: true }) === 0 &&
-            already_spawned < Config.limit_per_role_per_room[Utils.round_lvl(this.lvl)][_role] &&
+            _spawn.spawnCreep(Config.roles_settings[Utils.round_lvl(this.lvl)][_role].body_part, "testspace", { dryRun: true }) === 0 &&
+            already_spawned < Config.roles_settings[Utils.round_lvl(this.lvl)][_role].limit &&
             !_spawn.spawning
         );
     }
@@ -62,13 +63,12 @@ class Creep_factory implements Mnemonic {
     private _spawn_creep(spawn: StructureSpawn, name: string, _role: string, lvl: number): ScreepsReturnCode | number {
         // console.log("spawn " + lvl + " role " + _role + " Name " + name);
         if (!spawn.spawning) {
-            this.classes_in_room[_role] += 1;
-            return spawn.spawnCreep(Config.role_to_bodyparts[lvl][_role], name, {
+            return spawn.spawnCreep(Config.roles_settings[Utils.round_lvl(lvl)][_role].body_part, name, {
                 memory: {
                     _trav: undefined,
                     _travel: undefined,
                     role: _role,
-                    source_to_target: Config.class_to_source[_role],
+                    source_to_target: Config.roles_settings[Utils.round_lvl(lvl)][_role].source,
                     needs_energy: false,
                     target: undefined,
                     action: "IDLE",
@@ -81,34 +81,24 @@ class Creep_factory implements Mnemonic {
         return -20;
     }
 
+    private _try_spawn(spawn: StructureSpawn, role: string) {
+        const r = Utils._C(`${spawn.name} spawning `, this._spawn_creep(spawn, Utils.name_new_creep(role, this.lvl), role, this.lvl));
+        if (r === OK) this.classes_in_room[role] += 1;
+    }
+
     public update(): void {
         this.locator();
-
-        const count_creeps = _.size(this.creeps_name);
-        if (count_creeps < Config.total_possible_creeps(this.lvl)) {
-            const spawn = Utils.get_by_id(this.spawn_id) as StructureSpawn;
-
-            _.each(Config.all_roles(this.lvl), (role: string) => {
-                if (this._can_spawn_new_creep(spawn, role)) {
-                    this.spawning_queue.push({
-                        name: Utils.name_new_creep(role, this.lvl),
-                        role: role,
-                        lvl: this.lvl,
-                    });
-                }
-                //TODO sort spawn queue
-            });
-        }
-        // console.log(this.spawning_queue);
     }
 
     public run(): void {
-        if (this.spawning_queue && this.spawning_queue.length > 0) {
+        const count_creeps = _.size(this.creeps_name);
+
+        if (count_creeps < Config.total_possible_creeps(this.lvl)) {
             const spawn = Utils.get_by_id(this.spawn_id) as StructureSpawn;
-            const skelet = this.spawning_queue.shift();
-            if (skelet) Utils._C(`${spawn.name} spawning `, this._spawn_creep(spawn, skelet.name, skelet.role, skelet.lvl));
+            const roles = Config.all_roles(this.lvl);
+            _.each(Config.all_roles(this.lvl), (role: string) => {
+                if (this._can_spawn_new_creep(spawn, role)) this._try_spawn(spawn, role);
+            });
         }
     }
 }
-
-export { Creep_factory };

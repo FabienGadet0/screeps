@@ -53,6 +53,19 @@ export class Room_orchestrator implements Mnemonic {
         return Config.room_schema;
     }
 
+    private _manage_emergency() {
+        if (!Memory.rooms_new[this.room_name].commands.all_harvester) {
+            if (
+                (Memory.rooms_new[this.room_name].classes_in_room["harvester"] === 0 &&
+                    Memory.rooms_new[this.room_name].cripple_creeps.length > 0) ||
+                Memory.rooms_new[this.room_name].cripple_creeps.length >= Config.EMERGENCY_CRIPPLE
+            )
+                Memory.rooms_new[this.room_name].commands.all_harvester = true;
+        } else if (Memory.rooms_new[this.room_name].cripple_creeps.length === 0) {
+            Memory.rooms_new[this.room_name].commands.all_harvester = false;
+        }
+    }
+
     public update(): void {
         // console.log(`repair task ${Memory.rooms_new[this.room_name].room_tasks["repair"]}`);
 
@@ -67,6 +80,7 @@ export class Room_orchestrator implements Mnemonic {
 
     public run(): void {
         if (this._check_if_room_is_initialized()) {
+            this._manage_emergency();
             this.memory_manager.run();
             this.bunker_planner.run();
             this.building_manager.run();

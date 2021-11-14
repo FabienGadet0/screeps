@@ -36,7 +36,6 @@ export abstract class IBuilding {
         this.main_action = ACTION.IDLE;
     }
 
-    //TODO make it better
     private action_to_func(...target: any): any {
         switch (this.action) {
             case ACTION.IDLE:

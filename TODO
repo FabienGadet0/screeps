@@ -9,7 +9,7 @@
 
 
 //TODO add command that spawn
-.spawnCreep([MOVE,MOVE,WORK,CARRY], "sendhelp", {
+Game.spawns["Spawn1"].spawnCreep([MOVE,MOVE,WORK,CARRY], "sendhelp", {
     memory: {
         _trav: undefined,
         _travel: undefined,
@@ -24,4 +24,5 @@
     },
 })
 
-//TODO classe_in_room doesn't update well . problem is spawn try to create many in a row
+
+//TODO CHECKPOINTS

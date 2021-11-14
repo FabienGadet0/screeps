@@ -75,13 +75,11 @@ export class Visualizer implements Mnemonic {
 
     public draw_tasks() {
         let to_print = [];
-        // console.log(`build task from viz ${Memory.rooms_new[this.room_name].room_tasks["build"]}`);
-
         to_print.push(" ");
         _.each(Object.keys(Memory.rooms_new[this.room_name].room_tasks), (task_name: string) => {
             if (task_name !== "updater") {
                 const size = _.size(Memory.rooms_new[this.room_name].room_tasks[task_name]);
-                size >= 10 ? to_print.push([` ${size}  ${task_name}           `]) : to_print.push([` ${size}  ${task_name}          `]);
+                size >= 10 ? to_print.push([` ${size}  ${task_name}            `]) : to_print.push([` ${size}  ${task_name}           `]);
             }
         });
         to_print.push(" ");

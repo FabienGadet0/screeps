@@ -11,6 +11,7 @@ export class Upgrader extends ICreep {
         super(creep_name);
         this.controler_id = Game.spawns[this.spawn_name].room.controller!.id;
         this.main_action = ACTION.UPGRADE_CONTROLLER;
+
         this.set(ACTION.UPGRADE_CONTROLLER, this.controler_id);
         // this.creep.memory.source_to_target = 0;
     }

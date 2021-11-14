@@ -24,7 +24,6 @@ export abstract class ICreep {
     lvl: number;
     spawn_name: string;
     creep: Creep;
-    ticksToLive?: number;
     source_ids: Id<Source>[];
     last_return_code: ScreepsReturnCode | CreepMoveReturnCode | number;
     main_action: ACTION;
@@ -50,18 +49,14 @@ export abstract class ICreep {
         this.last_return_code = OK;
         this.lvl = this.creep.memory.lvl;
         this.spawn_name = this.creep.memory.spawn_name;
-        this.ticksToLive = this.creep.ticksToLive;
         this.creep.memory.target = undefined;
         this.doing_task = false;
         this.set(ACTION.WAITING_NEXT_TASK, undefined);
         this.main_action = ACTION.WAITING_NEXT_TASK;
         this.needs_energy = false;
         this.kys = false;
-        // this.creep.memory.source_to_target = 0;
-        this.creep.memory.source_to_target = Config.class_to_source[this.creep.memory.role] || 0;
         this._ACTION_to_func = {
             IDLE: this.idle,
-            // MOVETO: this.moveTo,
             RENEW: this.renew,
             BUILD: this.creep.build,
             REPAIR: this.creep.repair,
@@ -73,8 +68,6 @@ export abstract class ICreep {
 
         this._ACTION_to_icon = {
             IDLE: "",
-            // HARVEST: "⛏️Harvest",
-            // MOVETO: "",
             RENEW: "⬆️Renew",
             BUILD: "👷Build",
             REPAIR: "👷Repair",
@@ -99,7 +92,6 @@ export abstract class ICreep {
     //         // .exhaustive()
     // }
 
-    //TODO make it better
     private action_to_func(...target: any): any {
         switch (this.action) {
             case ACTION.IDLE:
@@ -166,6 +158,17 @@ export abstract class ICreep {
         this.target = target;
     }
 
+    protected get_energy() {
+        let source_target = Utils.get_by_id(this.source_ids[this.creep.memory.source_to_target]) as Source;
+
+        let r = this.creep.harvest(source_target);
+        if (r === ERR_NOT_IN_RANGE) this.moveTo(source_target.pos);
+        //? If source is empty try another one , assuming there are only two in the map.
+        else if (r === ERR_NOT_ENOUGH_RESOURCES && this.source_ids.length > 0)
+            source_target = Utils.get_by_id(this.source_ids[this.creep.memory.source_to_target === 0 ? 1 : 0]) as Source;
+        else Utils._C(this.creep, this.last_return_code);
+    }
+
     public update() {
         this.creep = Game.creeps[this.creep_name];
         if (this.kys) this.creep.suicide();
@@ -193,20 +196,23 @@ export abstract class ICreep {
     protected logic() {}
 
     private _emergency_handling() {
-        if (Memory.rooms_new[this.creep.room.name].commands.all_harvest) {
-            if (this.creep.harvest(Game.getObjectById(this.source_ids[0]) as Source) === ERR_NOT_IN_RANGE) {
-                this.creep.moveTo(Game.getObjectById(this.source_ids[0]) as Source);
+        if (Memory.rooms_new[this.creep.room.name].commands.all_harvester) {
+            if (this.is_renewing()) this.creep.say("Milk pls");
+            else {
+                this.creep.say("Emergency");
+                let target = Game.spawns[this.spawn_name];
+                if (this.is_full()) {
+                    const r = this.creep.transfer(target, RESOURCE_ENERGY);
+                    if (r === ERR_NOT_IN_RANGE) this.creep.moveTo(target);
+                    else if (r === ERR_FULL) target = Memory.rooms_new[this.creep.room.name].room_tasks["transfer"].shift();
+                } else if (
+                    this.creep.harvest(Game.getObjectById(this.source_ids[this.creep.memory.source_to_target]) as Source) ===
+                    ERR_NOT_IN_RANGE
+                ) {
+                    this.creep.moveTo(Game.getObjectById(this.source_ids[this.creep.memory.source_to_target]) as Source);
+                }
                 return -1;
             }
-            if (this.is_renewing()) return OK;
-            return -1;
-        }
-        if (Memory.rooms_new[this.creep.room.name].commands.all_transfer_to_spawn) {
-            if (this.creep.transfer(Game.spawns[this.spawn_name], RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
-                this.creep.moveTo(Game.spawns[this.spawn_name]);
-            }
-            if (this.is_renewing()) return OK;
-            return -1;
         }
         return OK;
     }
@@ -217,14 +223,7 @@ export abstract class ICreep {
 
             if (this.needs_energy && !this.is_renewing()) {
                 try {
-                    let source_target = Utils.get_by_id(this.source_ids[this.creep.memory.source_to_target]) as Source;
-
-                    r = this.creep.harvest(source_target);
-                    if (r === ERR_NOT_IN_RANGE) this.moveTo(source_target.pos);
-                    //? If source is empty try another one , assuming there are only two in the map.
-                    else if (r === ERR_NOT_ENOUGH_RESOURCES && this.source_ids.length > 0)
-                        source_target = Utils.get_by_id(this.source_ids[this.creep.memory.source_to_target === 0 ? 1 : 0]) as Source;
-                    else Utils._C(this.creep, this.last_return_code);
+                    this.get_energy();
                 } catch (error) {}
             }
             if (!this.needs_energy && !this.is_renewing()) {
@@ -284,7 +283,8 @@ export abstract class ICreep {
 
     // //* ----------------RENEWING LOGIC --------------------------
     protected needsRenew(): boolean {
-        return (this.ticksToLive || 0) / Config.MAX_TICKS_TO_LIVE <= Config.PERCENTAGE_TICKS_BEFORE_NEEDS_REFILL;
+        if (this.creep.ticksToLive) return this.creep.ticksToLive / Config.MAX_TICKS_TO_LIVE <= Config.PERCENTAGE_TICKS_BEFORE_NEEDS_REFILL;
+        return false;
     }
 
     protected manageRenew(spawn: StructureSpawn): void {
@@ -294,10 +294,12 @@ export abstract class ICreep {
             Memory.rooms_new[this.creep.room.name].cripple_creeps.push(this.creep_name);
         }
 
-        if (this.is_renewing() && this.creep.pos.isNearTo(spawn)) this.creep.transfer(spawn, RESOURCE_ENERGY);
-        //? if full life and was renewing , set to idle to get out of the renewing loop.
-        if (this.is_renewing() && this.ticksToLive && this.ticksToLive >= Config.MAX_TICKS_TO_LIVE - 80) {
-            console.log(this.creep + " -> me no cripple uwu " + this.ticksToLive);
+        // if (this.is_renewing() && this.creep.pos.isNearTo(spawn) && this.has_energy()) this.creep.transfer(spawn, RESOURCE_ENERGY);
+        // //? if full life and was renewing , set to idle to get out of the renewing loop.
+        // console.log(this.creep + " -> " + this.creep.ticksToLive + " ticks is renewing : " + this.is_renewing());
+
+        if (this.is_renewing() && this.creep.ticksToLive && this.creep.ticksToLive >= Config.MAX_TICKS_TO_LIVE - 80) {
+            console.log(this.creep + " -> me no cripple uwu " + this.creep.ticksToLive);
             this.set(ACTION.WAITING_NEXT_TASK, undefined);
             Memory.rooms_new[this.creep.room.name].cripple_creeps.remove(this.creep_name);
         }
@@ -307,7 +309,16 @@ export abstract class ICreep {
 
     public debug_me(): string {
         return (
-            "[DEBUG] " + this.creep + " lvl " + this.lvl + " ticks " + this.ticksToLive + " / action->" + this.action + " = " + this.target
+            "[DEBUG] " +
+            this.creep +
+            " lvl " +
+            this.lvl +
+            " ticks " +
+            this.creep.ticksToLive +
+            " / action->" +
+            this.action +
+            " = " +
+            this.target
         );
     }
 }

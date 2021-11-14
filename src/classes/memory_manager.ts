@@ -55,6 +55,7 @@ class Memory_manager implements Mnemonic {
             "minerals",
             "repair",
             "tower",
+            "ruins",
             "extensions_not_full",
             "containers_not_full",
         ]);
@@ -84,13 +85,9 @@ class Memory_manager implements Mnemonic {
         this.update_room_component(room, ["hostile_creeps"], 5);
         this.update_room_component(room, ["flags"], 10);
         this.update_room_component(room, ["creeps"], 30);
+        this.update_room_component(room, ["ruins_with_energy"], 100);
 
         //* TASKS ------------------------------------------------------------------
-        // if (_.isEmpty(Memory.rooms_new[this.room_name].room_tasks["transfer"])) {
-        // console.log(`no mnemon ${Memory.rooms_new[this.room_name].room_tasks["transfer"]}`);
-        // console.log(`mnemon ${Memory.rooms_new[this.room_name].room_tasks["transfer"]}`);
-        // console.log(`after locator no mnemon ${Memory.rooms_new[this.room_name].room_tasks["transfer"]}`);
-        // console.log(`after locator mnemon ${Memory.rooms_new[this.room_name].room_tasks["transfer"]}`);
 
         if (_.isEmpty(Memory.rooms_new[this.room_name].room_tasks["transfer"])) {
             this.update_room_component(room, ["extensions_not_full", "containers_not_full", "dropped_resources", "towers", "spawns"], 5);
@@ -98,14 +95,12 @@ class Memory_manager implements Mnemonic {
             const not_full_spawns = this._get_not_full(this.structure_id["spawns"]);
             const not_full_towers = this._get_not_full(this.structure_id["towers"]);
             if (this.structure_id["extensions_not_full"].length > 0 || not_full_spawns || not_full_towers) {
-                // console.log("something isn't full");
-
-                // console.log("spawns that arent full " + not_full_spawns + " ->> ext + " + this.structure_id["extensions_not_full"]);
+                let to_add = [not_full_spawns, this.structure_id["extensions_not_full"]];
+                if (this.structure_id["extensions_not_full"].length === 0) to_add.push(not_full_towers);
                 Memory.rooms_new[this.room_name].room_tasks["transfer"] = _.filter(
-                    _.flatten([not_full_spawns, this.structure_id["extensions_not_full"], not_full_towers]),
+                    _.flatten(to_add), //TODO ADD and see when to add it not_full_towers
                     (v) => !!v,
                 );
-                // console.log(_.size(Memory.rooms_new[this.room_name].room_tasks["transfer"]) + " transfer tasks added ");
             }
         }
 
@@ -262,6 +257,13 @@ class Memory_manager implements Mnemonic {
         });
     }
 
+    private _find_ruins_with_resources(room: Room): Id<Ruin>[] {
+        return room
+            .find(FIND_RUINS)
+            .filter((structure) => structure.store.getUsedCapacity(RESOURCE_ENERGY) > 0)
+            .map((t) => t.id);
+    }
+
     // prettier-ignore
     public update_room_component(room: Room, update_list: string[],tick_before_refresh:number=Config.TICK_BEFORE_REFRESH): void {
         if (update_list.length >= 1)
@@ -273,6 +275,7 @@ class Memory_manager implements Mnemonic {
                         .with("creeps", () => { this._creeps_variables(room); })
                         .with("hostile_creeps", () => { Memory.rooms_new[this.room_name]["hostile_creeps"] = this._find_hostile_creeps(room); })
                         .with("roads", () => { this.structure_id["roads"] = this._find_roads_ids(room); }) //? too costly.
+                        .with("ruins", () => { this.structure_id["ruins_with_energy"] = this._find_ruins_with_resources(room); }) //? too costly.
                         .with("sources", () => { this.structure_id["sources"] = this._find_sources_ids(room); })
                         .with("spawns", () => { this.structure_id["spawns"] = this._find_spawns_ids(room); })
                         .with("construction_sites", () => { this.structure_id["construction_sites"] = this._find_construction_sites_ids(room); })
@@ -287,7 +290,7 @@ class Memory_manager implements Mnemonic {
                         .with(__, () => {Utils._C("UPDATER", -1000, "Couldn't find corresponding update for " + up);})
                         .exhaustive()
                     this.updater[up] = Game.time;
-                    console.log(up + " updated");
+                    // console.log(up + " updated");
                 }
             });
     }

@@ -12,7 +12,7 @@ export function get_flag(name: string) {
     return Game.flags[name.toUpperCase()];
 }
 
-export function get_by_id(id: Id<any>): Structure | Creep | Source | Structure<StructureConstant> | undefined {
+export function get_by_id(id: Id<any>): Structure | Creep | Source | Structure<StructureConstant> | Ruin | undefined {
     try {
         return Game.getObjectById(id);
     } catch (error) {

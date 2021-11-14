@@ -64,12 +64,7 @@ export class Bunker_planner implements Mnemonic {
         });
     }
 
-    private _get_structures_for_lvl(
-        lvl: number,
-        bunker_structure_lvl: string[],
-        bunker_blueprint: string[],
-        top_left_corner_pos: RoomPosition,
-    ) {
+    private _create_structs(lvl: number, bunker_structure_lvl: string[], bunker_blueprint: string[], top_left_corner_pos: RoomPosition) {
         let y = 0;
         let x = 0;
         const room = Game.rooms[this.room_name];
@@ -91,7 +86,8 @@ export class Bunker_planner implements Mnemonic {
 
     private _create_structures_with_actual_lvl() {
         const rcl = Game.rooms[this.room_name].controller!.level;
-        this._get_structures_for_lvl(rcl, Config.bunkerStructureLevels, Config.blueprint, Game.flags["bunker_top_left"].pos);
+        this._create_structs(rcl, Config.bunkerStructureLevels, Config.blueprint, Game.flags["bunker_top_left"].pos);
+        this._create_structs(rcl, Config.bunkerRampartLevels, Config.bunkerRampartBlueprint, Game.flags["bunker_top_left"].pos);
     }
 
     private _delete_all_roads() {
