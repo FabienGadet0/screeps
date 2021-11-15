@@ -44,6 +44,9 @@ class Creep_manager implements Mnemonic {
     @mnemon
     structure_id: string[];
 
+    @mnemon
+    timer: Record<string, number>;
+
     constructor(room_name: string) {
         this.room_name = room_name;
         this.creeps = {};
@@ -94,28 +97,28 @@ class Creep_manager implements Mnemonic {
 
         //? Check if all creeps are at the same level as the room otherwise kill it , the factory will then respawn one at the right level.
         if (room.energyCapacityAvailable === room.energyAvailable && _.size(this.creeps_name) > Config.total_possible_creeps(this.lvl)) {
-            //TODO and if creep_queue is empty.
-            //? if room is full of energy
-
             const under_level_creeps: ICreep[] = _.filter(this.creeps, (c: ICreep) => {
                 return c.lvl < this.lvl;
             });
 
-            if (under_level_creeps[0]) {
-                under_level_creeps[0].kys = true;
-                console.log(`${under_level_creeps[0].creep} -> kys`);
-            }
+            if (under_level_creeps[0]) under_level_creeps[0].kys = true;
         }
     }
 
     private _clean_creep() {
+        // if (this.timer["nothing_to_build"] !== 0 && Game.time - this.timer["nothing_to_build"] > Config.DELETE_BUILDERS_TICK_THRESHOLD) {
+        //     const creeps = _.filter(this.creeps, (creep: ICreep) => creep.creep.memory.role === "builder");
+        //     if (creeps.length > 1) {
+        //         _.each(creeps.slice(1), (creep: ICreep) => {
+        //             creep.kys = true;
+        //         });
+        //         this.timer["nothing_to_build"] = 0;
+        //     }
+        // }
         if (_.size(this.creeps_name) > Config.total_possible_creeps(this.lvl)) {
             Object.entries(this.classes_in_room).map(([key, value]) => {
                 const creeps = _.filter(this.creeps, (creep: ICreep) => creep.creep.memory.role === key);
-                if (_.size(creeps) > Config.maximum_creep_for_role(key, this.lvl)) {
-                    creeps[0].creep.say("sayonara");
-                    creeps[0].creep.suicide();
-                }
+                if (_.size(creeps) > Config.maximum_creep_for_role(key, this.lvl)) creeps[0].creep.kys = true;
             });
         }
     }

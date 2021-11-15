@@ -9,6 +9,7 @@ export const MEMHACK = false;
 export const BUILD_TOGETHER = false;
 export const TICK_BEFORE_REFRESH = 10;
 export const EMERGENCY_CRIPPLE = 3;
+export const DELETE_BUILDERS_TICK_THRESHOLD = 400;
 
 //? Lvls :
 //* 300  -> 1 spawn
@@ -122,7 +123,7 @@ export const roles_settings: Record<number, Record<string, role_setting>> = {
         builder: {
             source: 1,
             spawn_priority: SPAWN_IMPORTANCE.HIGH,
-            limit: 2,
+            limit: 1,
             body_part: [
                 MOVE,
                 MOVE,
@@ -149,7 +150,7 @@ export const roles_settings: Record<number, Record<string, role_setting>> = {
         upgrader: {
             source: 0,
             spawn_priority: SPAWN_IMPORTANCE.MID,
-            limit: 2,
+            limit: 3,
             body_part: [
                 MOVE,
                 MOVE,
@@ -159,13 +160,12 @@ export const roles_settings: Record<number, Record<string, role_setting>> = {
                 MOVE,
                 MOVE,
                 MOVE,
-                MOVE,
-                MOVE,
-                MOVE,
                 WORK,
                 WORK,
                 WORK,
                 WORK,
+                WORK,
+                CARRY,
                 CARRY,
                 CARRY,
                 CARRY,
@@ -237,6 +237,7 @@ export const room_schema = {
         delete_sites: false,
         delete_roads: false,
     },
+    timer: { nothing_to_build: 0 },
     commands: { all_harvest: undefined, all_transfer_to_spawn: undefined },
     update_map: {
         new_creep: false,

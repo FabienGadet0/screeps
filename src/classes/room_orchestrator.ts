@@ -53,6 +53,19 @@ export class Room_orchestrator implements Mnemonic {
         return Config.room_schema;
     }
 
+    private _manage_timers() {
+        if (
+            Memory.rooms_new[this.room_name].timer["nothing_to_build"] === 0 &&
+            _.isEmpty(
+                Memory.rooms_new[this.room_name].room_tasks["build"] &&
+                    Memory.rooms_new[this.room_name].classes_in_room["builder"].length > 0,
+            )
+        )
+            Memory.rooms_new[this.room_name].timer["nothing_to_build"] = Game.time;
+        else if (!_.isEmpty(Memory.rooms_new[this.room_name].room_tasks["build"]))
+            Memory.rooms_new[this.room_name].timer["nothing_to_build"] = 0;
+    }
+
     private _manage_emergency() {
         if (!Memory.rooms_new[this.room_name].commands.all_harvester) {
             if (
@@ -76,6 +89,8 @@ export class Room_orchestrator implements Mnemonic {
         this.building_manager.update();
         this.creep_manager.update();
         this.visualizer.update();
+
+        this._manage_timers();
     }
 
     public run(): void {
