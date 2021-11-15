@@ -125,6 +125,7 @@ class Creep_manager implements Mnemonic {
 
     public update(): boolean {
         this.locator();
+
         this._clean_creep();
         this._fix_low_level_creeps();
 

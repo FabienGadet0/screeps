@@ -176,6 +176,7 @@ export abstract class ICreep {
         if (this.kys) this.creep.suicide();
         else {
             if (
+                this.creep &&
                 this.creep.hits !== this.creep.hitsMax &&
                 !Memory.rooms_new[this.creep.room.name].room_tasks["heal"].includes(this.creep_id)
             )

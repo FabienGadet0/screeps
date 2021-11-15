@@ -56,10 +56,8 @@ export class Room_orchestrator implements Mnemonic {
     private _manage_timers() {
         if (
             Memory.rooms_new[this.room_name].timer["nothing_to_build"] === 0 &&
-            _.isEmpty(
-                Memory.rooms_new[this.room_name].room_tasks["build"] &&
-                    Memory.rooms_new[this.room_name].classes_in_room["builder"].length > 0,
-            )
+            _.isEmpty(Memory.rooms_new[this.room_name].room_tasks["build"]) &&
+            Memory.rooms_new[this.room_name].classes_in_room["builder"].length > 0
         )
             Memory.rooms_new[this.room_name].timer["nothing_to_build"] = Game.time;
         else if (!_.isEmpty(Memory.rooms_new[this.room_name].room_tasks["build"]))
