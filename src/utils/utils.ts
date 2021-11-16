@@ -38,7 +38,8 @@ export function round_lvl(n: number): number {
         .when((n) => n.between(300, 549), () => { return 300 })
         .when((n) => n.between(550, 799), () => { return 550 })
         .when((n) => n.between(800, 1299), () => { return 800 })
-        .when((n) => n.between(1300, 1700), () => { return 1300 })
+        .when((n) => n.between(1300, 1799), () => { return 1300 })
+        .when((n) => n.between(1800, 2500), () => { return 1800 })
         .with(__, () => { console.log("No number in range " + n); return -1 })
         .exhaustive();
 }
