@@ -20,12 +20,15 @@ export class Tower extends IBuilding {
             if (this.doing_task && this.target) {
                 const target_obj = Game.getObjectById(this.target);
                 console.log("tower before");
-                if ((this.action === ACTION.REPAIR || this.action === ACTION.HEAL) && target_obj.hits === target_obj.hitsMax)
+                if (
+                    (this.action === ACTION.REPAIR || this.action === ACTION.HEAL) &&
+                    target_obj.hits &&
+                    target_obj.hits === target_obj.hitsMax
+                )
                     this._task_finished();
                 else if (this.action === ACTION.TRANSFER && target_obj.store.getFreeCapacity() === 0) this._task_finished();
                 else if (this.action === ACTION.ATTACK && !target_obj) this._task_finished();
             }
         }
-        console.log("tower after");
     }
 }

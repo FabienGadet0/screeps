@@ -54,14 +54,18 @@ export class Room_orchestrator implements Mnemonic {
     }
 
     private _manage_timers() {
-        if (
-            Memory.rooms_new[this.room_name].timer["nothing_to_build"] === 0 &&
-            _.isEmpty(Memory.rooms_new[this.room_name].room_tasks["build"]) &&
-            Memory.rooms_new[this.room_name].classes_in_room["builder"].length > 0
-        )
-            Memory.rooms_new[this.room_name].timer["nothing_to_build"] = Game.time;
-        else if (!_.isEmpty(Memory.rooms_new[this.room_name].room_tasks["build"]))
-            Memory.rooms_new[this.room_name].timer["nothing_to_build"] = 0;
+        try {
+            if (
+                Memory.rooms_new[this.room_name].timer["nothing_to_build"] === 0 &&
+                _.isEmpty(Memory.rooms_new[this.room_name].room_tasks["build"]) &&
+                Memory.rooms_new[this.room_name].classes_in_room["builder"].length > 0
+            )
+                Memory.rooms_new[this.room_name].timer["nothing_to_build"] = Game.time;
+            else if (!_.isEmpty(Memory.rooms_new[this.room_name].room_tasks["build"]))
+                Memory.rooms_new[this.room_name].timer["nothing_to_build"] = 0;
+        } catch (error) {
+            console.log(`manage timer : ${error}`);
+        }
     }
 
     private _manage_emergency() {
@@ -83,12 +87,13 @@ export class Room_orchestrator implements Mnemonic {
         // this.locator();
         this.memory_manager.update(); //* Always first
         this.bunker_planner.update();
-
         this.building_manager.update();
         this.creep_manager.update();
         this.visualizer.update();
+        console.log("ee");
 
         this._manage_timers();
+        console.log("ee");
     }
 
     public run(): void {

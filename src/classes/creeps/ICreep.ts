@@ -224,6 +224,8 @@ export abstract class ICreep {
         if (this._emergency_handling() === OK) {
             let r = 0;
 
+            if (this.is_renewing() && this.has_energy()) this.creep.transfer(Game.spawns[this.spawn_name], RESOURCE_ENERGY);
+
             if (this.needs_energy && !this.is_renewing()) {
                 try {
                     this.get_energy();
